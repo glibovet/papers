@@ -1,12 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:security="http://www.springframework.org/schema/security"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:mvc="http://www.springframework.org/schema/mvc"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+       http://www.springframework.org/schema/security
+	   http://www.springframework.org/schema/security/spring-security-4.1.xsd">
 
     <context:component-scan base-package="ua.com.papers" />
+    <!-- Process annotations on registered beans like @Autowired... -->
+    <context:annotation-config/>
     <mvc:annotation-driven/>
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:db.properties</value>
+            </list>
+        </property>
+    </bean>
+
     <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>
     <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>
     <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>
@@ -18,4 +32,82 @@
         <property name="exposeContextBeansAsAttributes" value="true"/>
     </bean>
 
+    <!-- BoneCP configuration -->
+    <bean id="mainDataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close">
+        <property name="driverClass" value="com.mysql.jdbc.Driver" />
+        <property name="jdbcUrl" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="idleConnectionTestPeriodInMinutes" value="60"/>
+        <property name="idleMaxAgeInMinutes" value="240"/>
+        <property name="maxConnectionsPerPartition" value="30"/>
+        <property name="minConnectionsPerPartition" value="10"/>
+        <property name="partitionCount" value="3"/>
+        <property name="acquireIncrement" value="5"/>
+        <property name="statementsCacheSize" value="100"/>
+        <property name="releaseHelperThreads" value="3"/>
+    </bean>
+
+    <!-- SPRING - JPA -->
+    <jpa:repositories
+            base-package="ua.com.papers.persistence.dao" />
+
+    <bean class="org.springframework.orm.jpa.JpaTransactionManager"
+          id="transactionManager">
+        <property name="entityManagerFactory"
+                  ref="entityManagerFactory" />
+        <property name="jpaDialect">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaDialect" />
+        </property>
+    </bean>
+
+    <bean id="entityManagerFactory"
+          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="mainDataSource" />
+        <property name="packagesToScan" value="ua.com.papers.persistence.entities"/>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <property name="generateDdl" value="true" />
+                <property name="showSql" value="false"/>
+                <property name="databasePlatform" value="org.hibernate.dialect.MySQLDialect"/>
+                <property name="database" value="MYSQL"/>
+            </bean>
+        </property>
+        <property name="jpaProperties">
+            <value>
+                hibernate.cache.use_second_level_cache = true
+                hibernate.cache.region.factory_class = org.hibernate.cache.ehcache.EhCacheRegionFactory
+                hibernate.cache.use_query_cache = true
+                hibernate.generate_statistics = true
+            </value>
+        </property>
+    </bean>
+
+    <!-- enable use-expressions -->
+    <security:http auto-config="true" use-expressions="true">
+
+        <security:intercept-url pattern="/admin**" access="hasRole('ROLE_ADMIN')" />
+
+        <!-- access denied page -->
+        <security:access-denied-handler error-page="/403" />
+
+        <security:form-login
+                login-page="/login"
+                default-target-url="/welcome"
+                authentication-failure-url="/login?error"
+                username-parameter="username"
+                password-parameter="password" />
+        <security:logout logout-success-url="/login?logout"  />
+        <!-- enable csrf protection -->
+        <security:csrf/>
+    </security:http>
+
+    <!-- Select users and user_roles from database -->
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="customUserDetailsService">
+            <security:password-encoder hash="md5"/>
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+    <bean id="customUserDetailsService" class="ua.com.papers.services.users.CustomUserDetailsService"/>
 </beans>
