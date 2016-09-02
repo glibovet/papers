@@ -13,6 +13,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class IndexController {
     @RequestMapping(value = "", method = RequestMethod.GET)
     public String indexPage(Model model){
-        return "index";
+        return "index/index";
     }
 }
