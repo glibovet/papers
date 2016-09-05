@@ -7,9 +7,8 @@
     <jsp:include page="../common/include_resources.jsp" />
     <link rel="stylesheet" href="/resources/css/css/font-awesome.min.css">
     <link rel="stylesheet" href="/resources/css/style.css">
-    <script src="/resources/js/index/index.js"></script>
 </head>
-<body data-ng-app="index" data-ng-controller="search_box">
+<body>
 <div class="site-wrapper">
     <div class="site-wrapper-inner">
         <div class="cover-container">
@@ -33,17 +32,10 @@
                     <div class="input-group">
                         <input type="text" class="form-control" placeholder="Дослідження морських котиків">
                         <span class="input-group-btn">
-                            <button class="btn btn-default" id="search" data-ng-click="startSearch();" type="button">Шукати! <i class="fa fa-search" aria-hidden="true"></i></button>
+                            <button class="btn btn-default" id="search" type="button">Шукати! <i class="fa fa-search" aria-hidden="true"></i></button>
                         </span>
                     </div>
                 </p>
-                <div>
-                    <ul id="search_result_list" style="display: none;">
-                        <li data-ng-repeat="item in result">
-                            {{ item.name }}
-                        </li>
-                    </ul>
-                </div>
             </div>
         </div>
     </div>

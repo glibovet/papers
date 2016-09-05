@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<jsp:include page="bootstrap_include.jsp" />
+<link href="/resources/icons/favicon.png" rel="shortcut icon" type="image/png" />
 
-<script src="/resources/js/angular.min.js"></script>
+<jsp:include page="bootstrap_include.jsp" />
