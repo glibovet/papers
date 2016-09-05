@@ -5,25 +5,12 @@
 <head>
     <title>Пошук наукових робіт</title>
     <jsp:include page="../common/include_resources.jsp" />
-    <link rel="stylesheet" href="/resources/css/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/resources/css/style.css">
 </head>
 <body>
 <div class="site-wrapper">
     <div class="site-wrapper-inner">
         <div class="cover-container">
-            <div class="masthead clearfix">
-                <div class="inner">
-                    <h3 class="masthead-brand"><a href="/"><i class="fa fa-search fa-2x" aria-hidden="true"></i></a></h3>
-                    <nav>
-                        <ul class="nav masthead-nav">
-                            <li class="active"><a href="#">Home</a></li>
-                            <li><a href="#">Features</a></li>
-                            <li><a href="#">Contact</a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
+            <jsp:include page="../common/header.jsp"/>
 
             <div class="inner cover">
                 <h1 class="cover-heading">тут типу текст запрошення до пошуку</h1>
