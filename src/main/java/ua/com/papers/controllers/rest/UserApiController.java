@@ -1,12 +1,16 @@
 package ua.com.papers.controllers.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.com.papers.convertors.Fields;
 import ua.com.papers.exceptions.PapersException;
+import ua.com.papers.exceptions.conflict.EmailExistsException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.pojo.response.Response;
 import ua.com.papers.pojo.response.ResponseFactory;
+import ua.com.papers.pojo.view.UserView;
 import ua.com.papers.services.users.IUserService;
 
 import java.util.*;
@@ -25,15 +29,31 @@ public class UserApiController {
     @Autowired
     private ResponseFactory responseFactory;
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @RequestMapping(
+            value = "/{id}",
+            method = RequestMethod.GET
+    )
     public
-    @ResponseBody
-    Response<Map<String, Object>>
+    @ResponseBody Response<Map<String, Object>>
     getUser(
             @PathVariable("id") int userId,
             @RequestParam(value = "fields", required = false, defaultValue = Fields.User.DEFAULT) Set<String> fields
     ) throws PapersException {
         return responseFactory.get(userService.getUserByIdMap(userId, fields));
+    }
+
+    @RequestMapping(
+            value = "/",
+            method = RequestMethod.PUT,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public
+    @ResponseBody Response<Integer>
+    createUser(
+            @RequestBody UserView view
+    ) throws PapersException {
+        return responseFactory.get(userService.create(view));
     }
 
 }

@@ -4,9 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.exceptions.conflict.EmailExistsException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.persistence.dao.repositories.UsersRepository;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.pojo.view.UserView;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -50,9 +53,22 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
-    public UserEntity create(UserEntity user) {
-        UserEntity created = user;
-        return usersRepository.saveAndFlush(created);
+    public int create(UserView view) throws EmailExistsException, ServiceErrorException {
+        try {
+            getByEmail(view.getEmail());
+
+            // should be exception
+            // otherwise user exists and exception should be throw
+            throw new EmailExistsException();
+        } catch (NoSuchEntityException e) {
+            UserEntity entity = new UserEntity();
+            merge(entity, view);
+            entity = usersRepository.saveAndFlush(entity);
+            if(entity == null){
+                throw new ServiceErrorException();
+            }
+            return entity.getId();
+        }
     }
 
     @Override
@@ -65,6 +81,18 @@ public class UserServiceImpl implements IUserService {
         updatedUser.setEmail(user.getEmail());
         //TODO add oll other
         return updatedUser;
+    }
 
+    public void merge(UserEntity entity, UserView view){
+        if(view.getName() != null)
+            entity.setName(view.getName());
+        if(view.getEmail() != null)
+            entity.setEmail(view.getEmail());
+        if(view.getActive() != null)
+            entity.setActive(view.getActive());
+        if(view.getPassword() != null)
+            entity.setPassword(view.getPassword());
+
+        // TODO: get role by name and update
     }
 }

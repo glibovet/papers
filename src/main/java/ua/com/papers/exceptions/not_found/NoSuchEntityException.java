@@ -24,8 +24,4 @@ public class NoSuchEntityException extends PapersException {
     public int getCode(){
         return HttpServletResponse.SC_NOT_FOUND;
     }
-
-    public List<String> formListErrors(){
-        return null;
-    }
 }

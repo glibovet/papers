@@ -12,6 +12,36 @@
     <title>Реєстрація</title>
     <jsp:include page="../common/include_resources.jsp" />
     <link rel="stylesheet" href="/resources/css/sign_up.css">
+
+    <script>
+        $(document).ready(function(){
+            $('#sign_up_form').submit(function(e){
+                e.preventDefault();
+
+                var self = $(this);
+
+                $.ajax({
+                    url: '/api/users/',
+                    type: 'HEAD',
+                    /*data: JSON.stringify({
+                        email: self.find('[name=email]').val(),
+                        password: self.find('[name=password]').val()
+                    }),
+                    dataType: 'json',
+                    beforeSend: function(xhr){
+                        xhr.setRequestHeader('Content-Type', 'application/json');
+                        xhr.setRequestHeader('Accept', 'application/json');
+                    },*/
+                    success: function(response){
+                        console.log(response);
+                    },
+                    error: function(xhr){
+                        console.log(xhr);
+                    }
+                })
+            });
+        });
+    </script>
 </head>
 <body>
 <div class="site-wrapper">
@@ -20,9 +50,9 @@
             <jsp:include page="../common/header.jsp"/>
 
             <div class="inner cover">
-                <form class="form-signin">
-                    <label class="sr-only" for="sign_up_email">Електронна пошта</label>
-                    <input type="email" name="email" class="form-control" placeholder="email@example.com" id="sign_up_email">
+                <form class="form-signin" id="sign_up_form">
+                    <label class="sr-only">Електронна пошта</label>
+                    <input type="email" name="email" class="form-control" placeholder="email@example.com">
                     <label class="sr-only">Пароль</label>
                     <input type="password" name="password" class="form-control" placeholder="My super secret password">
                     <label class="sr-only">Повторіть пароль</label>

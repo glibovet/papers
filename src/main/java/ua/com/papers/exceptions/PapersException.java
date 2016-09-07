@@ -39,11 +39,6 @@ public class PapersException extends Exception {
      * @return list of errors
      */
     public List<String> formListErrors(){
-        List<String> errors = new ArrayList<>();
-
-        for(StackTraceElement element : getStackTrace())
-            errors.add(element.toString());
-
-        return errors;
+        return null;
     }
 }
