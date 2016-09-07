@@ -1,4 +1,4 @@
-package ua.com.papers.persistence.entities;
+package ua.com.papers.pojo.entities;
 
 import javax.persistence.*;
 
@@ -12,7 +12,7 @@ public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
-    private Integer id;
+    private int id;
 
     @Column(name = "email")
     private String email;
@@ -35,11 +35,11 @@ public class UserEntity {
         active = false;
     }
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -90,8 +90,8 @@ public class UserEntity {
 
         UserEntity that = (UserEntity) o;
 
+        if (id != that.id) return false;
         if (active != that.active) return false;
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
         if (email != null ? !email.equals(that.email) : that.email != null) return false;
         if (password != null ? !password.equals(that.password) : that.password != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
@@ -101,7 +101,7 @@ public class UserEntity {
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
+        int result = id;
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);

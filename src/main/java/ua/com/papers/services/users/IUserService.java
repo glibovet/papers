@@ -1,7 +1,8 @@
 package ua.com.papers.services.users;
 
-import ua.com.papers.persistence.entities.UserEntity;
-import ua.com.papers.utils.exceptions.NoSuchEntityException;
+import ua.com.papers.pojo.entities.UserEntity;
+import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import java.util.*;
 
 /**
  * Created by Andrii on 18.08.2016.
@@ -9,6 +10,8 @@ import ua.com.papers.utils.exceptions.NoSuchEntityException;
 public interface IUserService {
 
     UserEntity getUserById(int userId) throws NoSuchEntityException;
+
+    Map<String, Object> getUserByIdMap(int userId, Set<String> fields) throws NoSuchEntityException;
 
     UserEntity getByEmail(String email) throws NoSuchEntityException;
 

@@ -1,6 +1,7 @@
-package ua.com.papers.persistence.entities;
+package ua.com.papers.pojo.entities;
 
-import ua.com.papers.utils.enums.RolesEnum;
+
+import ua.com.papers.pojo.enums.RolesEnum;
 
 import javax.persistence.*;
 import java.util.Set;

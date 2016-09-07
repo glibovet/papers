@@ -8,9 +8,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ua.com.papers.persistence.entities.PermissionEntity;
-import ua.com.papers.persistence.entities.UserEntity;
-import ua.com.papers.utils.exceptions.NoSuchEntityException;
+import ua.com.papers.pojo.entities.PermissionEntity;
+import ua.com.papers.pojo.entities.UserEntity;
+import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 
 import java.util.ArrayList;
 import java.util.List;

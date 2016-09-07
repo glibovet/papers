@@ -1,12 +1,16 @@
 package ua.com.papers.services.users;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ua.com.papers.convertors.Converter;
 import ua.com.papers.persistence.dao.repositories.UsersRepository;
-import ua.com.papers.persistence.entities.UserEntity;
-import ua.com.papers.utils.exceptions.NoSuchEntityException;
+import ua.com.papers.pojo.entities.UserEntity;
+import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 
 import javax.annotation.Resource;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Andrii on 18.08.2016.
@@ -17,13 +21,22 @@ public class UserServiceImpl implements IUserService {
     @Resource
     private UsersRepository usersRepository;
 
+    @Autowired
+    private Converter<UserEntity> userConverter;
+
     @Override
     @Transactional
     public UserEntity getUserById(int userId) throws NoSuchEntityException {
         UserEntity user = usersRepository.findOne(userId);
         if (user == null)
-            throw new NoSuchEntityException(UserEntity.class.getName(),"userId"+userId);
+            throw new NoSuchEntityException("user", "id: " + userId);
         return user;
+    }
+
+    @Override
+    @Transactional
+    public Map<String, Object> getUserByIdMap(int userId, Set<String> fields) throws NoSuchEntityException {
+        return userConverter.convert(getUserById(userId), fields);
     }
 
     @Override

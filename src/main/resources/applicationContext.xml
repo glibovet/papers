@@ -68,7 +68,7 @@
     <bean id="entityManagerFactory"
           class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="mainDataSource" />
-        <property name="packagesToScan" value="ua.com.papers.persistence.entities"/>
+        <property name="packagesToScan" value="ua.com.papers.pojo.entities"/>
         <property name="jpaVendorAdapter">
             <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
                 <property name="generateDdl" value="true" />

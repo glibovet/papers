@@ -1,4 +1,4 @@
-package ua.com.papers.utils.enums;
+package ua.com.papers.pojo.enums;
 
 /**
  * Created by Andrii on 18.08.2016.

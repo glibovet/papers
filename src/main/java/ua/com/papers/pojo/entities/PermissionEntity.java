@@ -1,4 +1,4 @@
-package ua.com.papers.persistence.entities;
+package ua.com.papers.pojo.entities;
 
 import javax.persistence.*;
 
