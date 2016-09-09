@@ -90,10 +90,10 @@
         </property>
     </bean>
 
-    <!-- enable use-expressions -->
+    <security:http pattern="/resources/**" security="none"/>
+
     <security:http auto-config="true" use-expressions="true">
 
-        <security:intercept-url pattern="/swagger-ui.html" access="permitAll"/>
         <security:intercept-url pattern="/resources/**" access="permitAll"/>
 
         <security:intercept-url pattern="/admin/*" access="hasRole('ROLE_ADMIN')" />
@@ -109,7 +109,7 @@
                 password-parameter="password" />-->
         <security:logout logout-success-url="/login?logout"  />
         <!-- enable csrf protection -->
-        <security:csrf/>
+        <!--<security:csrf disabled="true"/>-->
     </security:http>
 
 
@@ -123,6 +123,15 @@
 
     <bean id="customUserDetailsService" class="ua.com.papers.services.users.CustomUserDetailsService"/>
 
+    <bean id="mappingJacksonHttpMessageConverter"
+          class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+        <property name="supportedMediaTypes">
+            <list>
+                <value>application/json;charset=UTF-8</value>
+            </list>
+        </property>
+    </bean>
+
     <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
         <property name="messageConverters">
             <util:list>
@@ -134,7 +143,7 @@
                 <bean class="org.springframework.http.converter.xml.SourceHttpMessageConverter"/>
                 <bean class="org.springframework.http.converter.BufferedImageHttpMessageConverter"/>
                 <!-- json converter (for application/json multimedia type) -->
-                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+                <ref bean="mappingJacksonHttpMessageConverter"/>
             </util:list>
         </property>
     </bean>

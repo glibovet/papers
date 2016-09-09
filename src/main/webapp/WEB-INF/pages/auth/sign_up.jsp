@@ -16,14 +16,17 @@
     <script>
         $(document).ready(function(){
             $('#sign_up_form').submit(function(e){
+
+                var token = $("meta[name='_csrf']").attr("content");
+                var header = $("meta[name='_csrf_header']").attr("content");
                 e.preventDefault();
 
                 var self = $(this);
 
                 $.ajax({
                     url: '/api/users/',
-                    type: 'HEAD',
-                    /*data: JSON.stringify({
+                    type: 'PUT',
+                    data: JSON.stringify({
                         email: self.find('[name=email]').val(),
                         password: self.find('[name=password]').val()
                     }),
@@ -31,7 +34,8 @@
                     beforeSend: function(xhr){
                         xhr.setRequestHeader('Content-Type', 'application/json');
                         xhr.setRequestHeader('Accept', 'application/json');
-                    },*/
+                        xhr.setRequestHeader(header, token);
+                    },
                     success: function(response){
                         console.log(response);
                     },
