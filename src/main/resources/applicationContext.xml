@@ -160,4 +160,43 @@
             </list>
         </property>
     </bean>
+
+    <!-- bean validation -->
+    <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
+
+
+    <bean name="localeChangeInterceptor"
+                  class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+        <property name="paramName" value="locale"/>
+    </bean>
+
+
+    <bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping" >
+        <property name="interceptors">
+            <list>
+                <ref bean="localeChangeInterceptor" />
+            </list>
+        </property>
+    </bean>
+
+    <bean id="messageSource"
+          class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basenames">
+            <list>
+                <value>classpath:messages</value>
+            </list>
+        </property>
+        <property name="fallbackToSystemLocale" value="true" />
+        <property name="fileEncodings" value="UTF-8" />
+        <property name="defaultEncoding" value="UTF-8" />
+        <property name="cacheSeconds" value="3600"/>
+    </bean>
+
+    <!-- Locales -->
+    <bean id="localeResolver"
+          class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+        <property name="defaultLocale" value="uk"/>
+        <property name="cookieName" value="papersLocaleCookie"/>
+        <property name="cookieMaxAge" value="3600"/>
+    </bean>
 </beans>

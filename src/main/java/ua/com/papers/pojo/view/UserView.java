@@ -1,17 +1,30 @@
 package ua.com.papers.pojo.view;
 
 
+import org.hibernate.validator.constraints.Email;
 import ua.com.papers.pojo.enums.RolesEnum;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * Created by oleh_kurpiak on 07.09.2016.
  */
 public class UserView {
 
+    public static final int MAX_EMAIL_SIZE = 45;
+    public static final int MAX_PASS_SIZE = 45;
+    public static final int MIN_PASS_SIZE = 8;
+
     private int id;
 
+    @NotNull(message = "error.user.email.require")
+    @Size(max = MAX_EMAIL_SIZE, message = "error.user.email.max.size")
+    @Email(message = "error.user.email.format")
     private String email;
 
+    @NotNull(message = "error.user.pass.require")
+    @Size(min= MIN_PASS_SIZE,max = MAX_EMAIL_SIZE, message = "error.user.pass.size")
     private String password;
 
     private String name;

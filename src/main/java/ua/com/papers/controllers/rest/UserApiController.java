@@ -8,6 +8,7 @@ import ua.com.papers.convertors.Fields;
 import ua.com.papers.exceptions.PapersException;
 import ua.com.papers.exceptions.conflict.EmailExistsException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
+import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.response.Response;
 import ua.com.papers.pojo.response.ResponseFactory;
 import ua.com.papers.pojo.view.UserView;
@@ -51,6 +52,8 @@ public class UserApiController {
     createUser(
             @RequestBody UserView view
     ) throws PapersException {
+        if (view.getRole()==null)
+            view.setRole(RolesEnum.user);
         return responseFactory.get(userService.create(view));
     }
 
