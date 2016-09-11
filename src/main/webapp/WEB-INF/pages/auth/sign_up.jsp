@@ -24,7 +24,8 @@
                     url: '/api/users/',
                     data: JSON.stringify({
                         email: self.find('[name=email]').val(),
-                        password: self.find('[name=password]').val()
+                        password: self.find('[name=password]').val(),
+                        role: 'user'
                     }),
                     dataType: 'json',
                     success: function(response){
