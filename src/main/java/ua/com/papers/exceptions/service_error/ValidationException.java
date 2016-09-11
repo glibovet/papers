@@ -29,7 +29,7 @@ public class ValidationException extends PapersException {
         this.codes.add(code);
     }
 
-    public List<String> formErrors(MessageSource messageSource, String locale){
+    public List<String> formListErrors(MessageSource messageSource, String locale){
         List<String> result = new ArrayList<String>();
         for(String code : codes){
             result.add(messageSource.getMessage(code, null, new Locale(locale)));

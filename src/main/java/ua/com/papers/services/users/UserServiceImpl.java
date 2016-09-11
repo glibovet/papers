@@ -71,10 +71,12 @@ public class UserServiceImpl implements IUserService {
         try {
             getByEmail(view.getEmail());
             // should be exception
-            // otherwise user exists and exception should be throw
+            // otherwise user exists and exception should be thrown
             throw new EmailExistsException();
         } catch (NoSuchEntityException e) {
             UserEntity entity = new UserEntity();
+            if (view.getRole() == null)
+                view.setRole(RolesEnum.user);
             merge(entity, view);
             userValidateService.validForCreate(view);
             entity = usersRepository.saveAndFlush(entity);

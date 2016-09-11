@@ -52,8 +52,6 @@ public class UserApiController {
     createUser(
             @RequestBody UserView view
     ) throws PapersException {
-        if (view.getRole()==null)
-            view.setRole(RolesEnum.user);
         return responseFactory.get(userService.create(view));
     }
 

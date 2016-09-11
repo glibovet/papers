@@ -16,33 +16,42 @@
     <script>
         $(document).ready(function(){
             $('#sign_up_form').submit(function(e){
-
-                var token = $("meta[name='_csrf']").attr("content");
-                var header = $("meta[name='_csrf_header']").attr("content");
                 e.preventDefault();
 
                 var self = $(this);
 
-                $.ajax({
+                Ajax.put({
                     url: '/api/users/',
-                    type: 'PUT',
                     data: JSON.stringify({
                         email: self.find('[name=email]').val(),
                         password: self.find('[name=password]').val()
                     }),
                     dataType: 'json',
-                    beforeSend: function(xhr){
-                        xhr.setRequestHeader('Content-Type', 'application/json');
-                        xhr.setRequestHeader('Accept', 'application/json');
-                        xhr.setRequestHeader(header, token);
-                    },
                     success: function(response){
-                        console.log(response);
+                        if(response.result){
+                            alert('now you can login');
+                        } else if(response.error){
+                            var error = response.error;
+                            console.log(error);
+                            var message = error.message;
+                            if(error.errors){
+                                message += "[";
+                                for(var i = 0; i < error.errors.length; ++i){
+                                    message += error.errors[i] + ", ";
+                                }
+                                message += "]";
+                            }
+                            alert(message);
+
+                        } else {
+                            alert('service error');
+                        }
                     },
                     error: function(xhr){
+                        alert('service error');
                         console.log(xhr);
                     }
-                })
+                });
             });
         });
     </script>
