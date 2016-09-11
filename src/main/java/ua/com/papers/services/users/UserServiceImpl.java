@@ -1,14 +1,25 @@
 package ua.com.papers.services.users;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.authentication.rememberme.AbstractRememberMeServices;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.exceptions.bad_request.WrongPasswordException;
 import ua.com.papers.exceptions.conflict.EmailExistsException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.dao.repositories.RolesRepository;
 import ua.com.papers.persistence.dao.repositories.UsersRepository;
+import ua.com.papers.pojo.entities.PermissionEntity;
 import ua.com.papers.pojo.entities.RoleEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -17,6 +28,9 @@ import ua.com.papers.pojo.view.UserView;
 import ua.com.papers.services.utils.SessionUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +72,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional
     public List<UserEntity> getUsers(int offset, int limit) throws NoSuchEntityException {
         List<UserEntity> list = usersRepository.findAll();
         if(list == null || list.isEmpty())
@@ -66,6 +81,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional
     public List<Map<String, Object>> getUsersMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
         return userConverter.convert(getUsers(offset, limit), fields);
     }
@@ -114,6 +130,37 @@ public class UserServiceImpl implements IUserService {
         updatedUser.setEmail(user.getEmail());
         //TODO add oll other
         return updatedUser;
+    }
+
+    @Override
+    @Transactional
+    public boolean signInUser(UserView view) throws NoSuchEntityException, WrongPasswordException {
+        UserEntity entity = getByEmail(view.getEmail());
+        if(!entity.getPassword().equals(view.getPassword()))
+            throw new WrongPasswordException();
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(entity, entity.getPassword(), getGrantedAuthorities(entity));
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(authentication);
+
+        return true;
+    }
+
+    @Override
+    public boolean logoutUser(HttpServletRequest request, HttpServletResponse response) {
+        CookieClearingLogoutHandler cookieClearingLogoutHandler = new CookieClearingLogoutHandler(AbstractRememberMeServices.SPRING_SECURITY_REMEMBER_ME_COOKIE_KEY);
+        SecurityContextLogoutHandler securityContextLogoutHandler = new SecurityContextLogoutHandler();
+        cookieClearingLogoutHandler.logout(request, response, null);
+        securityContextLogoutHandler.logout(request, response, null);
+        return true;
+    }
+
+    private List<GrantedAuthority> getGrantedAuthorities(UserEntity user){
+        List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        for (PermissionEntity perm : user.getRoleEntity().getPermissions()){
+            authorities.add(new SimpleGrantedAuthority(perm.getName()));
+        }
+        return authorities;
     }
 
     public void merge(UserEntity entity, UserView view){

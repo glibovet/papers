@@ -24,7 +24,7 @@
                     url: '/api/users/',
                     data: JSON.stringify({
                         email: self.find('[name=email]').val(),
-                        password: self.find('[name=password]').val(),
+                        password: md5(self.find('[name=password]').val()),
                         role: 'user'
                     }),
                     dataType: 'json',

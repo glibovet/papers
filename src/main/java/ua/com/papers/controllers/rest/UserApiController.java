@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.com.papers.convertors.Fields;
 import ua.com.papers.exceptions.PapersException;
+import ua.com.papers.exceptions.bad_request.WrongPasswordException;
 import ua.com.papers.exceptions.conflict.EmailExistsException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
@@ -15,6 +16,8 @@ import ua.com.papers.pojo.response.ResponseFactory;
 import ua.com.papers.pojo.view.UserView;
 import ua.com.papers.services.users.IUserService;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 
@@ -69,4 +72,25 @@ public class UserApiController {
         return responseFactory.get(userService.create(view));
     }
 
+    @RequestMapping(
+            value = "/sign_in",
+            method = RequestMethod.POST
+    )
+    public
+    @ResponseBody Response<Boolean>
+    signIn(
+            @RequestBody UserView view
+    ) throws PapersException {
+        return responseFactory.get(userService.signInUser(view));
+    }
+
+    @RequestMapping(
+            value = "/logout",
+            method = RequestMethod.POST
+    )
+    public
+    @ResponseBody Response<Boolean>
+    logout(HttpServletRequest request, HttpServletResponse response){
+        return responseFactory.get(userService.logoutUser(request, response));
+    }
 }

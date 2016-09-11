@@ -7,11 +7,11 @@
             <ul class="nav masthead-nav">
                 <security:authorize access="isAuthenticated()">
                     <li><a href="#">Профіль</a></li>
-                    <li><a href="#">Вийти</a></li>
+                    <li><a href="#" id="logout">Вийти</a></li>
                 </security:authorize>
                 <security:authorize access="isAnonymous()">
                     <li><a href="/sign_up">Зареєструватись</a></li>
-                    <li><a href="#">Увійти</a></li>
+                    <li><a href="#" id="sign_in">Увійти</a></li>
                 </security:authorize>
             </ul>
         </nav>

@@ -6,6 +6,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.security.Principal;
+
 /**
  * Created by Andrii on 27.07.2016.
  */
@@ -13,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class IndexController {
 
     @RequestMapping(value = {"/", "/index"}, method = RequestMethod.GET)
-    public String indexPage(Model model){
+    public String indexPage(Model model, Principal principal){
         return "index/index";
     }
 

@@ -1,5 +1,6 @@
 package ua.com.papers.services.users;
 
+import ua.com.papers.exceptions.bad_request.WrongPasswordException;
 import ua.com.papers.exceptions.conflict.EmailExistsException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
@@ -7,6 +8,8 @@ import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.view.UserView;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 /**
@@ -28,4 +31,7 @@ public interface IUserService {
 
     UserEntity update(UserEntity user) throws NoSuchEntityException;
 
+    boolean signInUser(UserView view) throws NoSuchEntityException, WrongPasswordException;
+
+    boolean logoutUser(HttpServletRequest request, HttpServletResponse response);
 }

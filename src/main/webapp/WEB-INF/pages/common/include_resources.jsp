@@ -11,3 +11,5 @@
 <script>
     Ajax.setCSRF('${_csrf.headerName}', '${_csrf.token}');
 </script>
+<script src="/resources/js/md5.min.js"></script>
+<script src="/resources/js/auth/sign_in.js"></script>
