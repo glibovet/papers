@@ -17,6 +17,7 @@ import ua.com.papers.pojo.view.UserView;
 import ua.com.papers.services.utils.SessionUtils;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,6 +55,19 @@ public class UserServiceImpl implements IUserService {
     @Transactional
     public Map<String, Object> getUserByIdMap(int userId, Set<String> fields) throws NoSuchEntityException {
         return userConverter.convert(getUserById(userId), fields);
+    }
+
+    @Override
+    public List<UserEntity> getUsers(int offset, int limit) throws NoSuchEntityException {
+        List<UserEntity> list = usersRepository.findAll();
+        if(list == null || list.isEmpty())
+            throw new NoSuchEntityException("user", String.format("[offset: %d, limit: %d]", offset, limit));
+        return list;
+    }
+
+    @Override
+    public List<Map<String, Object>> getUsersMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
+        return userConverter.convert(getUsers(offset, limit), fields);
     }
 
     @Override

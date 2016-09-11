@@ -18,6 +18,10 @@ public interface IUserService {
 
     Map<String, Object> getUserByIdMap(int userId, Set<String> fields) throws NoSuchEntityException;
 
+    List<UserEntity> getUsers(int offset, int limit) throws NoSuchEntityException;
+
+    List<Map<String, Object>> getUsersMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException;
+
     UserEntity getByEmail(String email) throws NoSuchEntityException;
 
     int create(UserView view) throws EmailExistsException, ServiceErrorException, ValidationException;
