@@ -5,6 +5,9 @@
         <h3 class="masthead-brand"><a href="/"><i class="fa fa-search fa-2x" aria-hidden="true"></i></a></h3>
         <nav>
             <ul class="nav masthead-nav">
+                <security:authorize access="hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')">
+                    <li><a href="/admin/cabinet">Кабінет адміна</a></li>
+                </security:authorize>
                 <security:authorize access="isAuthenticated()">
                     <li><a href="#">Профіль</a></li>
                     <li><a href="#" id="logout">Вийти</a></li>

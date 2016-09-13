@@ -62,6 +62,7 @@ body {
 /* Padding for spacing */
 .inner {
     padding: 30px;
+    overflow-y: auto;
 }
 
 
@@ -116,25 +117,16 @@ body {
     padding: 10px 20px;
     font-weight: bold;
 }
-.mastfoot {
-    color: #999; /* IE8 proofing */
-    color: rgba(255,255,255,.5);
-}
 
 @media (min-width: 768px) {
     .masthead {
         position: fixed;
         top: 0;
     }
-    .mastfoot {
-        position: fixed;
-        bottom: 0;
-    }
     .site-wrapper-inner {
         vertical-align: middle;
     }
     .masthead,
-    .mastfoot,
     .cover-container {
         width: 100%;
     }
@@ -142,7 +134,6 @@ body {
 
 @media (min-width: 1024px) {
     .masthead,
-    .mastfoot,
     .cover-container {
         width: 950px;
     }
