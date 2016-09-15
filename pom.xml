@@ -43,6 +43,8 @@
                 <jdbc.url>
                     <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
                 </jdbc.url>
+
+                <neo4j.storage_place>/papers/neo4j_db</neo4j.storage_place>
             </properties>
 
             <activation>
@@ -90,8 +92,13 @@
     <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-jpa</artifactId>
-      <version>1.2.0.RELEASE</version>
+      <version>1.4.0.RELEASE</version>
     </dependency>
+      <dependency>
+          <groupId>org.springframework.data</groupId>
+          <artifactId>spring-data-commons</artifactId>
+          <version>1.5.0.RELEASE</version>
+      </dependency>
     <!--END of Spring DATA -->
     <dependency>
       <groupId>org.hibernate.javax.persistence</groupId>
@@ -148,12 +155,6 @@
           <artifactId>servlet-api</artifactId>
           <version>${servlet.version}</version>
           <scope>provided</scope>
-      </dependency>
-
-      <dependency>
-          <groupId>javax.validation</groupId>
-          <artifactId>validation-api</artifactId>
-          <version>1.1.0.Final</version>
       </dependency>
 
       <dependency>
@@ -247,6 +248,27 @@
       </dependency>
 
       <!-- end jackson -->
+
+      <!-- start neo4j -->
+      <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>neo4j</artifactId>
+          <version>3.0.4</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>neo4j-kernel</artifactId>
+          <version>3.0.4</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.springframework.data</groupId>
+          <artifactId>spring-data-neo4j</artifactId>
+          <version>4.1.2.RELEASE</version>
+      </dependency>
+
+      <!-- end neo4j -->
 
   </dependencies>
 
