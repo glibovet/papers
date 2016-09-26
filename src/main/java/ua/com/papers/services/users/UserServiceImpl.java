@@ -1,6 +1,8 @@
 package ua.com.papers.services.users;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -73,11 +75,15 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
+    /**
+     * offset number of rows to skip
+     * limit max on request
+     */
     public List<UserEntity> getUsers(int offset, int limit) throws NoSuchEntityException {
-        List<UserEntity> list = usersRepository.findAll();
-        if(list == null || list.isEmpty())
+        Page<UserEntity> list = usersRepository.findAll(new PageRequest(offset/limit,limit));
+        if(list == null || list.getContent().isEmpty())
             throw new NoSuchEntityException("user", String.format("[offset: %d, limit: %d]", offset, limit));
-        return list;
+        return list.getContent();
     }
 
     @Override
