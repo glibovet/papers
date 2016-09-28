@@ -13,6 +13,7 @@ public class Fields {
         public static final String LINK = "link";
         public static final String STATUS = "status";
         public static final String PUBLISHER = "publisher";
+        public static final String AUTHORS = "authors";
 
         public static final String DEFAULT = ID + ',' + TITLE;
     }
@@ -26,6 +27,26 @@ public class Fields {
         public static final String ACTIVE = "active";
 
         public static final String DEFAULT = ID + ',' + EMAIL;
+    }
+
+    public static class Author{
+        public static final String ID = "id";
+        public static final String LAST_NAME="lastname";
+        public static final String INITIALS = "initials";
+        public static final String ORIGINAL = "original";
+        public static final String MASTER = "master";
+
+        public static final String DEFAULT = ID + ',' + LAST_NAME;
+    }
+
+    public static class AuthorMaster{
+        public static final String ID = "id";
+        public static final String LAST_NAME="lastname";
+        public static final String INITIALS = "initials";
+        public static final String AUTHORS = "authors";
+
+        public static final String DEFAULT = ID + ',' + LAST_NAME;
+
     }
 
 }

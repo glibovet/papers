@@ -1,6 +1,7 @@
 package ua.com.papers.convertors;
 
 import org.springframework.stereotype.Component;
+import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
 
 import java.util.*;
@@ -28,6 +29,12 @@ public class PublicationConverter extends Converter<PublicationEntity> {
             map.put(STATUS,object.getStatus());
         if (fields.contains(PUBLISHER))
             map.put(PUBLISHER,object.getPublisher());
+        if (fields.contains(AUTHORS)&&object.getAuthors()!=null&&object.getAuthors().size()>0){
+            List<Integer> ids = new ArrayList<>();
+            for (AuthorMasterEntity author:object.getAuthors())
+                ids.add(author.getId());
+            map.put(AUTHORS,ids);
+        }
         return map;
     }
 }

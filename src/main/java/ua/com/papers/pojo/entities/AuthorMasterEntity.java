@@ -3,6 +3,7 @@ package ua.com.papers.pojo.entities;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -27,7 +28,7 @@ public class AuthorMasterEntity implements Serializable{
     @Size(max = 15, message = "error.author.master.initials.size")
     private String initials;
 
-    @OneToMany(mappedBy="master", fetch=FetchType.LAZY)
+    @OneToMany(mappedBy="master", fetch=FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<AuthorEntity> authors;
 
     public Integer getId() {
@@ -91,5 +92,13 @@ public class AuthorMasterEntity implements Serializable{
                 ", initials='" + initials + '\'' +
                 ", authors=" + authors +
                 '}';
+    }
+
+    public void addAuthor(AuthorEntity author){
+        if(author == null)
+            return;
+        if (this.authors==null)
+            authors = new HashSet<AuthorEntity>();
+        authors.add(author);
     }
 }

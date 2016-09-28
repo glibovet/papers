@@ -28,7 +28,7 @@ public class AuthorEntity implements Serializable{
     @Size(max = 250, message = "error.author.as_it.size")
     private String original;
 
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY, cascade = {CascadeType.REFRESH,CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name="author_master_id")
     private AuthorMasterEntity master;
 
