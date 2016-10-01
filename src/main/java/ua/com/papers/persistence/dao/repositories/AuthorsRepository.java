@@ -1,9 +1,9 @@
 package ua.com.papers.persistence.dao.repositories;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ua.com.papers.pojo.entities.AuthorEntity;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 /**
@@ -11,5 +11,5 @@ import java.util.List;
  */
 public interface AuthorsRepository extends JpaRepository<AuthorEntity,Integer>{
     List<AuthorEntity> findAll();
-    List<AuthorEntity> findAll(Pageable pageable);
+    Page<AuthorEntity> findAll(org.springframework.data.domain.Pageable pageable);
 }

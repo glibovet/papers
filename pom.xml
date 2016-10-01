@@ -248,6 +248,14 @@
 
       <!-- end jackson -->
 
+      <!-- dropbox -->
+      <dependency>
+          <groupId>com.dropbox.core</groupId>
+          <artifactId>dropbox-core-sdk</artifactId>
+          <version>2.1.1</version>
+      </dependency>
+      <!-- end dropbox -->
+
   </dependencies>
 
   <build>

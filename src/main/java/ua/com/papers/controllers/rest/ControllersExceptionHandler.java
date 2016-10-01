@@ -1,4 +1,4 @@
-package ua.com.papers.controllers;
+package ua.com.papers.controllers.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;

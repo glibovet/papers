@@ -11,6 +11,8 @@ import java.util.Set;
 /**
  * Created by Andrii on 15.09.2016.
  */
+@Entity
+@Table(name = "publication")
 public class PublicationEntity implements Serializable {
 
     private static final long serialVersionUID = 3943941275239417204L;
