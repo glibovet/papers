@@ -25,10 +25,14 @@ public class PublicationConverter extends Converter<PublicationEntity> {
             map.put(TYPE,object.getType());
         if (fields.contains(LINK))
             map.put(LINK, object.getLink());
+        if (fields.contains(PUBLISHER))
+            map.put(PUBLISHER,object.getPublisher().getId());
+        if (fields.contains(IN_INDEX))
+            map.put(IN_INDEX,object.isInIndex());
         if (fields.contains(STATUS))
             map.put(STATUS,object.getStatus());
-        if (fields.contains(PUBLISHER))
-            map.put(PUBLISHER,object.getPublisher());
+        if (fields.contains(LITERATURE_PARSED))
+            map.put(LITERATURE_PARSED, object.isLiteratureParsed());
         if (fields.contains(AUTHORS)&&object.getAuthors()!=null&&object.getAuthors().size()>0){
             List<Integer> ids = new ArrayList<>();
             for (AuthorMasterEntity author:object.getAuthors())

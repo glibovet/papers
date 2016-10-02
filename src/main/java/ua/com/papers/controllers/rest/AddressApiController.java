@@ -5,12 +5,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.com.papers.convertors.Fields;
 import ua.com.papers.exceptions.PapersException;
-import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.response.Response;
 import ua.com.papers.pojo.response.ResponseFactory;
-import ua.com.papers.pojo.view.PublicationView;
-import ua.com.papers.services.publications.IPublicationService;
+import ua.com.papers.pojo.view.AddressView;
+import ua.com.papers.services.address.IAddressService;
 import ua.com.papers.services.utils.SessionUtils;
 
 import java.util.List;
@@ -18,19 +17,19 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by Andrii on 26.09.2016.
+ * Created by Andrii on 02.10.2016.
  */
 @Controller
-@RequestMapping(value = "/api/publication")
-public class PublicationApiController {
-
+@RequestMapping(value = "/api/address")
+public class AddressApiController {
     @Autowired
     private ResponseFactory responseFactory;
-    @Autowired
-    private SessionUtils sessionUtils;
 
     @Autowired
-    private IPublicationService publicationService;
+    private IAddressService addressService;
+
+    @Autowired
+    private SessionUtils sessionUtils;
 
     @RequestMapping(
             value = "/{id}",
@@ -38,11 +37,12 @@ public class PublicationApiController {
     )
     public
     @ResponseBody
-    Response<Map<String, Object>> getPublication(
-            @PathVariable("id") int userId,
-            @RequestParam(value = "fields", required = false, defaultValue = Fields.Publication.DEFAULT) Set<String> fields
-    ) throws NoSuchEntityException {
-        return responseFactory.get(publicationService.getPublicationByIdMap(userId, fields));
+    Response<Map<String, Object>>
+    getAuthor(
+            @PathVariable("id") int id,
+            @RequestParam(value = "fields", required = false, defaultValue = Fields.Address.DEFAULT) Set<String> fields
+    ) throws PapersException {
+        return responseFactory.get(addressService.getAddressMapById(id, fields));
     }
 
     @RequestMapping(
@@ -50,12 +50,12 @@ public class PublicationApiController {
             method = RequestMethod.GET
     )
     public @ResponseBody Response<List<Map<String, Object>>>
-    getUsers(
+    getAuthors(
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-            @RequestParam(value = "fields", required = false, defaultValue = Fields.User.DEFAULT) Set<String> fields
+            @RequestParam(value = "fields", required = false, defaultValue = Fields.Address.DEFAULT) Set<String> fields
     ) throws PapersException {
-        return responseFactory.get(publicationService.getPublicationsMap(offset, limit, fields));
+        return responseFactory.get(addressService.getAddressMap(offset, limit, fields));
     }
 
     @RequestMapping(
@@ -65,11 +65,11 @@ public class PublicationApiController {
     public
     @ResponseBody Response<Integer>
     createAuthor(
-            @RequestBody PublicationView view
+            @RequestBody AddressView view
     ) throws PapersException {
         sessionUtils.authorized();
         sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
-        return responseFactory.get(publicationService.createPublication(view));
+        return responseFactory.get(addressService.createAddress(view));
     }
 
     @RequestMapping(
@@ -78,10 +78,9 @@ public class PublicationApiController {
     public
     @ResponseBody
     Response<Integer> save(
-            @RequestBody PublicationView view) throws PapersException {
+            @RequestBody AddressView view) throws PapersException {
         sessionUtils.authorized();
         sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
-        return responseFactory.get(publicationService.updatePublication(view));
+        return responseFactory.get(addressService.updateAddress(view));
     }
-
 }

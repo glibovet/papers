@@ -22,9 +22,6 @@ import java.util.Set;
 public class AuthorValidateServiceImpl implements IAuthorValidateService {
 
     @Autowired
-    private SessionUtils sessionUtils;
-
-    @Autowired
     private Validator validator;
 
     @Override
@@ -33,19 +30,28 @@ public class AuthorValidateServiceImpl implements IAuthorValidateService {
         if(violations != null && !violations.isEmpty()) {
             throw new ValidationException(AuthorEntity.class.getName(), violations);
         }
-        if (!sessionUtils.isUserWithRole(RolesEnum.admin)){
-            throw new ServiceErrorException();
-        }
     }
 
     @Override
     public void authorMasterValidForCreate(AuthorMasterEntity authorMaster) throws ValidationException, ServiceErrorException {
         Set<ConstraintViolation<AuthorMasterEntity>> violations = validator.validate(authorMaster);
+        if(violations != null && !violations.isEmpty())
+            throw new ValidationException(AuthorMasterEntity.class.getName(), violations);
+    }
+
+    @Override
+    public void authorValidForUpdate(AuthorEntity author) throws ValidationException {
+        Set<ConstraintViolation<AuthorEntity>> violations = validator.validate(author);
+        if(violations != null && !violations.isEmpty()) {
+            throw new ValidationException(AuthorEntity.class.getName(), violations);
+        }
+    }
+
+    @Override
+    public void authorMasterValidForUpdate(AuthorMasterEntity entity) throws ValidationException {
+        Set<ConstraintViolation<AuthorMasterEntity>> violations = validator.validate(entity);
         if(violations != null && !violations.isEmpty()) {
             throw new ValidationException(AuthorMasterEntity.class.getName(), violations);
-        }
-        if (!sessionUtils.isUserWithRole(RolesEnum.admin)){
-            throw new ServiceErrorException();
         }
     }
 }

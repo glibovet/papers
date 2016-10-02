@@ -14,4 +14,8 @@ public interface IAuthorValidateService {
     void authorValidForCreate(AuthorEntity author) throws ServiceErrorException, ValidationException;
 
     void authorMasterValidForCreate(AuthorMasterEntity authorMaster) throws ValidationException, ServiceErrorException;
+
+    void authorValidForUpdate(AuthorEntity authorEntity) throws ValidationException;
+
+    void authorMasterValidForUpdate(AuthorMasterEntity entity) throws ValidationException;
 }

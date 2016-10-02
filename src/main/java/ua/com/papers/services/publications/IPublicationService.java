@@ -1,7 +1,10 @@
 package ua.com.papers.services.publications;
 
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
+import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.PublicationEntity;
+import ua.com.papers.pojo.view.PublicationView;
 
 import java.util.List;
 import java.util.Map;
@@ -19,4 +22,7 @@ public interface IPublicationService {
 
     List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException;
 
+    int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
+
+    int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException;
 }

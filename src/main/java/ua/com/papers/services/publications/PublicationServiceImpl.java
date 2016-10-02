@@ -7,9 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
+import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.dao.repositories.PublicationRepository;
 import ua.com.papers.pojo.entities.PublicationEntity;
 
+import ua.com.papers.pojo.view.PublicationView;
+import ua.com.papers.services.publisher.IPublisherService;
+import ua.com.papers.services.publisher.IPublisherValidateService;
 import ua.com.papers.services.utils.SessionUtils;
 
 import java.util.List;
@@ -23,13 +28,16 @@ import java.util.Set;
 public class PublicationServiceImpl implements IPublicationService{
 
     @Autowired
-    private SessionUtils sessionUtils;
-
-    @Autowired
     private Converter<PublicationEntity> publicationConverter;
 
     @Autowired
     private PublicationRepository publicationRepository;
+
+    @Autowired
+    private IPublisherService publisherService;
+
+    @Autowired
+    private IPublicationValidateService publicationValidateService;
 
     @Override
     @Transactional
@@ -58,6 +66,49 @@ public class PublicationServiceImpl implements IPublicationService{
     @Override
     public List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
         return publicationConverter.convert(getPublications(offset, limit), fields);
+    }
+
+    @Override
+    public int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
+        PublicationEntity  entity = new PublicationEntity();
+        merge(entity,view);
+        publicationValidateService.publicationValidForCreation(entity);
+        entity = publicationRepository.saveAndFlush(entity);
+        if(entity == null){
+            throw new ServiceErrorException();
+        }
+        return entity.getId();
+    }
+
+    @Override
+    public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException {
+        if (view.getId()==null||view.getId()==0)
+            throw new ServiceErrorException();
+        PublicationEntity entity = getPublicationById(view.getId());
+        merge(entity,view);
+        publicationValidateService.publicationValidForUpdate(entity);
+        entity = publicationRepository.saveAndFlush(entity);
+        if(entity == null){
+            throw new ServiceErrorException();
+        }
+        return entity.getId();
+    }
+
+    private void merge(PublicationEntity entity, PublicationView view) throws NoSuchEntityException {
+        if (view.getId()!=null) entity.setId(view.getId());
+        else view.setId(entity.getId());
+        if (view.getTitle()!=null&&!"".equals(view.getTitle())) entity.setTitle(view.getTitle());
+        else view.setTitle(entity.getTitle());
+        if (view.getAnnotation()!=null&&!"".equals(view.getAnnotation())) entity.setAnnotation(view.getAnnotation());
+        else view.setAnnotation(entity.getAnnotation());
+        if (view.getType()!=null) entity.setType(view.getType());
+        else view.setType(entity.getType());
+        if (view.getLink()!=null&&!"".equals(view.getLink())) entity.setLink(view.getLink());
+        else view.setLink(entity.getLink());
+        if (view.getPublisherId()!=0){
+            entity.setPublisher(publisherService.getPublisherById(view.getPublisherId()));
+        }else if (entity.getPublisher()!=null)
+            view.setPublisherId(entity.getPublisher().getId());
     }
 
 }

@@ -29,9 +29,6 @@ import java.util.Set;
 public class AuthorServiceImpl implements IAuthorService {
 
     @Autowired
-    private SessionUtils sessionUtils;
-
-    @Autowired
     private AuthorMastersRepository mastersRepository;
     @Autowired
     private AuthorsRepository authorsRepository;
@@ -54,6 +51,8 @@ public class AuthorServiceImpl implements IAuthorService {
     @Override
     @Transactional
     public List<AuthorEntity> getAuthors(int offset, int limit) throws NoSuchEntityException {
+        if (limit==0)
+            limit=20;
         Page<AuthorEntity> list = authorsRepository.findAll(new PageRequest(offset/limit,limit));
         if(list == null || list.getContent().isEmpty())
             throw new NoSuchEntityException("authors", String.format("[offset: %d, limit: %d]", offset, limit));
@@ -137,6 +136,36 @@ public class AuthorServiceImpl implements IAuthorService {
         merge(entity,view);
         authorValidateService.authorMasterValidForCreate(entity);
         entity= mastersRepository.saveAndFlush(entity);
+        if(entity == null){
+            throw new ServiceErrorException();
+        }
+        return entity.getId();
+    }
+
+    @Override
+    @Transactional
+    public int updateAuthor(AuthorView authorView) throws ServiceErrorException, NoSuchEntityException, ValidationException {
+        if (authorView.getId()==null||authorView.getId()==0)
+            throw new ServiceErrorException();
+        AuthorEntity authorEntity = getAuthorById(authorView.getId());
+        merge(authorEntity,authorView);
+        authorValidateService.authorValidForUpdate(authorEntity);
+        authorEntity = authorsRepository.saveAndFlush(authorEntity);
+        if(authorEntity == null){
+            throw new ServiceErrorException();
+        }
+        return authorEntity.getId();
+    }
+
+    @Override
+    @Transactional
+    public int updateAuthorMaster(AuthorMasterView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
+        if (view.getId()==null||view.getId()==0)
+            throw new ServiceErrorException();
+        AuthorMasterEntity entity = getAuthorMasterById(view.getId());
+        merge(entity,view);
+        authorValidateService.authorMasterValidForUpdate(entity);
+        entity = mastersRepository.saveAndFlush(entity);
         if(entity == null){
             throw new ServiceErrorException();
         }

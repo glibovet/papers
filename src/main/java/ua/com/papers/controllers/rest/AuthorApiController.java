@@ -1,15 +1,18 @@
 package ua.com.papers.controllers.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.com.papers.convertors.Fields;
 import ua.com.papers.exceptions.PapersException;
+import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.response.Response;
 import ua.com.papers.pojo.response.ResponseFactory;
 import ua.com.papers.pojo.view.AuthorMasterView;
 import ua.com.papers.pojo.view.AuthorView;
 import ua.com.papers.services.authors.IAuthorService;
+import ua.com.papers.services.utils.SessionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -29,6 +32,9 @@ public class AuthorApiController {
     @Autowired
     private IAuthorService authorService;
 
+    @Autowired
+    private SessionUtils sessionUtils;
+
     @RequestMapping(
             value = "/{id}",
             method = RequestMethod.GET
@@ -37,10 +43,10 @@ public class AuthorApiController {
     @ResponseBody
     Response<Map<String, Object>>
     getAuthor(
-            @PathVariable("id") int userId,
+            @PathVariable("id") int id,
             @RequestParam(value = "fields", required = false, defaultValue = Fields.Author.DEFAULT) Set<String> fields
     ) throws PapersException {
-        return responseFactory.get(authorService.getAuthorMapById(userId, fields));
+        return responseFactory.get(authorService.getAuthorMapById(id, fields));
     }
 
     @RequestMapping(
@@ -51,10 +57,10 @@ public class AuthorApiController {
     @ResponseBody
     Response<Map<String, Object>>
     getMasterAuthor(
-            @PathVariable("id") int userId,
+            @PathVariable("id") int id,
             @RequestParam(value = "fields", required = false, defaultValue = Fields.AuthorMaster.DEFAULT) Set<String> fields
     ) throws PapersException {
-        return responseFactory.get(authorService.getAuthorMasterMapId(userId, fields));
+        return responseFactory.get(authorService.getAuthorMasterMapId(id, fields));
     }
 
     @RequestMapping(
@@ -78,7 +84,7 @@ public class AuthorApiController {
     getAuthorsMasters(
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-            @RequestParam(value = "fields", required = false, defaultValue = Fields.Author.DEFAULT) Set<String> fields
+            @RequestParam(value = "fields", required = false, defaultValue = Fields.AuthorMaster.DEFAULT) Set<String> fields
     ) throws PapersException {
         return responseFactory.get(authorService.getAuthorsMastersMap(offset, limit, fields));
     }
@@ -92,6 +98,8 @@ public class AuthorApiController {
     createAuthor(
             @RequestBody AuthorView view
     ) throws PapersException {
+        sessionUtils.authorized();
+        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
         return responseFactory.get(authorService.createAuthor(view));
     }
 
@@ -104,7 +112,32 @@ public class AuthorApiController {
     createAuthorMaster(
             @RequestBody AuthorMasterView view
     ) throws PapersException {
+        sessionUtils.authorized();
+        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
         return responseFactory.get(authorService.createAuthorMaster(view));
     }
 
+    @RequestMapping(
+            value = "/"
+            , method = RequestMethod.POST)
+    public
+    @ResponseBody
+    Response<Integer> save(
+            @RequestBody AuthorView authorView) throws PapersException {
+        sessionUtils.authorized();
+        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
+        return responseFactory.get(authorService.updateAuthor(authorView));
+    }
+
+    @RequestMapping(
+            value = "/master/"
+            , method = RequestMethod.POST)
+    public
+    @ResponseBody
+    Response<Integer> saveMaster(
+            @RequestBody AuthorMasterView view) throws PapersException {
+        sessionUtils.authorized();
+        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
+        return responseFactory.get(authorService.updateAuthorMaster(view));
+    }
 }

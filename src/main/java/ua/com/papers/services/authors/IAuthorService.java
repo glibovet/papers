@@ -33,4 +33,7 @@ public interface IAuthorService {
     int createAuthor(AuthorView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 
     int createAuthorMaster(AuthorMasterView view) throws ValidationException, ServiceErrorException, NoSuchEntityException;
+
+    int updateAuthor(AuthorView authorView) throws ServiceErrorException, NoSuchEntityException, ValidationException;
+    int updateAuthorMaster(AuthorMasterView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 }

@@ -15,6 +15,12 @@ import java.util.Set;
 @Table(name = "publication")
 public class PublicationEntity implements Serializable {
 
+    public PublicationEntity(){
+        this.literatureParsed = false;
+        this.inIndex = false;
+        this.status = PublicationStatusEnum.IN_PROCESS;
+    }
+
     private static final long serialVersionUID = 3943941275239417204L;
     @Id
     @Column(name = "id")
