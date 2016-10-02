@@ -8,11 +8,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ua.com.papers.exceptions.service_error.StorageException;
+import ua.com.papers.pojo.storage.FileData;
 import ua.com.papers.pojo.storage.FileItem;
 import ua.com.papers.storage.IStorage;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
@@ -58,5 +61,26 @@ public class IndexController {
     @RequestMapping(value = "/sign_up", method = RequestMethod.GET)
     public String signUp(){
         return "auth/sign_up";
+    }
+
+    @RequestMapping(value = "/get", method = RequestMethod.GET)
+    public void getFile(HttpServletResponse response){
+        try {
+            byte[] bytes = IOUtil.slurp(new FileInputStream(new File("E:\\1.jpg")), 0);
+            storage.upload(bytes, "asd.jpg", null);
+            FileData data = storage.download(response.getOutputStream(), "asd", null);
+            System.out.println(data.name);
+            System.out.println(data.size);
+
+            data = storage.download(response.getOutputStream(), "aawgsd", null);
+            System.out.println(data.name);
+            System.out.println(data.size);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

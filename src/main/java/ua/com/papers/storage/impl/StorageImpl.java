@@ -7,6 +7,7 @@ import com.dropbox.core.v2.files.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ua.com.papers.exceptions.service_error.StorageException;
+import ua.com.papers.pojo.storage.FileData;
 import ua.com.papers.pojo.storage.FileItem;
 import ua.com.papers.pojo.storage.ItemType;
 import ua.com.papers.storage.IStorage;
@@ -14,6 +15,7 @@ import ua.com.papers.storage.IStorage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,6 +73,31 @@ public class StorageImpl implements IStorage {
 
             return files;
         } catch (ListFolderErrorException e) {
+            throw new StorageException(e);
+        } catch (DbxException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
+    public FileData download(OutputStream stream, String partOfName, String folder) throws StorageException {
+        try {
+            List<FileItem> files = listFiles(folder);
+            for(FileItem item : files){
+                if(item.type == ItemType.FILE){
+                    int dot = item.name.indexOf('.');
+                    dot = dot > -1 ? dot : item.name.length();
+                    String name = item.name.substring(0, dot);
+                    if(partOfName.compareTo(name) == 0){
+                        DownloadBuilder builder = client().files().downloadBuilder(item.path);
+                        FileMetadata data = builder.start().download(stream);
+
+                        return new FileData(item.name, data.getSize());
+                    }
+                }
+            }
+            throw new StorageException(new NullPointerException(String.format("file[%s] was not founded", partOfName)));
+        } catch (IOException e) {
             throw new StorageException(e);
         } catch (DbxException e) {
             throw new StorageException(e);

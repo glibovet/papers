@@ -1,8 +1,10 @@
 package ua.com.papers.storage;
 
 import ua.com.papers.exceptions.service_error.StorageException;
+import ua.com.papers.pojo.storage.FileData;
 import ua.com.papers.pojo.storage.FileItem;
 
+import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -34,4 +36,14 @@ public interface IStorage {
      * @return - list of file and folders
      */
     List<FileItem> listFiles(String folder) throws StorageException;
+
+    /**
+     * download file to stream and return description about file
+     *
+     * @param stream - stream to load file to
+     * @param partOfName - name of file without extension
+     * @param folder - folder where to look for or null if in root
+     * @return metadata about file
+     */
+    FileData download(OutputStream stream, String partOfName, String folder) throws StorageException;
 }
