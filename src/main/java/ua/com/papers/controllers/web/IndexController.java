@@ -31,29 +31,6 @@ public class IndexController {
 
     @RequestMapping(value = {"/", "/index"}, method = RequestMethod.GET)
     public String indexPage(Model model, Principal principal){
-        try {
-            byte[] bytes = IOUtil.slurp(new FileInputStream(new File("E:\\text.txt")), 0);
-            storage.upload(bytes, "root.txt", null);
-            storage.upload(bytes, "sub.txt", "/sub/asd");
-
-            List<FileItem> before = storage.listFiles(null);
-            System.out.println(before);
-            storage.delete("root.txt", "/");
-            List<FileItem> after = storage.listFiles(null);
-            System.out.println(after);
-            if(before.size() - after.size() == 1)
-                System.out.println("delete ok");
-            else
-                System.out.println("delete fail");
-
-            System.out.println(storage.listFiles("sub"));
-            System.out.println(storage.listFiles("sub/asd"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (StorageException e) {
-            e.printStackTrace();
-        }
-
         return "index/index";
     }
 
@@ -61,26 +38,5 @@ public class IndexController {
     @RequestMapping(value = "/sign_up", method = RequestMethod.GET)
     public String signUp(){
         return "auth/sign_up";
-    }
-
-    @RequestMapping(value = "/get", method = RequestMethod.GET)
-    public void getFile(HttpServletResponse response){
-        try {
-            byte[] bytes = IOUtil.slurp(new FileInputStream(new File("E:\\1.jpg")), 0);
-            storage.upload(bytes, "asd.jpg", null);
-            FileData data = storage.download(response.getOutputStream(), "asd", null);
-            System.out.println(data.name);
-            System.out.println(data.size);
-
-            data = storage.download(response.getOutputStream(), "aawgsd", null);
-            System.out.println(data.name);
-            System.out.println(data.size);
-        } catch (StorageException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
