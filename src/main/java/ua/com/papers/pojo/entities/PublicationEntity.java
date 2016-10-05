@@ -63,6 +63,17 @@ public class PublicationEntity implements Serializable {
             inverseJoinColumns=@JoinColumn(name="author_master_id", referencedColumnName="ID"))
     private Set<AuthorMasterEntity> authors;
 
+    @Column(name="fileNameOriginal")
+    private String fileNameOriginal;
+
+    public String getFileNameOriginal() {
+        return fileNameOriginal;
+    }
+
+    public void setFileNameOriginal(String fileNameOriginal) {
+        this.fileNameOriginal = fileNameOriginal;
+    }
+
     public Integer getId() {
         return id;
     }

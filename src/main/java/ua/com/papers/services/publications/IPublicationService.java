@@ -25,4 +25,5 @@ public interface IPublicationService {
     int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 
     int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException;
+    int updatePublication(PublicationEntity view) throws ServiceErrorException, ValidationException;
 }

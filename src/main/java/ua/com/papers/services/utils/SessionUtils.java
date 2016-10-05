@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ua.com.papers.exceptions.service_error.AuthRequiredException;
+import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.persistence.dao.repositories.UsersRepository;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.pojo.enums.RolesEnum;
@@ -62,6 +63,12 @@ public class SessionUtils {
             }
         }
         return false;
+    }
+
+    public void userHasRole(RolesEnum ... userRoles) throws AuthRequiredException, ForbiddenException {
+        authorized();
+        if (!isUserWithRole(userRoles))
+            throw new ForbiddenException();
     }
 
     static final Map<String , SimpleGrantedAuthority> ROLES_MAP = new HashMap<String , SimpleGrantedAuthority>() {{

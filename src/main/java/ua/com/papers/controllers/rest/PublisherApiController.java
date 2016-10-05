@@ -68,8 +68,7 @@ public class PublisherApiController {
     createAuthor(
             @RequestBody PublisherView view
     ) throws PapersException {
-        sessionUtils.authorized();
-        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
+        sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
         return responseFactory.get(publisherService.createPublisher(view));
     }
 
@@ -80,8 +79,7 @@ public class PublisherApiController {
     @ResponseBody
     Response<Integer> save(
             @RequestBody PublisherView view) throws PapersException {
-        sessionUtils.authorized();
-        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
+        sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
         return responseFactory.get(publisherService.updatePublisher(view));
     }
 }

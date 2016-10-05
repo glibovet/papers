@@ -64,11 +64,13 @@ public class PublicationServiceImpl implements IPublicationService{
     }
 
     @Override
+    @Transactional
     public List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
         return publicationConverter.convert(getPublications(offset, limit), fields);
     }
 
     @Override
+    @Transactional
     public int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
         PublicationEntity  entity = new PublicationEntity();
         merge(entity,view);
@@ -81,11 +83,20 @@ public class PublicationServiceImpl implements IPublicationService{
     }
 
     @Override
+    @Transactional
     public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException {
         if (view.getId()==null||view.getId()==0)
             throw new ServiceErrorException();
         PublicationEntity entity = getPublicationById(view.getId());
         merge(entity,view);
+        return updatePublication(entity);
+    }
+
+    @Override
+    @Transactional
+    public int updatePublication(PublicationEntity entity) throws ServiceErrorException, ValidationException {
+        if (entity==null||entity.getId()==0)
+            throw new ServiceErrorException();
         publicationValidateService.publicationValidForUpdate(entity);
         entity = publicationRepository.saveAndFlush(entity);
         if(entity == null){

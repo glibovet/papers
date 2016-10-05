@@ -98,8 +98,7 @@ public class AuthorApiController {
     createAuthor(
             @RequestBody AuthorView view
     ) throws PapersException {
-        sessionUtils.authorized();
-        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
+        sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
         return responseFactory.get(authorService.createAuthor(view));
     }
 
@@ -112,8 +111,7 @@ public class AuthorApiController {
     createAuthorMaster(
             @RequestBody AuthorMasterView view
     ) throws PapersException {
-        sessionUtils.authorized();
-        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
+        sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
         return responseFactory.get(authorService.createAuthorMaster(view));
     }
 
@@ -124,8 +122,7 @@ public class AuthorApiController {
     @ResponseBody
     Response<Integer> save(
             @RequestBody AuthorView authorView) throws PapersException {
-        sessionUtils.authorized();
-        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
+        sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
         return responseFactory.get(authorService.updateAuthor(authorView));
     }
 
@@ -136,8 +133,7 @@ public class AuthorApiController {
     @ResponseBody
     Response<Integer> saveMaster(
             @RequestBody AuthorMasterView view) throws PapersException {
-        sessionUtils.authorized();
-        sessionUtils.isUserWithRole(RolesEnum.admin,RolesEnum.moderator);
+        sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
         return responseFactory.get(authorService.updateAuthorMaster(view));
     }
 }
