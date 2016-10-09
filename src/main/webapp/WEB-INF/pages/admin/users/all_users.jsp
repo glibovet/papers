@@ -2,19 +2,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <jsp:include page="../../common/include_resources.jsp" />
+    <title>Всі користувачі</title>
+    <jsp:include page="../include.jsp" />
 </head>
 <body>
-<div class="site-wrapper">
-    <div class="site-wrapper-inner">
-        <div class="cover-container">
-            <jsp:include page="../header.jsp"/>
-
-            <div class="inner cover" style="height: 1000px;">
-                all users here
-            </div>
-        </div>
-    </div>
-</div>
+    <jsp:include page="../header.jsp"/>
 </body>
 </html>
