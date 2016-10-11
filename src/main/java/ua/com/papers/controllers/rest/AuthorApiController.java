@@ -23,7 +23,7 @@ import java.util.Set;
  */
 
 @Controller
-@RequestMapping(value = "/api/autor")
+@RequestMapping(value = "/api/authors")
 public class AuthorApiController {
 
     @Autowired

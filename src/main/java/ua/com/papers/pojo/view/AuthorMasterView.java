@@ -11,7 +11,7 @@ public class AuthorMasterView {
     private Integer id;
     @Size(max = 100, message = "error.author.master.last_name.size")
     @NotNull
-    private String lastName;
+    private String last_name;
     @Size(max = 15, message = "error.author.master.initials.size")
     @NotNull
     private String initials;
@@ -25,12 +25,12 @@ public class AuthorMasterView {
         this.id = id;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getLast_name() {
+        return last_name;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setLast_name(String last_ame) {
+        this.last_name = last_ame;
     }
 
     public String getInitials() {

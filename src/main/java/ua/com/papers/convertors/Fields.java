@@ -43,7 +43,7 @@ public class Fields {
 
     public static class AuthorMaster{
         public static final String ID = "id";
-        public static final String LAST_NAME="lastname";
+        public static final String LAST_NAME="last_name";
         public static final String INITIALS = "initials";
         public static final String AUTHORS = "authors";
 

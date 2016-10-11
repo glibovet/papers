@@ -33,6 +33,7 @@
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Автори <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="/admin/authors/all" class="active">Всі автори</a></li>
+                        <li><a href="/admin/authors/create" class="active">Додати автора</a></li>
                         <li role="separator" class="divider"></li>
                         <li><a href="#">Separated link</a></li>
                         <li role="separator" class="divider"></li>
@@ -56,3 +57,10 @@
         }
     });
 </script>
+
+<style>
+    .main-container {
+        margin: auto;
+        width: 70%;
+    }
+</style>
