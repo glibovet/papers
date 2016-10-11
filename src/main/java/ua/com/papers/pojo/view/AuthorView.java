@@ -9,13 +9,13 @@ import javax.validation.constraints.Size;
 public class AuthorView {
     private Integer id;
     @Size(max = 75, message = "error.author.last_name.size")
-    private String lastName;
+    private String last_name;
     @Size(max = 45, message = "error.author.initials.size")
     private String initials;
     @Size(max = 250, message = "error.author.as_it.size")
     @NotNull
     private String original;
-    private Integer masterId;
+    private Integer master_id;
 
     public Integer getId() {
         return id;
@@ -25,12 +25,12 @@ public class AuthorView {
         this.id = id;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getLast_name() {
+        return last_name;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setLast_name(String last_name) {
+        this.last_name = last_name;
     }
 
     public String getInitials() {
@@ -49,11 +49,11 @@ public class AuthorView {
         this.original = original;
     }
 
-    public Integer getMasterId() {
-        return masterId;
+    public Integer getMaster_id() {
+        return master_id;
     }
 
-    public void setMasterId(Integer masterId) {
-        this.masterId = masterId;
+    public void setMaster_id(Integer master_id) {
+        this.master_id = master_id;
     }
 }

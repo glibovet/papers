@@ -1,4 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+
 <!DOCTYPE html>
 <html ng-app="all_authors">
 <head>
@@ -18,7 +20,7 @@
                 <div class="row" ng-repeat="author in authors">
                     {{author.last_name}} {{author.initials}}
                     <br />
-                    <a href="/admin/authors/{{author.id}}/edit" class="btn btn-success">Редагувати</a>
+                    <a href="/admin/authors/{{author.id}}/edit" class="btn btn-success"><spring:message code="admin.edit" /></a>
                     <hr role="separator" class="divider" />
                 </div>
             </div>

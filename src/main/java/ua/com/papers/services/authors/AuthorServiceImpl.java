@@ -119,14 +119,14 @@ public class AuthorServiceImpl implements IAuthorService {
         else view.setId(entity.getId());
         if (view.getInitials()!=null) entity.setInitials(view.getInitials());
         else view.setInitials(entity.getInitials());
-        if (view.getLastName()!=null) entity.setLastName(view.getLastName());
-        else view.setLastName(entity.getLastName());
+        if (view.getLast_name()!=null) entity.setLastName(view.getLast_name());
+        else view.setLast_name(entity.getLastName());
         if (view.getOriginal()!=null) entity.setOriginal(view.getOriginal());
         else view.setOriginal(entity.getOriginal());
-        if (view.getMasterId()!=null&&view.getMasterId()>0)
-            entity.setMaster(getAuthorMasterById(view.getMasterId()));
+        if (view.getMaster_id()!=null&&view.getMaster_id()>0)
+            entity.setMaster(getAuthorMasterById(view.getMaster_id()));
         else if (entity.getMaster()!=null)
-            view.setMasterId(entity.getMaster().getId());
+            view.setMaster_id(entity.getMaster().getId());
     }
 
     @Override

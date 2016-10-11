@@ -11,14 +11,14 @@ app.controller('author_controller', function($scope, $http, Notification){
                 if (response.data.result) {
                     $scope.author = response.data.result;
                 } else {
-                    Notification({message: 'Немає такого автора'}, 'error');
+                    Notification({message: errorMessage(response.data.error)}, 'error');
                     setTimeout(function(){
                         location.href = '/admin/authors/all';
                     }, 5000);
                 }
             }, function(xhr){
                 console.log(xhr);
-                Notification({message: 'Проблеми під час асинхроного запиту<br />(помилка в консолі)'}, 'error');
+                Notification({message: messages_admin['admin.ajax.error']}, 'error');
             });
     } else {
         $scope.author = { };
@@ -34,7 +34,7 @@ app.controller('author_master_edit_controller', function($scope, $http, Notifica
             .then(function(response){
                 var data = response.data;
                 if (data.result) {
-                    Notification({message: 'Зьережено'}, 'success');
+                    Notification({message: messages_admin['admin.saved']}, 'success');
                     if(!$scope.author.id){
                         setTimeout(function(){
                             location.href = '/admin/authors/' + data.result + '/edit';
@@ -45,7 +45,26 @@ app.controller('author_master_edit_controller', function($scope, $http, Notifica
                 }
             }, function(xhr){
                 console.log(xhr);
-                Notification({message: 'Проблеми під час асинхроного запиту<br />(помилка в консолі)'}, 'error');
+                Notification({message: messages_admin['admin.ajax.error']}, 'error');
+            });
+    };
+});
+
+app.controller('sub_authors', function($scope){
+     // just for communicating between sub modules
+});
+
+app.controller('sub_author_edit', function($scope, $http, Notification){
+    var root = $scope.$parent.$parent;
+    $scope.author_edit = { };
+
+    $scope.subAuthorSave = function(){
+        $scope.author_edit.master_id = root.author.id;
+        $http.put('/api/authors/', JSON.stringify($scope.author_edit), {headers: HEADERS})
+            .then(function(response){
+                console.log(response);
+            }, function(xhr){
+                console.log(xhr);
             });
     };
 });

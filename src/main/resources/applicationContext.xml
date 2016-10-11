@@ -185,6 +185,7 @@
         <property name="basenames">
             <list>
                 <value>classpath:messages</value>
+                <value>classpath:admin</value>
             </list>
         </property>
         <property name="fallbackToSystemLocale" value="true" />

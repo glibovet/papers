@@ -33,10 +33,10 @@ public class Fields {
 
     public static class Author{
         public static final String ID = "id";
-        public static final String LAST_NAME="lastname";
+        public static final String LAST_NAME="last_name";
         public static final String INITIALS = "initials";
         public static final String ORIGINAL = "original";
-        public static final String MASTER = "master";
+        public static final String MASTER = "master_id";
 
         public static final String DEFAULT = ID + ',' + LAST_NAME;
     }
