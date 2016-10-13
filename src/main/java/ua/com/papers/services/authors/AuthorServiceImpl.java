@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -40,7 +41,7 @@ public class AuthorServiceImpl implements IAuthorService {
     private IAuthorValidateService authorValidateService;
 
     @Override
-    @Transactional
+    @Transactional(propagation= Propagation.REQUIRED)
     public AuthorEntity getAuthorById(int id) throws NoSuchEntityException {
         AuthorEntity author = authorsRepository.findOne(id);
         if (author == null)
@@ -49,7 +50,7 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public List<AuthorEntity> getAuthors(int offset, int limit) throws NoSuchEntityException {
         if (limit==0)
             limit=20;
@@ -60,7 +61,7 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public AuthorMasterEntity getAuthorMasterById(int id) throws NoSuchEntityException {
         AuthorMasterEntity author = mastersRepository.findOne(id);
         if (author == null)
@@ -69,7 +70,7 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public List<AuthorMasterEntity> getAuthorMasters(int offset, int limit) throws NoSuchEntityException {
         Page<AuthorMasterEntity> list = mastersRepository.findAll(new PageRequest(offset/limit,limit));
         if(list == null || list.getContent().isEmpty())
@@ -78,31 +79,31 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public Map<String, Object> getAuthorMapById(int id, Set<String> fields) throws NoSuchEntityException {
         return authorEntityConverter.convert(getAuthorById(id),fields);
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public Map<String, Object> getAuthorMasterMapId(int id, Set<String> fields) throws NoSuchEntityException {
         return authorMasterEntityConverter.convert(getAuthorMasterById(id),fields);
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public List<Map<String, Object>> getAuthorsMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
         return authorEntityConverter.convert(getAuthors(offset,limit),fields);
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public List<Map<String, Object>> getAuthorsMastersMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
         return authorMasterEntityConverter.convert(getAuthorMasters(offset, limit),fields);
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public int createAuthor(AuthorView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
         AuthorEntity entity = new AuthorEntity();
         merge(entity,view);
@@ -130,7 +131,7 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public int createAuthorMaster(AuthorMasterView view) throws ValidationException, ServiceErrorException, NoSuchEntityException {
         AuthorMasterEntity entity = new AuthorMasterEntity();
         merge(entity,view);
@@ -143,7 +144,7 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public int updateAuthor(AuthorView authorView) throws ServiceErrorException, NoSuchEntityException, ValidationException {
         if (authorView.getId()==null||authorView.getId()==0)
             throw new ServiceErrorException();
@@ -158,7 +159,7 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation=Propagation.REQUIRED)
     public int updateAuthorMaster(AuthorMasterView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
         if (view.getId()==null||view.getId()==0)
             throw new ServiceErrorException();
@@ -172,6 +173,7 @@ public class AuthorServiceImpl implements IAuthorService {
         return entity.getId();
     }
 
+    @Transactional(propagation=Propagation.REQUIRED)
     private void merge(AuthorMasterEntity entity, AuthorMasterView view) throws NoSuchEntityException {
         if (view.getId()!=null) entity.setId(view.getId());
         else view.setId(entity.getId());

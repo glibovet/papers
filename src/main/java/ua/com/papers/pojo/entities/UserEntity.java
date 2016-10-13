@@ -1,5 +1,7 @@
 package ua.com.papers.pojo.entities;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 
 /**
@@ -23,7 +25,8 @@ public class UserEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "active")
+    @Column(name = "state")
+    @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean active;
 
     @ManyToOne(fetch = FetchType.EAGER)

@@ -1,0 +1,1 @@
+ALTER TABLE `users` CHANGE `active` `state` TINYINT(1);

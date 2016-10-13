@@ -114,12 +114,15 @@ public class UserServiceImpl implements IUserService {
             UserEntity entity = new UserEntity();
             if (view.getRole() == null)
                 view.setRole(RolesEnum.user);
+            view.setActive(true);
             merge(entity, view);
             userValidateService.validForCreate(view);
             entity = usersRepository.saveAndFlush(entity);
             if(entity == null){
                 throw new ServiceErrorException();
             }
+            entity.setActive(true);
+            entity = usersRepository.saveAndFlush(entity);
             if (!sessionUtils.isAuthorized()){
                 sessionUtils.logeInUser(entity);
             }
