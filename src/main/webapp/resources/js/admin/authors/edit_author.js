@@ -50,23 +50,59 @@ app.controller('author_master_edit_controller', function($scope, $http, Notifica
     };
 });
 
-app.controller('sub_authors', function($scope){
-     // just for communicating between sub modules
-});
-
-app.controller('sub_author_edit', function($scope, $http, Notification){
-    var root = $scope.$parent.$parent;
+app.controller('sub_authors', function($scope, $http, Notification){
+    $scope.sub_authors = [];
     $scope.author_edit = { };
+    var root = $scope.$parent;
 
     $scope.subAuthorSave = function(){
         $scope.author_edit.master_id = root.author.id;
-        $http.put('/api/authors/', JSON.stringify($scope.author_edit), {headers: HEADERS})
+
+        var _method = $scope.author_edit.id ? $http.post : $http.put;
+
+        _method('/api/authors/', JSON.stringify($scope.author_edit), {headers: HEADERS})
             .then(function(response){
-                console.log(response);
+                if(response.data.result){
+                    $scope.author_edit = {};
+                    Notification({message: messages_admin['admin.saved']}, 'success');
+                    loadSubAuthors();
+                } else {
+                    Notification({message: errorMessage(response.data.error)}, 'error');
+                }
             }, function(xhr){
                 console.log(xhr);
+                Notification({message: messages_admin['admin.ajax.error']}, 'error');
             });
     };
+
+    $scope.editSubAuthor = function(a){
+        $scope.author_edit = {
+            id: a.id,
+            initials: a.initials,
+            last_name: a.last_name,
+            original: a.original
+        };
+    };
+
+    //load sub_authors after 1 second
+    setTimeout(function(){
+        loadSubAuthors();
+    }, 1000);
+
+    function loadSubAuthors(){
+        $scope.sub_authors = [];
+
+        var master_id = root.author.id;
+        $http.get('/api/authors/?fields=id,last_name,initials,original&restrict='+JSON.stringify({master_ids: [master_id]}))
+            .then(function(response){
+                var authors = response.data.result;
+                if(authors){
+                    authors.forEach(function(a){
+                        $scope.sub_authors.push(a);
+                    });
+                }
+            });
+    }
 });
 
 function errorMessage(e){

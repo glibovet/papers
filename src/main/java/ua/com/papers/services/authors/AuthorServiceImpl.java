@@ -7,16 +7,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.criteria.Criteria;
+import ua.com.papers.criteria.impl.AuthorCriteria;
+import ua.com.papers.criteria.impl.AuthorMasterCriteria;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.AuthorMastersRepository;
 import ua.com.papers.persistence.dao.repositories.AuthorsRepository;
 import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.view.AuthorMasterView;
 import ua.com.papers.pojo.view.AuthorView;
-import ua.com.papers.services.utils.SessionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,8 @@ public class AuthorServiceImpl implements IAuthorService {
     private Converter<AuthorMasterEntity> authorMasterEntityConverter;
     @Autowired
     private IAuthorValidateService authorValidateService;
+    @Autowired
+    private ICriteriaRepository criteriaRepository;
 
     @Override
     @Transactional(propagation= Propagation.REQUIRED)
@@ -51,13 +57,14 @@ public class AuthorServiceImpl implements IAuthorService {
 
     @Override
     @Transactional(propagation=Propagation.REQUIRED)
-    public List<AuthorEntity> getAuthors(int offset, int limit) throws NoSuchEntityException {
-        if (limit==0)
-            limit=20;
-        Page<AuthorEntity> list = authorsRepository.findAll(new PageRequest(offset/limit,limit));
-        if(list == null || list.getContent().isEmpty())
-            throw new NoSuchEntityException("authors", String.format("[offset: %d, limit: %d]", offset, limit));
-        return list.getContent();
+    public List<AuthorEntity> getAuthors(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException {
+        Criteria<AuthorEntity> criteria = new AuthorCriteria(offset, limit, restrict);
+
+        List<AuthorEntity> list = criteriaRepository.find(criteria);
+        if(list == null || list.isEmpty())
+            throw new NoSuchEntityException("authors", String.format("[offset: %d, limit: %d, restriction: %s]", offset, limit, restrict));
+
+        return list;
     }
 
     @Override
@@ -71,11 +78,14 @@ public class AuthorServiceImpl implements IAuthorService {
 
     @Override
     @Transactional(propagation=Propagation.REQUIRED)
-    public List<AuthorMasterEntity> getAuthorMasters(int offset, int limit) throws NoSuchEntityException {
-        Page<AuthorMasterEntity> list = mastersRepository.findAll(new PageRequest(offset/limit,limit));
-        if(list == null || list.getContent().isEmpty())
-            throw new NoSuchEntityException("authorMasters", String.format("[offset: %d, limit: %d]", offset, limit));
-        return list.getContent();
+    public List<AuthorMasterEntity> getAuthorMasters(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException {
+        Criteria<AuthorMasterEntity> criteria = new AuthorMasterCriteria(offset, limit, restrict);
+
+        List<AuthorMasterEntity> list = criteriaRepository.find(criteria);
+        if(list == null || list.isEmpty())
+            throw new NoSuchEntityException("authorMasters", String.format("[offset: %d, limit: %d, restriction: %s]", offset, limit, restrict));
+
+        return list;
     }
 
     @Override
@@ -92,14 +102,14 @@ public class AuthorServiceImpl implements IAuthorService {
 
     @Override
     @Transactional(propagation=Propagation.REQUIRED)
-    public List<Map<String, Object>> getAuthorsMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
-        return authorEntityConverter.convert(getAuthors(offset,limit),fields);
+    public List<Map<String, Object>> getAuthorsMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException {
+        return authorEntityConverter.convert(getAuthors(offset, limit, restrict), fields);
     }
 
     @Override
     @Transactional(propagation=Propagation.REQUIRED)
-    public List<Map<String, Object>> getAuthorsMastersMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
-        return authorMasterEntityConverter.convert(getAuthorMasters(offset, limit),fields);
+    public List<Map<String, Object>> getAuthorsMastersMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException {
+        return authorMasterEntityConverter.convert(getAuthorMasters(offset, limit, restrict), fields);
     }
 
     @Override
@@ -171,6 +181,20 @@ public class AuthorServiceImpl implements IAuthorService {
             throw new ServiceErrorException();
         }
         return entity.getId();
+    }
+
+    @Override
+    @Transactional(propagation=Propagation.REQUIRED)
+    public int countAuthors(String restrict) throws WrongRestrictionException {
+        Criteria<AuthorEntity> criteria = new AuthorCriteria(restrict);
+        return criteriaRepository.count(criteria);
+    }
+
+    @Override
+    @Transactional(propagation=Propagation.REQUIRED)
+    public int countAuthorsMaster(String restrict) throws WrongRestrictionException {
+        Criteria<AuthorMasterEntity> criteria = new AuthorMasterCriteria(restrict);
+        return criteriaRepository.count(criteria);
     }
 
     @Transactional(propagation=Propagation.REQUIRED)

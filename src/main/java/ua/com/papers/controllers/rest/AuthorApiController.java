@@ -71,9 +71,21 @@ public class AuthorApiController {
     getAuthors(
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-            @RequestParam(value = "fields", required = false, defaultValue = Fields.Author.DEFAULT) Set<String> fields
+            @RequestParam(value = "fields", required = false, defaultValue = Fields.Author.DEFAULT) Set<String> fields,
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict
     ) throws PapersException {
-        return responseFactory.get(authorService.getAuthorsMap(offset, limit, fields));
+        return responseFactory.get(authorService.getAuthorsMap(offset, limit, fields, restrict));
+    }
+
+    @RequestMapping(
+            value = "/count",
+            method = RequestMethod.GET
+    )
+    public @ResponseBody Response<Integer>
+    getAuthorsCount(
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict
+    ) throws PapersException {
+        return responseFactory.get(authorService.countAuthors(restrict));
     }
 
     @RequestMapping(
@@ -84,9 +96,21 @@ public class AuthorApiController {
     getAuthorsMasters(
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-            @RequestParam(value = "fields", required = false, defaultValue = Fields.AuthorMaster.DEFAULT) Set<String> fields
+            @RequestParam(value = "fields", required = false, defaultValue = Fields.AuthorMaster.DEFAULT) Set<String> fields,
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict
     ) throws PapersException {
-        return responseFactory.get(authorService.getAuthorsMastersMap(offset, limit, fields));
+        return responseFactory.get(authorService.getAuthorsMastersMap(offset, limit, fields, restrict));
+    }
+
+    @RequestMapping(
+            value = "/master/count",
+            method = RequestMethod.GET
+    )
+    public @ResponseBody Response<Integer>
+    getAuthorsMastersCount(
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict
+    ) throws PapersException {
+        return responseFactory.get(authorService.countAuthorsMaster(restrict));
     }
 
     @RequestMapping(

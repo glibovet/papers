@@ -6,7 +6,6 @@
 <head>
     <title>Всі автори</title>
     <jsp:include page="../include.jsp" />
-    <script src="/resources/js/admin/authors/all_authors.js"></script>
 </head>
 <body>
     <jsp:include page="../header.jsp"/>
@@ -26,5 +25,7 @@
             </div>
         </div>
     </div>
+
+    <script src="/resources/js/admin/authors/all_authors.js"></script>
 </body>
 </html>

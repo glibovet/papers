@@ -1,5 +1,6 @@
 package ua.com.papers.services.authors;
 
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
@@ -19,16 +20,16 @@ import java.util.Set;
 public interface IAuthorService {
 
     AuthorEntity getAuthorById(int id) throws NoSuchEntityException;
-    List<AuthorEntity> getAuthors(int offset, int limit) throws NoSuchEntityException;
+    List<AuthorEntity> getAuthors(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException;
     AuthorMasterEntity getAuthorMasterById(int id) throws NoSuchEntityException;
-    List<AuthorMasterEntity> getAuthorMasters(int offset, int limit) throws NoSuchEntityException;
+    List<AuthorMasterEntity> getAuthorMasters(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException;
 
     Map<String, Object> getAuthorMapById(int id, Set<String> fields) throws NoSuchEntityException;
 
     Map<String, Object> getAuthorMasterMapId(int id, Set<String> fields) throws NoSuchEntityException;
 
-    List<Map<String,Object>> getAuthorsMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException;
-    List<Map<String,Object>> getAuthorsMastersMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException;
+    List<Map<String,Object>> getAuthorsMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException;
+    List<Map<String,Object>> getAuthorsMastersMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException;
 
     int createAuthor(AuthorView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 
@@ -36,4 +37,7 @@ public interface IAuthorService {
 
     int updateAuthor(AuthorView authorView) throws ServiceErrorException, NoSuchEntityException, ValidationException;
     int updateAuthorMaster(AuthorMasterView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
+
+    int countAuthors(String restrict) throws WrongRestrictionException;
+    int countAuthorsMaster(String restrict) throws WrongRestrictionException;
 }
