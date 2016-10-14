@@ -197,6 +197,20 @@ public class AuthorServiceImpl implements IAuthorService {
         return criteriaRepository.count(criteria);
     }
 
+    @Override
+    @Transactional(propagation=Propagation.REQUIRED)
+    public void deleteAuthor(int id) throws NoSuchEntityException {
+        AuthorEntity entity = getAuthorById(id);
+        authorsRepository.delete(entity);
+    }
+
+    @Override
+    @Transactional(propagation=Propagation.REQUIRED)
+    public void deleteMasterAuthor(int id) throws NoSuchEntityException {
+        AuthorMasterEntity entity = getAuthorMasterById(id);
+        mastersRepository.delete(entity);
+    }
+
     @Transactional(propagation=Propagation.REQUIRED)
     private void merge(AuthorMasterEntity entity, AuthorMasterView view) throws NoSuchEntityException {
         if (view.getId()!=null) entity.setId(view.getId());

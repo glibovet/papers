@@ -6,11 +6,29 @@
 <link rel="stylesheet" href="/resources/css/css/font-awesome.min.css">
 
 <script src="/resources/js/ejs.min.js"></script>
+<script src="/resources/js/ajax.js"></script>
 <script>
+    Ajax.setCSRF('${_csrf.headerName}', '${_csrf.token}');
     var HEADERS = {
         '${_csrf.headerName}': '${_csrf.token}',
         'Content-Type': 'application/json',
         'Accept': 'application/json'
+    };
+
+    function errorMessage(e){
+        var result = e.message;
+
+        var errors = e.errors;
+        if (errors && errors.length > 0) {
+            result += '<br />[';
+            for (var i = 0; i < errors.length - 1; ++i) {
+                result += errors[i];
+            }
+            result += errors[errors.length - 1];
+            result += ']';
+        }
+
+        return result;
     }
 </script>
 <script src="/resources/js/auth/sign_in.js"></script>

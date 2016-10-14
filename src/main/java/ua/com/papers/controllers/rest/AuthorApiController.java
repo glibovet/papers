@@ -6,6 +6,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.com.papers.convertors.Fields;
 import ua.com.papers.exceptions.PapersException;
+import ua.com.papers.exceptions.service_error.AuthRequiredException;
+import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.response.Response;
 import ua.com.papers.pojo.response.ResponseFactory;
@@ -14,6 +16,7 @@ import ua.com.papers.pojo.view.AuthorView;
 import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.utils.SessionUtils;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -159,5 +162,35 @@ public class AuthorApiController {
             @RequestBody AuthorMasterView view) throws PapersException {
         sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
         return responseFactory.get(authorService.updateAuthorMaster(view));
+    }
+
+    @RequestMapping(
+            value = "/{id}"
+            , method = RequestMethod.DELETE
+    )
+    public
+    void deleteAuthor(
+            @PathVariable("id") int id,
+            HttpServletResponse response
+    ) throws PapersException{
+        sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
+        authorService.deleteAuthor(id);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @RequestMapping(
+            value = "/master/{id}"
+            , method = RequestMethod.DELETE
+    )
+    public
+    void deleteMasterAuthor(
+            @PathVariable("id") int id,
+            HttpServletResponse response
+    ) throws PapersException{
+        sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
+        authorService.deleteMasterAuthor(id);
+
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 }

@@ -40,4 +40,7 @@ public interface IAuthorService {
 
     int countAuthors(String restrict) throws WrongRestrictionException;
     int countAuthorsMaster(String restrict) throws WrongRestrictionException;
+
+    void deleteAuthor(int id) throws NoSuchEntityException;
+    void deleteMasterAuthor(int id) throws NoSuchEntityException;
 }

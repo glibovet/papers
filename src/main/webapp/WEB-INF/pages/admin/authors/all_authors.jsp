@@ -16,16 +16,36 @@
                 filters here later
             </div>
             <div class="col-md-9">
-                <div class="row" ng-repeat="author in authors">
-                    {{author.last_name}} {{author.initials}}
-                    <br />
-                    <a href="/admin/authors/{{author.id}}/edit" class="btn btn-success"><spring:message code="admin.edit" /></a>
-                    <hr role="separator" class="divider" />
+                <div class="row">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th><spring:message code="authors.last_name" /></th>
+                            <th><spring:message code="authors.initials" /></th>
+                            <th><spring:message code="admin.actions" /></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="author in authors">
+                            <td>
+                                {{author.last_name}}
+                            </td>
+                            <td>
+                                {{author.initials}}
+                            </td>
+                            <td>
+                                <a href="/admin/authors/{{author.id}}/edit" class="btn btn-success"><spring:message code="admin.edit" /></a>
+                                <br />
+                                <button class="btn btn-danger" ng-click="deleteAuthor(author)"><spring:message code="admin.delete" /></button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-
+    <script src="/resources/messages/admin.js"></script>
     <script src="/resources/js/admin/authors/all_authors.js"></script>
 </body>
 </html>

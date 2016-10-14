@@ -84,6 +84,21 @@ app.controller('sub_authors', function($scope, $http, Notification){
         };
     };
 
+    $scope.deleteSubAuthor = function(id){
+        $http.delete('/api/authors/'+id, {headers: HEADERS})
+            .then(function(response){
+                if(response.data.error){
+                    Notification({message: errorMessage(response.data.error)}, 'error');
+                } else {
+                    Notification({message: messages_admin['admin.deleted']}, 'success');
+                    loadSubAuthors();
+                }
+            }, function(xhr){
+                console.log(xhr);
+                Notification({message: messages_admin['admin.ajax.error']}, 'error');
+            });
+    };
+
     //load sub_authors after 1 second
     setTimeout(function(){
         loadSubAuthors();
@@ -104,19 +119,3 @@ app.controller('sub_authors', function($scope, $http, Notification){
             });
     }
 });
-
-function errorMessage(e){
-    var result = e.message;
-
-    var errors = e.errors;
-    if (errors && errors.length > 0) {
-        result += '<br />[';
-        for (var i = 0; i < errors.length - 1; ++i) {
-            result += errors[i];
-        }
-        result += errors[errors.length - 1];
-        result += ']';
-    }
-
-    return result;
-}

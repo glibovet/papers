@@ -78,6 +78,8 @@
                     </td>
                     <td>
                         <button class="btn btn-success" ng-click="editSubAuthor(author)"><spring:message code="admin.edit" /></button>
+                        <br />
+                        <button class="btn btn-danger" ng-click="deleteSubAuthor(author.id)"><spring:message code="admin.delete" /></button>
                     </td>
                 </tr>
                 </tbody>
