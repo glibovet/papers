@@ -23,6 +23,8 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
 
     private List<Integer> sub_ids;
 
+    private Boolean has_sub;
+
     public AuthorMasterCriteria(String restriction) throws WrongRestrictionException {
         this(0, 0, restriction);
     }
@@ -35,6 +37,7 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
             this.query = parsed.query;
             this.ids = parsed.ids;
             this.sub_ids = parsed.sub_ids;
+            this.has_sub = parsed.has_sub;
         }
     }
 
@@ -45,6 +48,8 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
 
         Root<AuthorMasterEntity> root = query.from(AuthorMasterEntity.class);
         query.select(root);
+
+        query(query, root, cb);
 
         return em.createQuery(query);
     }
@@ -81,6 +86,17 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
         if (this.sub_ids != null && !this.sub_ids.isEmpty()) {
             Join<AuthorMasterEntity, AuthorEntity> subAuthors = root.join("authors");
             query.where(subAuthors.get("id").in(this.sub_ids));
+        }
+
+        if (this.has_sub != null) {
+            Expression<List<AuthorEntity>> expression = root.get("authors");
+            Predicate predicate;
+            if (this.has_sub) {
+                predicate = cb.ge(cb.size(expression), 1);
+            } else {
+                predicate = cb.equal(cb.size(expression), 0);
+            }
+            query.where(predicate);
         }
     }
 }

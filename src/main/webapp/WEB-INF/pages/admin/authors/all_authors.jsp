@@ -13,7 +13,29 @@
         <hr role="separator" class="divider" />
         <div class="row">
             <div class="col-md-3">
-                filters here later
+                <form ng-submit="filterAuthors()">
+
+                    <div class="form-group">
+                        <label><spring:message code="admin.page" /></label>
+                        <select class="form-control" ng-model="filters.page">
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><spring:message code="admin.query" /></label>
+                        <input ng-model="filters.query" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label><spring:message code="admin.authors.has_sub" /></label>
+                        <select class="form-control" ng-model="filters.has_sub">
+                            <option value=""><spring:message code="admin.ignore" /></option>
+                            <option value="true"><spring:message code="admin.yes" /></option>
+                            <option value="false"><spring:message code="admin.no" /></option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success"><spring:message code="admin.search" /></button>
+                </form>
             </div>
             <div class="col-md-9">
                 <div class="row">
