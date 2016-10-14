@@ -19,21 +19,32 @@
                 e.preventDefault();
 
                 var self = $(this);
+                var password = self.find('[name=password]').val();
+                var repeat_password = self.find('[name=password_repeat]').val();
+
+                if(password.length < 8){
+                    alert('password should have at least 8 characters');
+                    return;
+                }
+
+                if(password != repeat_password){
+                    alert('passwords must be equals');
+                    return;
+                }
 
                 Ajax.put({
                     url: '/api/users/',
                     data: JSON.stringify({
                         email: self.find('[name=email]').val(),
-                        password: md5(self.find('[name=password]').val()),
+                        password: md5(password),
                         role: 'user'
                     }),
                     dataType: 'json',
                     success: function(response){
                         if(response.result){
-                            alert('now you can login');
+                            location.href = '/';
                         } else if(response.error){
                             var error = response.error;
-                            console.log(error);
                             var message = error.message;
                             if(error.errors){
                                 message += "[";
