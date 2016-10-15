@@ -1,13 +1,17 @@
 package ua.com.papers.services.publisher;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.criteria.Criteria;
+import ua.com.papers.criteria.impl.PublisherCriteria;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.PublisherRepository;
 import ua.com.papers.pojo.entities.PublisherEntity;
 import ua.com.papers.pojo.view.PublisherView;
@@ -31,8 +35,11 @@ public class PublisherServiceImpl implements IPublisherService{
     private IPublisherValidateService publisherValidateService;
     @Autowired
     private IAddressService addressService;
+    @Autowired
+    private ICriteriaRepository criteriaRepository;
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public PublisherEntity getPublisherById(int id) throws NoSuchEntityException {
         PublisherEntity entity = publisherRepository.findOne(id);
         if (entity == null)
@@ -41,26 +48,31 @@ public class PublisherServiceImpl implements IPublisherService{
     }
 
     @Override
-    public List<PublisherEntity> getPublishers(int offset, int limit) throws NoSuchEntityException {
-        if (limit==0)
-            limit=20;
-        Page<PublisherEntity> list = publisherRepository.findAll(new PageRequest(offset/limit,limit));
-        if(list == null || list.getContent().isEmpty())
-            throw new NoSuchEntityException("publishers", String.format("[offset: %d, limit: %d]", offset, limit));
-        return list.getContent();
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<PublisherEntity> getPublishers(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException {
+        Criteria<PublisherEntity> criteria = new PublisherCriteria(offset, limit, restrict);
+
+        List<PublisherEntity> list = criteriaRepository.find(criteria);
+        if(list == null || list.isEmpty())
+            throw new NoSuchEntityException("publishers", String.format("[offset: %d, limit: %d, restrict: %s]", offset, limit, restrict));
+
+        return list;
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public Map<String, Object> getPublisherMapById(int id, Set<String> fields) throws NoSuchEntityException {
-        return publisherConverter.convert(getPublisherById(id),fields);
+        return publisherConverter.convert(getPublisherById(id), fields);
     }
 
     @Override
-    public List<Map<String, Object>> getPublishersMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
-        return publisherConverter.convert(getPublishers(offset,limit),fields);
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<Map<String, Object>> getPublishersMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException {
+        return publisherConverter.convert(getPublishers(offset, limit, restrict), fields);
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public int createPublisher(PublisherView view) throws ValidationException, ServiceErrorException, NoSuchEntityException {
         PublisherEntity entity = new PublisherEntity();
         merge(entity,view);
@@ -90,6 +102,7 @@ public class PublisherServiceImpl implements IPublisherService{
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public int updatePublisher(PublisherView view) throws NoSuchEntityException, ServiceErrorException, ValidationException {
         if (view.getId()==null||view.getId()==0)
             throw new ServiceErrorException();
@@ -100,5 +113,13 @@ public class PublisherServiceImpl implements IPublisherService{
         if(entity == null)
             throw new ServiceErrorException();
         return entity.getId();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public int countPublishers(String restrict) throws WrongRestrictionException {
+        Criteria<PublisherEntity> criteria = new PublisherCriteria(restrict);
+
+        return criteriaRepository.count(criteria);
     }
 }

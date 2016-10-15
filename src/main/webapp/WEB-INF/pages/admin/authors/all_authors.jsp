@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html ng-app="all_authors">
 <head>
-    <title>Всі автори</title>
+    <title><spring:message code="admin.authors.all_authors" /></title>
     <jsp:include page="../include.jsp" />
 </head>
 <body>

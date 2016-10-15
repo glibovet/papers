@@ -20,7 +20,7 @@ import java.util.Set;
  * Created by Andrii on 02.10.2016.
  */
 @Controller
-@RequestMapping(value = "/api/publisher")
+@RequestMapping(value = "/api/publishers")
 public class PublisherApiController {
 
     @Autowired
@@ -37,9 +37,8 @@ public class PublisherApiController {
             method = RequestMethod.GET
     )
     public
-    @ResponseBody
-    Response<Map<String, Object>>
-    getAuthor(
+    @ResponseBody Response<Map<String, Object>>
+    getPublisher(
             @PathVariable("id") int userId,
             @RequestParam(value = "fields", required = false, defaultValue = Fields.Publisher.DEFAULT) Set<String> fields
     ) throws PapersException {
@@ -50,13 +49,27 @@ public class PublisherApiController {
             value = "/",
             method = RequestMethod.GET
     )
-    public @ResponseBody Response<List<Map<String, Object>>>
-    getAuthors(
-            @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
-            @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
-            @RequestParam(value = "fields", required = false, defaultValue = Fields.Publisher.DEFAULT) Set<String> fields
+    public
+    @ResponseBody Response<List<Map<String, Object>>>
+    getPublishers(
+                    @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+                    @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+                    @RequestParam(value = "fields", required = false, defaultValue = Fields.Publisher.DEFAULT) Set<String> fields,
+                    @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict
+            ) throws PapersException {
+        return responseFactory.get(publisherService.getPublishersMap(offset, limit, fields, restrict));
+    }
+
+    @RequestMapping(
+            value = "/count",
+            method = RequestMethod.GET
+    )
+    public
+    @ResponseBody Response<Integer>
+    getPublishersCount(
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict
     ) throws PapersException {
-        return responseFactory.get(publisherService.getPublishersMap(offset, limit, fields));
+        return responseFactory.get(publisherService.countPublishers(restrict));
     }
 
     @RequestMapping(
@@ -65,7 +78,7 @@ public class PublisherApiController {
     )
     public
     @ResponseBody Response<Integer>
-    createAuthor(
+    createPublisher(
             @RequestBody PublisherView view
     ) throws PapersException {
         sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
@@ -76,8 +89,8 @@ public class PublisherApiController {
             value = "/"
             , method = RequestMethod.POST)
     public
-    @ResponseBody
-    Response<Integer> save(
+    @ResponseBody Response<Integer>
+    savePublisher(
             @RequestBody PublisherView view) throws PapersException {
         sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
         return responseFactory.get(publisherService.updatePublisher(view));

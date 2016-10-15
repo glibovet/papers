@@ -30,10 +30,21 @@
                     </ul>
                 </li>
                 <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Автори <span class="caret"></span></a>
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><spring:message code="admin.authors.authors"/> <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="/admin/authors/all" class="active"><spring:message code="admin.authors.all_authors" /></a></li>
                         <li><a href="/admin/authors/create" class="active"><spring:message code="admin.authors.create" /></a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><spring:message code="admin.publishers.publishers"/> <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/admin/publishers/all" class="active"><spring:message code="admin.publishers.all_publishers" /></a></li>
+                        <li><a href="/admin/publishers/create" class="active"><spring:message code="admin.publishers.create" /></a></li>
                         <li role="separator" class="divider"></li>
                         <li><a href="#">Separated link</a></li>
                         <li role="separator" class="divider"></li>
