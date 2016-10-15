@@ -17,7 +17,7 @@
 
                     <div class="form-group">
                         <label><spring:message code="admin.page" /></label>
-                        <select class="form-control" ng-model="filters.page">
+                        <select class="form-control" ng-model="filters.page" id="pages">
                         </select>
                     </div>
 

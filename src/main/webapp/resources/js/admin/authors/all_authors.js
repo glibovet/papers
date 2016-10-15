@@ -9,6 +9,7 @@ app.controller('all_authors_ctrl', function($scope, $http, Notification){
     };
 
     getAuthors();
+    countAuthors();
 
     $scope.deleteAuthor = function(author){
         if(confirm(messages_admin['admin.delete.approve'])){
@@ -23,35 +24,59 @@ app.controller('all_authors_ctrl', function($scope, $http, Notification){
                     } else {
                         Notification({message: errorMessage(response.data.error)}, 'error');
                     }
-                }, function(xhr){
-                    console.log(xhr);
-                    Notification({message: messages_admin['admin.ajax.error']}, 'error');
                 });
         }
     };
 
     $scope.filterAuthors = function(){
         getAuthors();
+        countAuthors();
     };
 
     function getAuthors(){
         var query = '/api/authors/master/?';
-        var offset = LIMIT * $scope.page || 0;
+        var offset = LIMIT * $scope.filters.page || 0;
         query += 'limit='+LIMIT+'&offset='+offset+'&'+FIELDS;
+        query += '&' + restrict();
 
-        var f = $scope.filters;
-        query += '&restrict='+JSON.stringify({has_sub: valid(f.has_sub), query: valid(f.query)});
+        $scope.authors = [];
 
         $http.get(query)
             .then(function(response){
                 var data = response.data;
+
                 if(data.result){
                     $scope.authors = data.result;
                 } else {
-                    $scope.authors = [];
                     Notification({message: data.error.message}, 'error');
                 }
             });
+    }
+
+    function countAuthors(){
+        var query = '/api/authors/master/count?'+restrict();
+
+        $http.get(query)
+            .then(function(response){
+                var numberOfEntities = response.data.result || 1;
+                var page = $scope.filters.page || 0;
+                var element = angular.element('#pages');
+                var i = 0;
+
+                element.empty();
+                do {
+                    element.append(['<option value="', i, '">', i+1, '</option>'].join(''));
+                    ++i;
+                    numberOfEntities -= LIMIT;
+                } while(numberOfEntities >= LIMIT);
+
+                element.val(page);
+            });
+    }
+
+    function restrict(){
+        var f = $scope.filters;
+        return 'restrict='+JSON.stringify({has_sub: valid(f.has_sub), query: valid(f.query)});
     }
 
     function valid(val){
