@@ -193,6 +193,7 @@
                 <value>classpath:messages</value>
                 <value>classpath:admin</value>
                 <value>classpath:author</value>
+                <value>classpath:publisher</value>
             </list>
         </property>
         <property name="fallbackToSystemLocale" value="true" />
