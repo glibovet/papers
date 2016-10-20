@@ -122,4 +122,11 @@ public class PublisherServiceImpl implements IPublisherService{
 
         return criteriaRepository.count(criteria);
     }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void deletePublisher(int id) throws NoSuchEntityException {
+        PublisherEntity entity = getPublisherById(id);
+        publisherRepository.delete(entity);
+    }
 }

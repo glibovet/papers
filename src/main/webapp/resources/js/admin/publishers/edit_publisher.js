@@ -11,7 +11,7 @@ app.controller('publisher_controller', function($scope, $http, Notification){
                     Notification({message: errorMessage(response.data.error)}, 'error');
                     setTimeout(function(){
                         location.href = '/admin/publishers/all';
-                    }, 5000);
+                    }, 3000);
                 } else {
                     $scope.publisher = response.data.result;
                 }

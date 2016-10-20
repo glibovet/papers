@@ -25,4 +25,6 @@ public interface IPublisherService {
     int updatePublisher(PublisherView view) throws NoSuchEntityException, ServiceErrorException, ValidationException;
 
     int countPublishers(String restrict) throws WrongRestrictionException;
+
+    void deletePublisher(int id) throws NoSuchEntityException;
 }
