@@ -1,20 +1,14 @@
 package ua.com.papers.crawler;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +41,8 @@ public class Crawler {
 			crawledPagesColl.add(page);
 			crawledPages.put(url, crawledPagesColl);
 
+			findHrefs(page.content);
+			//System.out.println(extractContent(page.content));
 			Set<URL> extracted = extractUrls(page);
 
 			for (final URL u : extracted) {
@@ -111,6 +107,25 @@ public class Crawler {
 		}
 
 		return urls;
+	}
+
+	private void findHrefs(String html) {
+		Document doc = Jsoup.parse(html);
+
+		Elements links = doc.select("a[href^='/article/c/']");
+
+		for(Element element : links) {
+			System.out.println(element.attr("href"));
+			System.out.println(element.ownText());
+		}
+	}
+
+	private String extractContent(String html) {
+
+		Document doc = Jsoup.parse(html);
+		Elements content = doc.select("#content_54961");
+
+		return content.text();
 	}
 
 }

@@ -14,7 +14,7 @@ public class Tester {
 		Crawler crawler = new Crawler();
 		
 		crawler.process(Arrays.asList(
-				new URL("")
+				new URL("http://www.gla.ac.uk/services/archives/collections/business/")
 				));
 	}
 

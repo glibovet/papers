@@ -7,10 +7,12 @@
     </base-urls>
     <frequency>1000</frequency>
     <startup-in>0</startup-in>
-    <strategy>
-        <text-similarity>
-            <tag hits="5">Computer</tag>
-            <tag>Library</tag>
-        </text-similarity>
-    </strategy>
+
+    <!-- if specified templates were found and their 'weight'
+    is more or equal 1, then it'll be stored according to the 'store' template -->
+    <page min-weigth="1">
+        <template weight="0.5" order="1" action="redirect|store">a[href^='/article/c/']</template>
+        <template weight="0.1" action="store" format="plain">#mainContent > div</template>
+    </page>
+
 </crawler>

@@ -1,110 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-	<!-- start of crawler tag -->
-	<xs:element name="crawler">
-		<xs:complexType>
-			<xs:all>
-				<xs:element name="base-urls" type="base-urls" />
-				<xs:element name="frequency" type="frequency" minOccurs="0" />
-				<xs:element name="startup-in" type="startup-in"
-					minOccurs="0" />
-				<xs:element name="strategy" type="strategy" />
-			</xs:all>
-		</xs:complexType>
-	</xs:element>
-	<!-- end of crawler tag -->
+    <!-- start of crawler tag -->
+    <xs:element name="crawler">
+        <xs:complexType>
+            <xs:all>
+                <xs:element name="base-urls" type="base-urls"/>
+                <xs:element name="frequency" type="frequency" minOccurs="0"/>
+                <xs:element name="startup-in" type="startup-in"
+                            minOccurs="0"/>
+                <xs:element name="page" type="page"/>
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+    <!-- end of crawler tag -->
 
-	<!-- start of urls tag -->
-	<xs:complexType name="base-urls">
-		<xs:sequence>
-			<!-- single url tag -->
-			<xs:element maxOccurs="unbounded" name="url">
-				<xs:complexType>
-					<xs:simpleContent>
-						<xs:extension base="url-pattern">
-							<xs:attribute name="order" type="greater-one" />
-						</xs:extension>
-					</xs:simpleContent>
-				</xs:complexType>
-			</xs:element>
-			<!-- single url tag -->
-		</xs:sequence>
-	</xs:complexType>
+    <!-- start of urls tag -->
+    <xs:complexType name="base-urls">
+        <xs:sequence>
+            <!-- single url tag -->
+            <xs:element maxOccurs="unbounded" name="url">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="url-pattern">
+                            <xs:attribute name="order" type="greater-one"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <!-- single url tag -->
+        </xs:sequence>
+    </xs:complexType>
 
-	<xs:simpleType name="url-pattern">
-		<xs:restriction base="xs:string">
-			<xs:pattern value="(https?:\/\/)?([\w\.]+)\.([a-z]{2,6}\.?)(\/[\w\.]*)*\/?" />
-		</xs:restriction>
-	</xs:simpleType>
+    <xs:simpleType name="url-pattern">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="(https?:\/\/)?([\w\.]+)\.([a-z]{2,6}\.?)(\/[\w\.]*)*\/?"/>
+        </xs:restriction>
+    </xs:simpleType>
 
-	<!-- end of urls tag -->
+    <xs:simpleType name="action-attr-pattern">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="((redirect)|(store))(\\|((redirect)|(store)))*"/>
+        </xs:restriction>
+    </xs:simpleType>
 
-	<!-- start of frequency tag -->
-	<xs:simpleType name="frequency">
-		<xs:restriction base="xs:long" />
-	</xs:simpleType>
-	<!-- end of frequency tag -->
+    <!-- end of urls tag -->
 
-	<!-- start of startup-in tag -->
-	<xs:simpleType name="startup-in">
-		<xs:restriction base="xs:long" />
-	</xs:simpleType>
-	<!-- end of startup-in tag -->
+    <!-- start of frequency tag -->
+    <xs:simpleType name="frequency">
+        <xs:restriction base="xs:long"/>
+    </xs:simpleType>
+    <!-- end of frequency tag -->
 
-	<!-- start of strategy tag -->
-	<xs:complexType name="strategy">
-		<xs:choice>
-			<xs:element name="link-count" type="link-count" />
-			<xs:element name="text-similarity" type="text-similarity" />
-		</xs:choice>
-	</xs:complexType>
-	<!-- end of strategy tag -->
+    <!-- start of startup-in tag -->
+    <xs:simpleType name="startup-in">
+        <xs:restriction base="xs:long"/>
+    </xs:simpleType>
+    <!-- end of startup-in tag -->
 
-	<xs:complexType name="text-similarity">
-		<xs:sequence>
-			<!-- single 'tag' tag -->
-			<xs:element maxOccurs="unbounded" name="tag">
-				<xs:complexType>
-					<xs:simpleContent>
-						<xs:extension base="not-empty-string">
-							<xs:attribute name="hits" type="greater-one" default="1"/>
-						</xs:extension>
-					</xs:simpleContent>
-				</xs:complexType>
-			</xs:element>
-			<!-- single 'tag' tag -->
-		</xs:sequence>
-	</xs:complexType>
+    <!-- start of strategy tag -->
+    <xs:complexType name="page">
+        <xs:attribute name="min-weight" type="xs:double"/>
+        <xs:sequence>
+            <!-- single template tag -->
+            <xs:element maxOccurs="unbounded" name="template">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="action" type="action-attr-pattern"/>
+                            <xs:attribute name="format" type="formatting-type"/>
+                            <xs:attribute name="weight" type="xs:double"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <!-- single template tag -->
+        </xs:sequence>
+    </xs:complexType>
+    <!-- end of strategy tag -->
 
-	<!-- start of link-count tag -->
-	<xs:complexType name="link-count">
-		<xs:attribute name="ordering-type" type="ordering-type"
-			use="required" />
-	</xs:complexType>
-	<!-- end of link-count tag -->
+    <xs:complexType name="text-similarity">
+        <xs:sequence>
+            <!-- single 'tag' tag -->
+            <xs:element maxOccurs="unbounded" name="tag">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="not-empty-string">
+                            <xs:attribute name="hits" type="greater-one" default="1"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <!-- single 'tag' tag -->
+        </xs:sequence>
+    </xs:complexType>
 
-	<!-- start of ordering-type tag -->
-	<xs:simpleType name="ordering-type">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="breadth-first" />
-			<xs:enumeration value="back-link" />
-			<xs:enumeration value="rank" />
-		</xs:restriction>
-	</xs:simpleType>
-	<!-- end of ordering-type tag -->
-	
-	<!-- util -->
-	<xs:simpleType name="greater-one">
-		<xs:restriction base="xs:unsignedInt">
-			<xs:minInclusive value="1" />
-		</xs:restriction>
-	</xs:simpleType>
-	
-	<xs:simpleType name="not-empty-string">
-		<xs:restriction base="xs:string">
-			<xs:minLength value="1" />
-		</xs:restriction>
-	</xs:simpleType>
+    <!-- start of link-count tag -->
+    <xs:complexType name="link-count">
+        <xs:attribute name="ordering-type" type="ordering-type"
+                      use="required"/>
+    </xs:complexType>
+    <!-- end of link-count tag -->
+
+    <!-- start of ordering-type tag -->
+    <xs:simpleType name="ordering-type">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="breadth-first"/>
+            <xs:enumeration value="back-link"/>
+            <xs:enumeration value="rank"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- end of ordering-type tag -->
+
+    <xs:simpleType name="formatting-type">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="html"/>
+            <xs:enumeration value="plain"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- util -->
+    <xs:simpleType name="greater-one">
+        <xs:restriction base="xs:unsignedInt">
+            <xs:minInclusive value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="not-empty-string">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
 
 </xs:schema>
