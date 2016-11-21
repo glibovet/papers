@@ -25,6 +25,8 @@
         <commons-lang.version>2.6</commons-lang.version>
       <spring.security.version>4.1.2.RELEASE</spring.security.version>
       <es.version>2.3.4</es.version>
+      <solr.data.version>2.0.5.RELEASE</solr.data.version>
+      <solr.version>6.3.0</solr.version>
 
       <!-- JDBC Setting -->
       <hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect>
@@ -34,7 +36,7 @@
 
     <profiles>
         <profile>
-            <id>local</id>
+            <id>dev</id>
             <properties>
                 <jdbc.username>root</jdbc.username>
                 <jdbc.password>root</jdbc.password>
@@ -44,11 +46,26 @@
                 <jdbc.url>
                     <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
                 </jdbc.url>
+                <build.profile.id>dev</build.profile.id>
             </properties>
 
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <jdbc.username>root</jdbc.username>
+                <jdbc.password>root</jdbc.password>
+                <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
+                <jdbc.database.name>papers</jdbc.database.name>
+                <jdbc.database.server>localhost</jdbc.database.server>
+                <jdbc.url>
+                    <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
+                </jdbc.url>
+                <build.profile.id>prod</build.profile.id>
+            </properties>
         </profile>
     </profiles>
 
@@ -96,7 +113,7 @@
     <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-jpa</artifactId>
-      <version>1.2.0.RELEASE</version>
+      <version>1.10.5.RELEASE</version>
     </dependency>
     <!--END of Spring DATA -->
     <dependency>
@@ -278,6 +295,26 @@
           <groupId>com.google.code.gson</groupId>
           <artifactId>gson</artifactId>
           <version>2.7</version>
+      </dependency>
+
+      <!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-solr -->
+      <dependency>
+          <groupId>org.springframework.data</groupId>
+          <artifactId>spring-data-solr</artifactId>
+          <version>${solr.data.version}</version>
+      </dependency>
+
+
+      <dependency>
+          <groupId>org.apache.solr</groupId>
+          <artifactId>solr-core</artifactId>
+          <version>${solr.version}</version>
+          <exclusions>
+              <exclusion>
+                  <artifactId>slf4j-jdk14</artifactId>
+                  <groupId>org.slf4j</groupId>
+              </exclusion>
+          </exclusions>
       </dependency>
 
   </dependencies>
