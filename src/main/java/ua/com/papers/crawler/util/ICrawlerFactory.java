@@ -1,7 +1,8 @@
-package ua.com.papers.crawler;
+package ua.com.papers.crawler.util;
 
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.settings.Settings;
 
 import javax.validation.constraints.NotNull;

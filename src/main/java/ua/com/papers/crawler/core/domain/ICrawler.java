@@ -1,4 +1,7 @@
-package ua.com.papers.crawler;
+package ua.com.papers.crawler.core.domain;
+
+import ua.com.papers.crawler.Page;
+import ua.com.papers.crawler.util.PageHandler;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
@@ -55,25 +58,30 @@ public interface ICrawler {
         /**
          * Called each time crawler fails to perform operation or
          * inner exception occurs. Can be used for logging
+         *
          * @param th failure cause
          */
-        default void onException(@NotNull Throwable th) {}
+        default void onException(@NotNull Throwable th) {
+        }
 
     }
 
     /**
      * This method starts crawler
      *
+     * @param handlers to process page parts, each handler should be annotated with
+     * {@linkplain PageHandler} or {@linkplain IllegalArgumentException} will be raised
      * @param callback callback to monitor progress status
      */
-    void start(@NotNull ICallback callback);
+    void start(@NotNull ICallback callback, @NotNull Collection<Object> handlers);
 
     /**
      * This method starts crawler
      *
-     * @param callback callbacks to monitor progress status
+     * @param handlers to process page parts, each handler should be annotated with
+     * {@linkplain PageHandler} or {@linkplain IllegalArgumentException} will be raised
      */
-    void start(@NotNull Collection<ICallback> callback);
+    void start(@NotNull Collection<Object> handlers);
 
     /**
      * Stops crawler immediately
@@ -83,6 +91,7 @@ public interface ICrawler {
     /**
      * Waits at most specified amount of millis and finally
      * stops crawler
+     *
      * @param wait millis to wait
      */
     void stop(long wait);
