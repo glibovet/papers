@@ -1,5 +1,7 @@
 package ua.com.papers.crawler.core.domain;
 
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 import ua.com.papers.crawler.Page;
 import ua.com.papers.crawler.util.PageHandler;
 
@@ -13,6 +15,8 @@ import java.util.Collection;
  * </p>
  * Created by Максим on 11/27/2016.
  */
+@Service
+@Validated
 public interface ICrawler {
 
     interface ICallback {

@@ -9,7 +9,7 @@
     <startup-in>0</startup-in>
 
     <page min-weigth="1">
-        <template weight="0.5" order="1" action="redirect|store">a[href^='/article/c/']</template>
+        <template id="1" weight="0.5" order="1" action="redirect|store">a[href^='/article/c/']</template>
         <template weight="0.1" action="store" format="plain">#mainContent > div</template>
     </page>
 

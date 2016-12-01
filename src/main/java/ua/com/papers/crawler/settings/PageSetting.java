@@ -27,6 +27,10 @@ public final class PageSetting {
         private final Collection<AnalyzeTemplate> analyzeTemplates;
         private final Collection<FormatTemplate> formatTemplates;
 
+        public Builder() {
+            this(DEFAULT_WEIGHT);
+        }
+
         public Builder(int minWeight) {
 
             if (minWeight > PageSetting.MAX_WEIGHT)
