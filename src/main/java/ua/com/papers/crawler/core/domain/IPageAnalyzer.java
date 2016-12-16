@@ -12,6 +12,12 @@ import javax.validation.constraints.NotNull;
 @Validated
 public interface IPageAnalyzer {
 
+    /**
+     * Analyzes single page
+     *
+     * @param page page to analyze
+     * @return true if web page matches criteria
+     */
     boolean matches(@NotNull Page page);
 
 }

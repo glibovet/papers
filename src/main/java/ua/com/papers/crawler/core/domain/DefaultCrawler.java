@@ -1,7 +1,7 @@
 package ua.com.papers.crawler.core.domain;
 
 import com.google.common.base.Preconditions;
-import ua.com.papers.crawler.Page;
+import ua.com.papers.crawler.mPage;
 import ua.com.papers.crawler.util.PageHandler;
 
 import javax.validation.constraints.NotNull;
@@ -14,13 +14,11 @@ import java.util.*;
 public final class DefaultCrawler implements ICrawler {
 
     private final Queue<URL> urls;
-    private final Map<URL, Collection<Page>> crawledPages;
-    private final int maxQueueSize;
+    private final Map<URL, Collection<mPage>> crawledPages;
     private ICallback callback;
 
-    public DefaultCrawler(@NotNull Collection<URL> startUrls, int maxQueueSize) {
+    public DefaultCrawler(@NotNull Collection<URL> startUrls) {
         Preconditions.checkNotNull(startUrls);
-        this.maxQueueSize = maxQueueSize;
         this.urls = new LinkedList<>(startUrls);
         this.crawledPages = new HashMap<>(30);
     }

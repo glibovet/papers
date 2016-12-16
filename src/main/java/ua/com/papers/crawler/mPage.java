@@ -1,6 +1,6 @@
 package ua.com.papers.crawler;
 
-public class Page {
+public class mPage {
 	
 	String url;
 	String content = "";

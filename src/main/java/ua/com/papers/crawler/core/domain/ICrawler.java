@@ -2,7 +2,7 @@ package ua.com.papers.crawler.core.domain;
 
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import ua.com.papers.crawler.Page;
+import ua.com.papers.crawler.mPage;
 import ua.com.papers.crawler.util.PageHandler;
 
 import javax.validation.constraints.NotNull;
@@ -42,7 +42,7 @@ public interface ICrawler {
          *
          * @param page page which is considered to be acceptable
          */
-        void onPageAccepted(@NotNull Page page);
+        void onPageAccepted(@NotNull mPage page);
 
         /**
          * Called each time crawler considers page
@@ -50,7 +50,7 @@ public interface ICrawler {
          *
          * @param page page which is considered to be unacceptable
          */
-        default void onPageRejected(@NotNull Page page) {
+        default void onPageRejected(@NotNull mPage page) {
         }
 
         /**

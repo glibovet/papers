@@ -11,8 +11,8 @@ public class Tester {
     public static void main(String[] args) throws IOException {
 
         AnalyzeTemplate.Builder analyze1 = new AnalyzeTemplate
-                .Builder("a[href^='https://www.tutorialspoint.com/jenkins/']", 60)
-                .addAction(AnalyzeTemplate.Action.REDIRECT);
+                .Builder("a[href^='https://www.tutorialspoint.com/jenkins/']", 60);
+                //.addAction(AnalyzeTemplate.Action.REDIRECT);
 
         AnalyzeTemplate.Builder analyze2 = new AnalyzeTemplate
                 .Builder("body > div.main > div.container > div > div.row", 60);

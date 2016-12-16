@@ -1,25 +1,23 @@
 package ua.com.papers.crawler.core.domain;
 
+import lombok.Value;
+import org.joda.time.DateTime;
+
 import java.net.URL;
 
 /**
+ * <p>
+ * Represents single web page with its content
+ * </p>
  * Created by Максим on 12/1/2016.
  */
-class Page {
+@Value
+public class Page {
+    // page url
+    URL url;
+    // raw page content (including html tags)
+    String content;
+    // visit timestamp
+    DateTime visitTime;
 
-    private final URL url;
-    private final String content;
-
-    public Page(URL url, String content) {
-        this.url = url;
-        this.content = content;
-    }
-
-    public URL getUrl() {
-        return url;
-    }
-
-    public String getContent() {
-        return content;
-    }
 }

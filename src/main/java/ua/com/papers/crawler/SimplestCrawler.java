@@ -24,16 +24,16 @@ public class SimplestCrawler {
 	public void process(Collection<URL> src) throws IOException {
 
 		Queue<URL> urls = new LinkedList<>(src);
-		Map<URL, Collection<Page>> crawledPages = new HashMap<>();
+		Map<URL, Collection<mPage>> crawledPages = new HashMap<>();
 
 		BufferedWriter writer = new BufferedWriter(new FileWriter("logs.txt"));
 
 		while (!urls.isEmpty() && urls.size() <= 100) {
 
 			final URL url = urls.poll();
-			final Page page = crawlPage(url);
+			final mPage page = crawlPage(url);
 
-			Collection<Page> crawledPagesColl = crawledPages.get(url);
+			Collection<mPage> crawledPagesColl = crawledPages.get(url);
 
 			if (crawledPagesColl == null) {
 				crawledPagesColl = new ArrayList<>(1);
@@ -66,9 +66,9 @@ public class SimplestCrawler {
 
 	}
 
-	private Page crawlPage(URL url) {
+	private mPage crawlPage(URL url) {
 
-		Page page = new Page();
+		mPage page = new mPage();
 		page.url = url.toString();
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()))) {
@@ -86,7 +86,7 @@ public class SimplestCrawler {
 		return page;
 	}
 
-	private Set<URL> extractUrls(Page page) {
+	private Set<URL> extractUrls(mPage page) {
 
 		final Set<URL> urls = new HashSet<>();
 

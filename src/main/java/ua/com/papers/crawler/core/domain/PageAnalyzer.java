@@ -1,35 +1,42 @@
 package ua.com.papers.crawler.core.domain;
 
+import com.google.common.base.Preconditions;
+import lombok.Value;
+
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 /**
  * Created by Максим on 12/1/2016.
  */
-public final class PageAnalyzer implements IPageAnalyzer {
+@Value
+public class PageAnalyzer implements IPageAnalyzer {
 
-    private final int minAccept;
-    private final Map<Integer, Collection<? extends IAnalyzeChain>> idToChains;
-    // todo redo?
-    public PageAnalyzer(int minAccept, @NotNull Map<Integer, Collection<? extends IAnalyzeChain>> chains) {
-        this.minAccept = minAccept;
-        this.idToChains = Collections.unmodifiableMap(chains);
+    PageID pageID;
+    Collection<? extends IAnalyzeChain> chains;
+    int minSum;
+
+    public PageAnalyzer(int minSum, @NotNull PageID pageID, @NotNull Collection<? extends IAnalyzeChain> chains) {
+
+        if (minSum < 0)
+            throw new IllegalArgumentException(
+                    String.format("min sum < 0, was %d", minSum));
+
+        this.minSum = minSum;
+        this.pageID = Preconditions.checkNotNull(pageID);
+        this.chains = Collections.unmodifiableCollection(Preconditions.checkNotNull(chains));
     }
 
     @Override
     public boolean matches(@NotNull Page page) {
 
-        int sumWeight = 0;
+        int weightSum = 0;
 
-        for (final Collection<? extends IAnalyzeChain> chains : idToChains.values())
-            for (final IAnalyzeChain chain : chains) {
-                if (chain.satisfies(page)) {
-                    sumWeight += chain.getWeight();
-                }
-            }
+        for (final IAnalyzeChain chain : chains) {
+            weightSum += chain.analyze(page);
+        }
 
-        return sumWeight >= minAccept;
+        return weightSum >= minSum;
     }
 }

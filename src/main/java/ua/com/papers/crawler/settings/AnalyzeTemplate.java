@@ -4,9 +4,6 @@ import com.google.common.base.Preconditions;
 import ua.com.papers.crawler.util.IBuilder;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * <p>
@@ -15,19 +12,19 @@ import java.util.Collections;
  * of a page. </p>
  * <p>
  * <p>Every template has it's weight, css selector and,
- * optionally, action which describes what should be done if page
- * fragment matches current template. e.g., if action is {@linkplain Action#REDIRECT},
- * then crawler will try to visit given page
+ * optionally
  * </p>
  * Created by Максим on 11/27/2016.
  */
 public final class AnalyzeTemplate {
 
+    /*
+    find a better place
     public enum Action {
         REDIRECT
-    }
+    }*/
 
-    private final Collection<Action> actions;
+   // private final Collection<Action> actions;
     private final String cssSelector;
     private final int weight;
 
@@ -35,7 +32,7 @@ public final class AnalyzeTemplate {
 
         private final String cssSelector;
         private final int weight;
-        private final Collection<Action> actions;
+      //  private final Collection<Action> actions;
 
         public Builder(@NotNull String cssSelector, int weight) {
 
@@ -45,10 +42,10 @@ public final class AnalyzeTemplate {
 
             this.cssSelector = Preconditions.checkNotNull(cssSelector, "css selector expected");
             this.weight = weight;
-            this.actions = new ArrayList<>(0);
+       //     this.actions = new ArrayList<>(0);
         }
 
-        public Builder addAction(@NotNull Action action) {
+       /* public Builder addAction(@NotNull Action action) {
             actions.add(Preconditions.checkNotNull(action));
             return this;
         }
@@ -60,7 +57,7 @@ public final class AnalyzeTemplate {
 
         public Collection<Action> getActions() {
             return Collections.unmodifiableCollection(actions);
-        }
+        }*/
 
         public String getCssSelector() {
             return cssSelector;
@@ -78,14 +75,14 @@ public final class AnalyzeTemplate {
     }
 
     private AnalyzeTemplate(Builder builder) {
-        this.actions = Collections.unmodifiableCollection(builder.getActions());
+     //   this.actions = Collections.unmodifiableCollection(builder.getActions());
         this.cssSelector = builder.getCssSelector();
         this.weight = builder.getWeight();
     }
 
-    public Collection<Action> getActions() {
+    /*public Collection<Action> getActions() {
         return actions;
-    }
+    }*/
 
     public String getCssSelector() {
         return cssSelector;
@@ -103,25 +100,14 @@ public final class AnalyzeTemplate {
         AnalyzeTemplate that = (AnalyzeTemplate) o;
 
         if (weight != that.weight) return false;
-        if (!actions.equals(that.actions)) return false;
         return cssSelector.equals(that.cssSelector);
 
     }
 
     @Override
     public int hashCode() {
-        int result = actions.hashCode();
-        result = 31 * result + cssSelector.hashCode();
+        int result = cssSelector.hashCode();
         result = 31 * result + weight;
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return "AnalyzeTemplate{" +
-                "actions=" + actions +
-                ", cssSelector='" + cssSelector + '\'' +
-                ", weight=" + weight +
-                '}';
     }
 }
