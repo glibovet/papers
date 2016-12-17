@@ -64,7 +64,7 @@ public class PublicationApiController {
     )
     public
     @ResponseBody Response<Integer>
-    createAuthor(
+    createPublication(
             @RequestBody PublicationView view
     ) throws PapersException {
         sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);

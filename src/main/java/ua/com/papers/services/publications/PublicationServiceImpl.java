@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.dao.repositories.PublicationRepository;
 import ua.com.papers.pojo.entities.PublicationEntity;
 
 import ua.com.papers.pojo.view.PublicationView;
+import ua.com.papers.services.elastic.IElasticSearch;
 import ua.com.papers.services.publisher.IPublisherService;
 import ua.com.papers.services.publisher.IPublisherValidateService;
 import ua.com.papers.services.utils.SessionUtils;
@@ -38,6 +40,9 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Autowired
     private IPublicationValidateService publicationValidateService;
+
+    @Autowired
+    private IElasticSearch elasticSearch;
 
     @Override
     @Transactional
@@ -84,11 +89,14 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Override
     @Transactional
-    public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException {
+    public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException {
         if (view.getId()==null||view.getId()==0)
             throw new ServiceErrorException();
         PublicationEntity entity = getPublicationById(view.getId());
         merge(entity,view);
+        int id = updatePublication(entity);
+        if (id!=0&&entity.isInIndex())
+            elasticSearch.indexPublication(id);
         return updatePublication(entity);
     }
 

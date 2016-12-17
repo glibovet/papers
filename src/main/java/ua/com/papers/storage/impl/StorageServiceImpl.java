@@ -1,34 +1,37 @@
 package ua.com.papers.storage.impl;
 
 import org.apache.commons.io.FilenameUtils;
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.PublicationEntity;
+import ua.com.papers.pojo.storage.FileData;
 import ua.com.papers.services.publications.IPublicationService;
+import ua.com.papers.services.publications.IPublicationValidateService;
 import ua.com.papers.storage.IStorage;
 import ua.com.papers.storage.IStorageService;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 
 /**
  * Created by Andrii on 05.10.2016.
  */
 @Service
-public class IStorageServiceImpl implements IStorageService {
+public class StorageServiceImpl implements IStorageService {
 
     @Autowired
     IPublicationService publicationService;
     @Autowired
     IStorage storage;
+    @Autowired
+    IPublicationValidateService publicationValidateService;
 
     @Override
     public boolean uploadPaper(int id, MultipartFile file) throws NoSuchEntityException, ServiceErrorException, IOException, ValidationException {
@@ -45,6 +48,25 @@ public class IStorageServiceImpl implements IStorageService {
         publicationService.updatePublication(publication);
         serverFile.delete();
         return true;
+    }
+
+    @Override
+    public byte[] getPaperAsByteArray(Integer paperId) throws NoSuchEntityException, ServiceErrorException, ForbiddenException {
+        PublicationEntity entity = publicationService.getPublicationById(paperId);
+        return getPaperAsByteArray(entity);
+    }
+
+    public byte[] getPaperAsByteArray(PublicationEntity publication) throws ServiceErrorException, ForbiddenException {
+        if (publication == null)
+            throw new ServiceErrorException();
+        if (!publicationValidateService.isPublicationAvailable(publication))
+            throw new ForbiddenException();
+        byte[] res = null;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        FileData fileData = storage.download(bos,String.valueOf(publication.getId()),papersFolder);
+        if (fileData == null)
+            throw new ServiceErrorException();
+        return bos.toByteArray();
     }
 
     private void copyFile(MultipartFile source, File result) throws IOException, ServiceErrorException {

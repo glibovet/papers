@@ -5,5 +5,6 @@ package ua.com.papers.pojo.enums;
  */
 public enum PublicationStatusEnum {
     IN_PROCESS,
-    ACTIVE
+    ACTIVE,
+    DELETED
 }

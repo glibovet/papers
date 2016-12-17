@@ -2,8 +2,10 @@ package ua.com.papers.storage;
 
 import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.PublicationEntity;
 
 import java.io.IOException;
 
@@ -12,4 +14,6 @@ import java.io.IOException;
  */
 public interface IStorageService {
     boolean uploadPaper(int id, MultipartFile file) throws NoSuchEntityException, ServiceErrorException, IOException, ValidationException;
+    byte[] getPaperAsByteArray(Integer paperId) throws NoSuchEntityException, ServiceErrorException, ForbiddenException;
+    byte[] getPaperAsByteArray(PublicationEntity entity) throws NoSuchEntityException, ServiceErrorException, ForbiddenException;
 }

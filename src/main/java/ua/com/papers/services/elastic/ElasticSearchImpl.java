@@ -8,6 +8,7 @@ import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.Base64;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -22,17 +23,27 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import ua.com.papers.convertors.Fields;
+import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ElasticSearchError;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
+import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.AuthorMasterEntity;
+import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.enums.RolesEnum;
+import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.utils.SessionUtils;
+import ua.com.papers.storage.IStorageService;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.Date;
 
 import static org.elasticsearch.client.Requests.createIndexRequest;
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 /**
  * Created by Andrii on 12.11.2016.
@@ -45,10 +56,16 @@ public class ElasticSearchImpl implements IElasticSearch{
     @Autowired
     private SessionUtils sessionUtils;
 
+    @Autowired
+    private IPublicationService publicationService;
+
+    @Autowired
+    private IStorageService storageService;
+
     @Override
     public Boolean createIndexIfNotExist() throws ForbiddenException, ElasticSearchError {
-        if(!sessionUtils.isUserWithRole(RolesEnum.admin))
-            throw new ForbiddenException();
+        //if(!sessionUtils.isUserWithRole(RolesEnum.admin))
+        //    throw new ForbiddenException();
         if (!indexExist()){
             return createIndex();
         }
@@ -65,13 +82,62 @@ public class ElasticSearchImpl implements IElasticSearch{
     }
 
     public Boolean indexDelete() throws ForbiddenException {
-        if(!sessionUtils.isUserWithRole(RolesEnum.admin))
-            throw new ForbiddenException();
+        //if(!sessionUtils.isUserWithRole(RolesEnum.admin))
+        //    throw new ForbiddenException();
         if (client == null)
             initializeIndex();
         DeleteIndexResponse createResponse = client.admin().indices().prepareDelete(elasticIndex).execute()
                 .actionGet();
         return true;
+    }
+
+    @Override
+    public Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchError {
+        if(!sessionUtils.isUserWithRole(RolesEnum.admin))
+            throw new ForbiddenException();
+        if (client == null)
+            initializeIndex();
+        if (!indexExist()){
+            return createIndex();
+        }
+        PublicationEntity publication = publicationService.getPublicationById(id);
+        XContentBuilder builder = buildPublicationJsonForIndexing(publication);
+        if (builder == null)
+            return false;
+        IndexResponse response = client.prepareIndex(elasticIndex, papersType, String.valueOf(publication.getId()))
+                .setSource(builder)
+                .execute()
+                .actionGet();
+        publication.setInIndex(true);
+        publicationService.updatePublication(publication);
+        return true;
+    }
+
+    private XContentBuilder buildPublicationJsonForIndexing(PublicationEntity publication) throws NoSuchEntityException, ForbiddenException, ServiceErrorException {
+        if (publication == null)
+            return null;
+        byte[] publicationFile = storageService.getPaperAsByteArray(publication);
+        if (publicationFile == null||publicationFile.length==0)
+            return null;
+        XContentBuilder builder = null;
+        String authors = "";
+        if (publication.getAuthors()!=null){
+            for (AuthorMasterEntity author:publication.getAuthors()){
+                authors+=author.getLastName()+" "+author.getInitials()+" ";
+            }
+        }
+        try {
+            builder = jsonBuilder()
+                    .startObject()
+                    .field("id", publication.getId())
+                    .field("title", publication.getTitle())
+                    .field("annotation", publication.getAnnotation())
+                    .field("authors",authors)
+                    .field("body", Base64.encodeBytes(publicationFile));
+            builder.endObject();
+        } catch (IOException e) {
+        }
+        return builder;
     }
 
     private Boolean createIndex() {
@@ -95,6 +161,10 @@ public class ElasticSearchImpl implements IElasticSearch{
                 startObject().
                 startObject(papersType).
                 startObject("properties").
+                    startObject("id").
+                        field("type", "integer").
+                        field("store", "yes").
+                    endObject().
                     startObject("title").
                         field("type", "string").
                         field("store", "yes").
