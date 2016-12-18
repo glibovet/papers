@@ -2,8 +2,6 @@ package ua.com.papers.crawler.core.domain.analyze;
 
 import com.google.common.base.Preconditions;
 import lombok.Value;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 
@@ -33,19 +31,13 @@ public class PageAnalyzer implements IPageAnalyzer {
     }
 
     @Override
-    public boolean matches(@NotNull Page page) {
+    public Result analyze(@NotNull Page page) {
 
-        final Document document = Jsoup.parse(page.getContent());
         int weightSum = 0;
 
         for (final IAnalyzeChain chain : chains) {
-            weightSum += chain.analyze(document);
+            weightSum += chain.analyze(page.getDocument());
         }
-        return weightSum >= minSum;
-    }
-
-    @Override
-    public PageID getAnalyzeID() {
-        return pageID;
+        return new Result(pageID, weightSum);
     }
 }

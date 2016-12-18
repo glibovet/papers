@@ -1,26 +1,21 @@
 package ua.com.papers.crawler.core.domain;
 
 import com.google.common.base.Preconditions;
-import lombok.Cleanup;
 import lombok.extern.java.Log;
+import lombok.val;
 import org.joda.time.DateTime;
+import org.jsoup.Jsoup;
 import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.mPage;
+import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
 import ua.com.papers.crawler.util.PageHandler;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by Максим on 12/1/2016.
@@ -28,22 +23,15 @@ import java.util.regex.Pattern;
 @Log
 public final class Crawler implements ICrawler {
 
-    private static final Pattern URL_PATTERN = Pattern
-            .compile("\\b(((ht|f)tp(s?)\\:\\/\\/|~\\/|\\/)|www.)" + "(\\w+:\\w+@)?(([-\\w]+\\.)+(com|org|net|gov"
-                    + "|mil|biz|info|mobi|name|aero|jobs|museum" + "|travel|[a-z]{2}))(:[\\d]{1,5})?"
-                    + "(((\\/([-\\w~!$+|.,=]|%[a-f\\d]{2})+)+|\\/)+|\\?|#)?" + "((\\?([-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?"
-                    + "([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)" + "(&(?:[-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?"
-                    + "([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)*)*" + "(#([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)?\\b");
-
     private final Queue<URL> urls;
-    private final Map<URL, Collection<mPage>> crawledPages;
     private final IAnalyzeManager analyzeManager;
+    private final IUrlExtractor urlExtractor;
 
-    public Crawler(@NotNull Collection<URL> startUrls, @NotNull IAnalyzeManager analyzeManager) {
+    public Crawler(@NotNull Collection<URL> startUrls, @NotNull IAnalyzeManager analyzeManager, IUrlExtractor urlExtractor) {
         Preconditions.checkNotNull(startUrls);
         this.analyzeManager = Preconditions.checkNotNull(analyzeManager);
+        this.urlExtractor = Preconditions.checkNotNull(urlExtractor);
         this.urls = new LinkedList<>(startUrls);
-        this.crawledPages = new HashMap<>(30);
     }
 
     @Override
@@ -54,13 +42,13 @@ public final class Crawler implements ICrawler {
             callback.onStart();
         }
 
-        final int MAX_CONTAINER_SIZE = 100;
+        val MAX_CONTAINER_SIZE = 100;
         // todo redo
-        final Map<URL, Collection<Page>> crawledPages = new HashMap<>(MAX_CONTAINER_SIZE);
+        val crawledPages = new HashMap<URL, Collection<Page>>(MAX_CONTAINER_SIZE);
 
         while (!urls.isEmpty()
                 /*replace with spec condition*/ && urls.size() <= MAX_CONTAINER_SIZE) {
-            final URL url = urls.poll();
+            val url = urls.poll();
             Collection<Page> crawledPagesColl = crawledPages.get(url);
 
             if (callback != null) {
@@ -69,31 +57,36 @@ public final class Crawler implements ICrawler {
 
             try {
 
-                final Page page = new Page(url, Crawler.extractPageContent(url), DateTime.now());
+                val page = Crawler.parsePage(url, 5000);
 
                 if (crawledPagesColl == null) {
                     crawledPagesColl = new ArrayList<>(1);
                 }
-
                 crawledPagesColl.add(page);
-                // overrides map val
                 crawledPages.put(url, crawledPagesColl);
 
-                if (analyzeManager.matches(page)) {
+                val analyzeRes = analyzeManager.analyze(page);
 
-                    log.log(Level.INFO, String.format("Accepted page: url %s", url));
-                    //todo format page and so on
-                    Crawler.extractUrls(page)
-                            .stream()
-                            .filter(u -> !urls.contains(u) && !crawledPages.containsKey(u))
-                            .forEach(urls::add);
+                if (analyzeRes.isEmpty()) {
 
-                } else {
                     log.log(Level.INFO, String.format("Rejected page: url %s", url));
 
                     if (callback != null) {
                         callback.onPageRejected(page);
                     }
+                } else {
+                    log.log(Level.INFO, String.format("Accepted page: url %s", url));
+                    analyzeRes
+                            .forEach(result -> urlExtractor.extract(result.getPageID(), page)
+                                    .stream()
+                                    .filter(u -> !urls.contains(u) && !crawledPages.containsKey(u))
+                                    .forEach(urls::add)
+                            );
+
+                    if(callback != null) {
+                        callback.onPageAccepted(page);
+                    }
+                    //todo format page and so on
                 }
             } catch (final IOException e) {
                 log.log(Level.WARNING, String.format("Failed to extract page content for url %s", url), e);
@@ -107,31 +100,6 @@ public final class Crawler implements ICrawler {
         if (callback != null) {
             callback.onStop();
         }
-    }
-
-    // todo refactor
-    private static Set<URL> extractUrls(Page page) {
-
-        final Set<URL> urls = new HashSet<>();
-        final Matcher matcher = URL_PATTERN.matcher(page.getContent());
-
-        while (matcher.find()) {
-
-            String strUrl = matcher.group();
-
-            if(strUrl == null || strUrl.length() == 0) continue;
-
-            if(!strUrl.startsWith("http") && !strUrl.startsWith("https")) {
-                strUrl = "http://" + strUrl;
-            }
-
-            try {
-                urls.add(new URL(strUrl));
-            } catch (final MalformedURLException e) {
-                log.log(Level.WARNING, String.format("Malformed url: %s", strUrl), e);
-            }
-        }
-        return urls;
     }
 
     @Override
@@ -149,18 +117,8 @@ public final class Crawler implements ICrawler {
 
     }
 
-    private static String extractPageContent(URL url) throws IOException {
-
-        @Cleanup final InputStream is = url.openStream();
-        @Cleanup final BufferedReader in = new BufferedReader(new InputStreamReader(is));
-
-        final StringBuilder content = new StringBuilder();
-        String line;
-
-        while ((line = in.readLine()) != null) {
-            content.append(line);
-        }
-        return content.toString();
+    private static Page parsePage(URL url, int timeout) throws IOException {
+        return new Page(url, DateTime.now(), Jsoup.parse(url, timeout));
     }
 
     private static void checkHandlers(Collection<Object> handlers) {

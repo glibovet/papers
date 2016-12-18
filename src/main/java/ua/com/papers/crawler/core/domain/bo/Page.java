@@ -2,6 +2,7 @@ package ua.com.papers.crawler.core.domain.bo;
 
 import lombok.Value;
 import org.joda.time.DateTime;
+import org.jsoup.nodes.Document;
 
 import java.net.URL;
 
@@ -15,9 +16,8 @@ import java.net.URL;
 public class Page {
     // page url
     URL url;
-    // raw page content (including html tags)
-    String content;
     // visit timestamp
     DateTime visitTime;
-
+    // page content
+    Document document;
 }
