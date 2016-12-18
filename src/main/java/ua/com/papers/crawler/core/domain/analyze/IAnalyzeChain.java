@@ -1,6 +1,7 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.domain.analyze;
 
 
+import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -14,10 +15,10 @@ import javax.validation.constraints.NotNull;
 public interface IAnalyzeChain {
 
     /**
-     * @param page page to analyze
+     * @param document document to analyze
      * @return analyzed weight, can be 0 if page doesn't satisfies
      * implementation criteria
      */
-    int analyze(@NotNull(message = "cannot analyze null page") Page page);
+    int analyze(@NotNull(message = "cannot analyze null document") Document document);
 
 }

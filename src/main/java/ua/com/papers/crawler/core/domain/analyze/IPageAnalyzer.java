@@ -1,7 +1,9 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.domain.analyze;
 
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.domain.vo.PageID;
 
 import javax.validation.constraints.NotNull;
 
@@ -19,5 +21,8 @@ public interface IPageAnalyzer {
      * @return true if web page matches criteria
      */
     boolean matches(@NotNull Page page);
+
+    @NotNull
+    PageID getAnalyzeID();
 
 }

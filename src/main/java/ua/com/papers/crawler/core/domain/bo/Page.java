@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.domain.bo;
 
 import lombok.Value;
 import org.joda.time.DateTime;

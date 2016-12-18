@@ -2,9 +2,10 @@ package ua.com.papers.crawler.core.domain;
 
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import ua.com.papers.crawler.mPage;
+import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.util.PageHandler;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Collection;
@@ -42,7 +43,7 @@ public interface ICrawler {
          *
          * @param page page which is considered to be acceptable
          */
-        void onPageAccepted(@NotNull mPage page);
+        void onPageAccepted(@NotNull Page page);
 
         /**
          * Called each time crawler considers page
@@ -50,7 +51,7 @@ public interface ICrawler {
          *
          * @param page page which is considered to be unacceptable
          */
-        default void onPageRejected(@NotNull mPage page) {
+        default void onPageRejected(@NotNull Page page) {
         }
 
         /**
@@ -77,7 +78,7 @@ public interface ICrawler {
      * {@linkplain PageHandler} or {@linkplain IllegalArgumentException} will be raised
      * @param callback callback to monitor progress status
      */
-    void start(@NotNull ICallback callback, @NotNull Collection<Object> handlers);
+    void start(@Nullable ICallback callback, @NotNull Collection<Object> handlers);
 
     /**
      * This method starts crawler

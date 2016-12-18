@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.domain.vo;
 
 import lombok.Value;
 

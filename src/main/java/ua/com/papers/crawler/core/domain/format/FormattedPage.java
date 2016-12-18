@@ -1,7 +1,9 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.domain.format;
 
 import com.google.common.base.Preconditions;
 import lombok.Value;
+import ua.com.papers.crawler.core.domain.vo.PageID;
+import ua.com.papers.crawler.core.domain.vo.PartID;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
