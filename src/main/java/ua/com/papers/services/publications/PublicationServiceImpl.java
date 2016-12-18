@@ -104,8 +104,8 @@ public class PublicationServiceImpl implements IPublicationService{
         merge(entity,view);
         addAuthors(entity, view);
         int id = updatePublication(entity);
-        if (id!=0&&entity.isInIndex())
-            elasticSearch.indexPublication(id);
+        //if (id!=0&&entity.isInIndex())
+        //    elasticSearch.indexPublication(id);
         return updatePublication(entity);
     }
 
@@ -120,6 +120,12 @@ public class PublicationServiceImpl implements IPublicationService{
             throw new ServiceErrorException();
         }
         return entity.getId();
+    }
+
+    @Override
+    @Transactional
+    public int countPublications(String restriction) {
+        return 0;
     }
 
     private void merge(PublicationEntity entity, PublicationView view) throws NoSuchEntityException {
@@ -137,6 +143,9 @@ public class PublicationServiceImpl implements IPublicationService{
             entity.setPublisher(publisherService.getPublisherById(view.getPublisher_id()));
         }else if (entity.getPublisher()!=null)
             view.setPublisher_id(entity.getPublisher().getId());
+
+        if (view.getStatus() != null)entity.setStatus(view.getStatus());
+        else view.setStatus(entity.getStatus());
     }
 
     private void addAuthors(PublicationEntity entity, PublicationView view) {

@@ -50,12 +50,23 @@ public class PublicationApiController {
             method = RequestMethod.GET
     )
     public @ResponseBody Response<List<Map<String, Object>>>
-    getUsers(
+    getPublications(
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(value = "fields", required = false, defaultValue = Fields.User.DEFAULT) Set<String> fields
     ) throws PapersException {
         return responseFactory.get(publicationService.getPublicationsMap(offset, limit, fields));
+    }
+
+    @RequestMapping(
+            value = "/count",
+            method = RequestMethod.GET
+    )
+    public @ResponseBody Response<Integer>
+    countPublications(
+
+    ) throws PapersException {
+        return responseFactory.get(publicationService.countPublications(null));
     }
 
     @RequestMapping(

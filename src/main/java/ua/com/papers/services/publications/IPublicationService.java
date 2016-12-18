@@ -28,4 +28,6 @@ public interface IPublicationService {
 
     int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchError;
     int updatePublication(PublicationEntity view) throws ServiceErrorException, ValidationException;
+
+    int countPublications(String restriction);
 }
