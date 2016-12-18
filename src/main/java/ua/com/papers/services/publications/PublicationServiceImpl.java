@@ -7,18 +7,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ElasticSearchError;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.dao.repositories.PublicationRepository;
+import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
 
 import ua.com.papers.pojo.view.PublicationView;
+import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.elastic.IElasticSearch;
 import ua.com.papers.services.publisher.IPublisherService;
 import ua.com.papers.services.publisher.IPublisherValidateService;
 import ua.com.papers.services.utils.SessionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +47,9 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Autowired
     private IElasticSearch elasticSearch;
+
+    @Autowired
+    private IAuthorService authorService;
 
     @Override
     @Transactional
@@ -79,6 +86,7 @@ public class PublicationServiceImpl implements IPublicationService{
     public int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
         PublicationEntity  entity = new PublicationEntity();
         merge(entity,view);
+        addAuthors(entity, view);
         publicationValidateService.publicationValidForCreation(entity);
         entity = publicationRepository.saveAndFlush(entity);
         if(entity == null){
@@ -89,11 +97,12 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Override
     @Transactional
-    public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException {
+    public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchError {
         if (view.getId()==null||view.getId()==0)
             throw new ServiceErrorException();
         PublicationEntity entity = getPublicationById(view.getId());
         merge(entity,view);
+        addAuthors(entity, view);
         int id = updatePublication(entity);
         if (id!=0&&entity.isInIndex())
             elasticSearch.indexPublication(id);
@@ -124,10 +133,26 @@ public class PublicationServiceImpl implements IPublicationService{
         else view.setType(entity.getType());
         if (view.getLink()!=null&&!"".equals(view.getLink())) entity.setLink(view.getLink());
         else view.setLink(entity.getLink());
-        if (view.getPublisherId()!=0){
-            entity.setPublisher(publisherService.getPublisherById(view.getPublisherId()));
+        if (view.getPublisher_id() != null && view.getPublisher_id()!=0){
+            entity.setPublisher(publisherService.getPublisherById(view.getPublisher_id()));
         }else if (entity.getPublisher()!=null)
-            view.setPublisherId(entity.getPublisher().getId());
+            view.setPublisher_id(entity.getPublisher().getId());
     }
 
+    private void addAuthors(PublicationEntity entity, PublicationView view) {
+        if (view.getAuthors_id() != null && !view.getAuthors_id().isEmpty()) {
+            List<Integer> newAuthors = view.getAuthors_id();
+            if (entity.getAuthors() != null) {
+                for (AuthorMasterEntity ame : entity.getAuthors()) {
+                    newAuthors.remove(ame.getId());
+                }
+            }
+
+            for (Integer id : newAuthors) {
+                try {
+                    entity.addAuthor(authorService.getAuthorMasterById(id));
+                } catch (NoSuchEntityException e) { }
+            }
+        }
+    }
 }

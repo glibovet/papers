@@ -23,11 +23,11 @@ public class PublicationView {
     @Size(max = 500, message = "error.publication.link.size")
     private String link;
 
-    private Integer publisherId;
+    private Integer publisher_id;
 
     private PublicationStatusEnum status;
 
-    private List<Integer> authorsId;
+    private List<Integer> authors_id;
 
     public Integer getId() {
         return id;
@@ -69,12 +69,12 @@ public class PublicationView {
         this.link = link;
     }
 
-    public Integer getPublisherId() {
-        return publisherId;
+    public Integer getPublisher_id() {
+        return publisher_id;
     }
 
-    public void setPublisherId(Integer publisherId) {
-        this.publisherId = publisherId;
+    public void setPublisher_id(Integer publisher_id) {
+        this.publisher_id = publisher_id;
     }
 
     public PublicationStatusEnum getStatus() {
@@ -85,11 +85,11 @@ public class PublicationView {
         this.status = status;
     }
 
-    public List<Integer> getAuthorsId() {
-        return authorsId;
+    public List<Integer> getAuthors_id() {
+        return authors_id;
     }
 
-    public void setAuthorsId(List<Integer> authorsId) {
-        this.authorsId = authorsId;
+    public void setAuthors_id(List<Integer> authors_id) {
+        this.authors_id = authors_id;
     }
 }

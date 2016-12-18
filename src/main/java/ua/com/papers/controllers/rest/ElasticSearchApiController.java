@@ -27,29 +27,29 @@ public class ElasticSearchApiController {
     private IElasticSearch elasticSearch;
 
     @RequestMapping(
-            value = "/createIndex",
-            method = RequestMethod.GET
+            value = "/index",
+            method = RequestMethod.POST
     )
     public @ResponseBody Response<Boolean> createIndex() throws ForbiddenException, ElasticSearchError {
         return responseFactory.get(elasticSearch.createIndexIfNotExist());
     }
 
     @RequestMapping(
-            value = "/deleteIndex",
-            method = RequestMethod.GET
+            value = "/index",
+            method = RequestMethod.DELETE
     )
     public @ResponseBody Response<Boolean> deleteIndex() throws ForbiddenException, ElasticSearchError {
         return responseFactory.get(elasticSearch.indexDelete());
     }
 
     @RequestMapping(
-            value = "/index/{id}",
-            method = RequestMethod.GET
+            value = "/publication/{id}/index",
+            method = RequestMethod.POST
     )
     public
     @ResponseBody
     Response<Boolean> indexPublication(
-            @PathVariable("id") int id) throws NoSuchEntityException, ForbiddenException, ServiceErrorException, ValidationException {
+            @PathVariable("id") int id) throws NoSuchEntityException, ForbiddenException, ServiceErrorException, ValidationException, ElasticSearchError {
         return responseFactory.get(elasticSearch.indexPublication(id));
     }
 

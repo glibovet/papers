@@ -1,6 +1,7 @@
 package ua.com.papers.services.publications;
 
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ElasticSearchError;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
@@ -25,6 +26,6 @@ public interface IPublicationService {
 
     int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 
-    int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException;
+    int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchError;
     int updatePublication(PublicationEntity view) throws ServiceErrorException, ValidationException;
 }

@@ -6,6 +6,7 @@ import ua.com.papers.pojo.enums.PublicationTypeEnum;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -152,6 +153,13 @@ public class PublicationEntity implements Serializable {
 
     public void setAuthors(Set<AuthorMasterEntity> authors) {
         this.authors = authors;
+    }
+
+    public void addAuthor(AuthorMasterEntity author) {
+        if (this.authors == null)
+            this.authors = new HashSet<>();
+
+        this.authors.add(author);
     }
 
     @Override
