@@ -45,6 +45,19 @@
                     <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
                 </jdbc.url>
             </properties>
+        </profile>
+        <profile>
+            <id>production</id>
+            <properties>
+                <jdbc.username>b0e487139f716f</jdbc.username>
+                <jdbc.password>04110270</jdbc.password>
+                <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
+                <jdbc.database.name>beezzy</jdbc.database.name>
+                <jdbc.database.server>eu-cdbr-azure-north-d.cloudapp.net</jdbc.database.server>
+                <jdbc.url>
+                    <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
+                </jdbc.url>
+            </properties>
 
             <activation>
                 <activeByDefault>true</activeByDefault>
