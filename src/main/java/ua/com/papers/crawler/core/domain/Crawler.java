@@ -7,8 +7,8 @@ import org.joda.time.DateTime;
 import org.jsoup.Jsoup;
 import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
-import ua.com.papers.crawler.util.PageHandler;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -26,22 +26,25 @@ public final class Crawler implements ICrawler {
     private final Queue<URL> urls;
     private final IAnalyzeManager analyzeManager;
     private final IUrlExtractor urlExtractor;
+    private final IFormatManagerFactory formatManagerFactory;
 
-    public Crawler(@NotNull Collection<URL> startUrls, @NotNull IAnalyzeManager analyzeManager, IUrlExtractor urlExtractor) {
+    public Crawler(@NotNull Collection<URL> startUrls, @NotNull IAnalyzeManager analyzeManager,
+                   @NotNull IUrlExtractor urlExtractor, @NotNull IFormatManagerFactory formatManagerFactory) {
         Preconditions.checkNotNull(startUrls);
         this.analyzeManager = Preconditions.checkNotNull(analyzeManager);
         this.urlExtractor = Preconditions.checkNotNull(urlExtractor);
+        this.formatManagerFactory = Preconditions.checkNotNull(formatManagerFactory);
         this.urls = new LinkedList<>(startUrls);
     }
 
     @Override
     public void start(@Nullable ICallback callback, @NotNull Collection<Object> handlers) {
-        checkHandlers(handlers);
 
         if (callback != null) {
             callback.onStart();
         }
 
+        val formatManager = formatManagerFactory.create(handlers);
         val MAX_CONTAINER_SIZE = 100;
         // todo redo
         val crawledPages = new HashMap<URL, Collection<Page>>(MAX_CONTAINER_SIZE);
@@ -77,16 +80,20 @@ public final class Crawler implements ICrawler {
                 } else {
                     log.log(Level.INFO, String.format("Accepted page: url %s", url));
                     analyzeRes
-                            .forEach(result -> urlExtractor.extract(result.getPageID(), page)
-                                    .stream()
-                                    .filter(u -> !urls.contains(u) && !crawledPages.containsKey(u))
-                                    .forEach(urls::add)
+                            .forEach(result -> {
+                                        // add urls
+                                        urlExtractor.extract(result.getPageID(), page)
+                                                .stream()
+                                                .filter(u -> !urls.contains(u) && !crawledPages.containsKey(u))
+                                                .forEach(urls::add);
+                                        // invoke page handlers
+                                        formatManager.processPage(result.getPageID(), page);
+                                    }
                             );
 
-                    if(callback != null) {
+                    if (callback != null) {
                         callback.onPageAccepted(page);
                     }
-                    //todo format page and so on
                 }
             } catch (final IOException e) {
                 log.log(Level.WARNING, String.format("Failed to extract page content for url %s", url), e);
@@ -119,14 +126,6 @@ public final class Crawler implements ICrawler {
 
     private static Page parsePage(URL url, int timeout) throws IOException {
         return new Page(url, DateTime.now(), Jsoup.parse(url, timeout));
-    }
-
-    private static void checkHandlers(Collection<Object> handlers) {
-        //todo empty check
-        for (final Object handler : handlers)
-            if (!handler.getClass().isAnnotationPresent(PageHandler.class))
-                throw new IllegalArgumentException(
-                        String.format("%s class must be annotated with %s", handler.getClass(), PageHandler.class));
     }
 
 }

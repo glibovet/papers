@@ -7,23 +7,25 @@ import org.springframework.stereotype.Service;
 import ua.com.papers.crawler.core.domain.Crawler;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.analyze.*;
+import ua.com.papers.crawler.core.domain.format.FormatManagerFactory;
+import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
 import ua.com.papers.crawler.core.domain.select.UrlExtractor;
-import ua.com.papers.crawler.settings.AnalyzeTemplate;
-import ua.com.papers.crawler.settings.PageSetting;
-import ua.com.papers.crawler.settings.Settings;
-import ua.com.papers.crawler.settings.UrlSelectSetting;
+import ua.com.papers.crawler.settings.*;
 import ua.com.papers.crawler.util.ICrawlerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by Максим on 11/27/2016.
  */
 @Service
+// todo add builder instead static methods?
 public final class CrawlerFactory implements ICrawlerFactory {
 
     /**
@@ -40,7 +42,18 @@ public final class CrawlerFactory implements ICrawlerFactory {
 
     @Override
     public ICrawler create(@NotNull Settings settings) {
-        return new Crawler(settings.getStartUrls(), createAnalyzeManager(settings), createUrlExtractor(settings));
+        return new Crawler(settings.getStartUrls(), createAnalyzeManager(settings),
+                createUrlExtractor(settings),
+                createFormatFactory(settings));
+    }
+
+    private static IFormatManagerFactory createFormatFactory(Settings settings) {
+        return new FormatManagerFactory(
+                settings.getPageSettings()
+                        .stream()
+                        .flatMap((Function<PageSetting, Stream<? extends FormatTemplate>>) setting -> setting.getFormatTemplates().stream())
+                        .collect(Collectors.toList())
+        );
     }
 
     private static IUrlExtractor createUrlExtractor(Settings settings) {

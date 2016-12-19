@@ -73,7 +73,7 @@ public class Tester {
 
             @Override
             public void onPageRejected(@NotNull Page page) {
-                System.out.println("On page rejected " + page);
+          //      System.out.println("On page rejected " + page);
             }
 
             @Override
@@ -102,9 +102,9 @@ public class Tester {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println("Page accepted " + page);
+               // System.out.println("Page accepted " + page);
             }
-        }, Collections.emptyList());
+        }, Collections.singletonList(new HandlerDemo()));
     }
 
 }

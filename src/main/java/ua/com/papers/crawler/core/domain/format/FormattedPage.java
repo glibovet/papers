@@ -2,6 +2,7 @@ package ua.com.papers.crawler.core.domain.format;
 
 import com.google.common.base.Preconditions;
 import lombok.Value;
+import org.jsoup.select.Elements;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.core.domain.vo.PartID;
 
@@ -20,9 +21,9 @@ import java.util.Map;
 public class FormattedPage {
 
     PageID pageID;
-    Map<PartID, String> idToPart;
+    Map<PartID, Elements> idToPart;
 
-    public FormattedPage(@NotNull PageID pageID, @NotNull Map<PartID, String> idToPart) {
+    public FormattedPage(@NotNull PageID pageID, @NotNull Map<PartID, Elements> idToPart) {
         this.pageID = Preconditions.checkNotNull(pageID);
         this.idToPart = Collections.unmodifiableMap(Preconditions.checkNotNull(idToPart));
     }
