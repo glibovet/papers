@@ -14,12 +14,12 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 -- -----------------------------------------------------
 -- Schema papers
 -- -----------------------------------------------------
-USE `papers` ;
+USE `beezzy` ;
 
 -- -----------------------------------------------------
 -- Table `papers`.`role`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `papers`.`role` (
+CREATE TABLE IF NOT EXISTS `beezzy`.`role` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT '',
   `name` VARCHAR(45) NOT NULL COMMENT '',
   PRIMARY KEY (`id`)  COMMENT '')
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `papers`.`role` (
 -- -----------------------------------------------------
 -- Table `papers`.`users`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `papers`.`users` (
+CREATE TABLE IF NOT EXISTS `beezzy`.`users` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT '',
   `email` VARCHAR(45) NOT NULL COMMENT '',
   `password` VARCHAR(45) NOT NULL COMMENT '',
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `papers`.`users` (
   INDEX `fk_user_to_role_idx` (`role_id` ASC)  COMMENT '',
   CONSTRAINT `fk_user_to_role`
   FOREIGN KEY (`role_id`)
-  REFERENCES `papers`.`role` (`id`)
+  REFERENCES `beezzy`.`role` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
   ENGINE = InnoDB;
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `papers`.`users` (
 -- -----------------------------------------------------
 -- table `papers`.`permissions`
 -- -----------------------------------------------------
-create table if not exists `papers`.`permissions` (
+create table if not exists `beezzy`.`permissions` (
   `id` int not null auto_increment,
   `name` varchar(45) not null,
   primary key (`id`),
@@ -57,7 +57,7 @@ create table if not exists `papers`.`permissions` (
 -- -----------------------------------------------------
 -- table `papers`.`role_permissions`
 -- -----------------------------------------------------
-create table if not exists `papers`.`role_permissions` (
+create table if not exists `beezzy`.`role_permissions` (
   `id` int not null auto_increment,
   `role_id` int not null,
   `permission_id` int not null,
@@ -66,32 +66,32 @@ create table if not exists `papers`.`role_permissions` (
   index `permission_to_role_idx` (`permission_id` asc),
   constraint `role_to_permission`
   foreign key (`role_id`)
-  references `papers`.`role` (`id`)
+  references `beezzy`.`role` (`id`)
     on delete no action
     on update no action,
   constraint `permission_to_role`
   foreign key (`permission_id`)
-  references `papers`.`permissions` (`id`)
+  references `beezzy`.`permissions` (`id`)
     on delete no action
     on update no action)
   engine = innodb;
 
-insert into `papers`.`role` (`name`) values ('user');
-insert into `papers`.`role` (`name`) values ('moderator');
-insert into `papers`.`role` (`name`) values ('admin');
+insert into `beezzy`.`role` (`name`) values ('user');
+insert into `beezzy`.`role` (`name`) values ('moderator');
+insert into `beezzy`.`role` (`name`) values ('admin');
 
-INSERT INTO `papers`.`permissions` (`name`) VALUES ('ROLE_USER');
-INSERT INTO `papers`.`permissions` (`name`) VALUES ('ROLE_MODERATOR');
-INSERT INTO `papers`.`permissions` (`name`) VALUES ('ROLE_ADMIN');
+INSERT INTO `beezzy`.`permissions` (`name`) VALUES ('ROLE_USER');
+INSERT INTO `beezzy`.`permissions` (`name`) VALUES ('ROLE_MODERATOR');
+INSERT INTO `beezzy`.`permissions` (`name`) VALUES ('ROLE_ADMIN');
 
-insert into `papers`.`role_permissions` (`role_id`, `permission_id`) values ('1', '1');
-insert into `papers`.`role_permissions` (`role_id`, `permission_id`) values ('2', '1');
-insert into `papers`.`role_permissions` (`role_id`, `permission_id`) values ('2', '2');
-insert into `papers`.`role_permissions` (`role_id`, `permission_id`) values ('3', '1');
-insert into `papers`.`role_permissions` (`role_id`, `permission_id`) values ('3', '2');
-insert into `papers`.`role_permissions` (`role_id`, `permission_id`) values ('3', '3');
+insert into `beezzy`.`role_permissions` (`role_id`, `permission_id`) values ('1', '1');
+insert into `beezzy`.`role_permissions` (`role_id`, `permission_id`) values ('2', '1');
+insert into `beezzy`.`role_permissions` (`role_id`, `permission_id`) values ('2', '2');
+insert into `beezzy`.`role_permissions` (`role_id`, `permission_id`) values ('3', '1');
+insert into `beezzy`.`role_permissions` (`role_id`, `permission_id`) values ('3', '2');
+insert into `beezzy`.`role_permissions` (`role_id`, `permission_id`) values ('3', '3');
 
-insert into `papers`.`users` (`email`, `password`, `active`, `role_id`) VALUES ('admin@papers.com',MD5('admin'),1,3);
+insert into `beezzy`.`users` (`email`, `password`, `active`, `role_id`) VALUES ('admin@papers.com',MD5('admin'),1,3);
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
