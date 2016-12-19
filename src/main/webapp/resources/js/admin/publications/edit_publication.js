@@ -1,8 +1,8 @@
 (function(exports){
 
-    var app = exports.app = angular.module('publication_edit', ['ui-notification', 'autocomplete']);
+    var app = exports.app = angular.module('publication_edit', ['ui-notification', 'autocomplete', 'angularFileUpload']);
 
-    app.controller('publication_controller', function($scope, $http, Notification){
+    app.controller('publication_controller', function($scope, $http, Notification, FileUploader){
         var params = UrlUtil.parse(angular.element('#loader').attr('src'));
         params.id = parseInt(params.id);
 
@@ -32,6 +32,7 @@
         savePublication($scope, $http, Notification);
         authorAutocompete($scope, $http, Notification);
         publisherAutocompete($scope, $http, Notification);
+        initUploadFIleForm($scope, FileUploader, params.id);
     });
 
     function loadPublisher($scope, $http, Notification) {
@@ -186,4 +187,15 @@
         };
     }
 
+
+    function initUploadFIleForm($scope, FileUploader, id) {
+        var headers = angular.extend({}, HEADERS);
+        delete headers['Content-Type'];
+        delete headers['Accept'];
+
+        $scope.uploader = new FileUploader({
+            url: '/api/storage/paper/' + id,
+            headers: headers
+        });
+    }
 })(window);

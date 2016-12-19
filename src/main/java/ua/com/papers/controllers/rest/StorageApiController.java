@@ -13,6 +13,7 @@ import ua.com.papers.pojo.response.ResponseFactory;
 import ua.com.papers.services.utils.SessionUtils;
 import ua.com.papers.storage.IStorageService;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -31,15 +32,34 @@ public class StorageApiController {
     @Autowired
     private IStorageService storageService;
 
-    @RequestMapping(value = "/{id}/paper", method = RequestMethod.POST)
+    @RequestMapping(value = "/paper/{id}", method = RequestMethod.POST)
     public @ResponseBody
     Response<Boolean>
     uploadPaper(
             @PathVariable("id") int id,
-            @RequestParam("file") MultipartFile file) throws PapersException, IOException {
+            @RequestParam("file") MultipartFile file
+    ) throws PapersException, IOException {
         sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);
         return responseFactory.get(storageService.uploadPaper(id, file));
     }
 
+    @RequestMapping(value = "/paper/{id}", method = RequestMethod.GET)
+    public @ResponseBody
+    void
+    getPaperFile(
+            @PathVariable("id") int id,
+            HttpServletResponse response
+    ) throws PapersException, IOException {
+        response.setStatus(HttpServletResponse.SC_OK);
+        storageService.getPaper(id, response);
+    }
 
+    @RequestMapping(value = "/paper/{id}/has_file", method = RequestMethod.GET)
+    public @ResponseBody
+    Response<Boolean>
+    getPaperFile(
+            @PathVariable("id") int id
+    ) throws PapersException {
+        return responseFactory.get(storageService.paperHasFile(id));
+    }
 }
