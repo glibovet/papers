@@ -21,6 +21,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import ua.com.papers.convertors.Fields;
@@ -31,6 +33,7 @@ import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
+import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.utils.SessionUtils;
@@ -92,6 +95,7 @@ public class ElasticSearchImpl implements IElasticSearch{
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchError {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
@@ -109,6 +113,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                 .execute()
                 .actionGet();
         publication.setInIndex(true);
+        publication.setStatus(PublicationStatusEnum.ACTIVE);
         publicationService.updatePublication(publication);
         return true;
     }
