@@ -9,6 +9,8 @@
     <jsp:include page="../include.jsp" />
     <script src="/resources/js/angular_plugins/autocomplete/angular-autocomplete.min.js"></script>
     <link rel="stylesheet" href="/resources/js/angular_plugins/autocomplete/angular-autocomplete.min.css" />
+
+    <script src="/resources/js/angular_plugins/file_upload/angular-file-upload.min.js"></script>
     <style>
         .delete-button {
             width: 22px;
@@ -76,7 +78,15 @@
     </div>
     <div class="row" ng-show="publication.id">
         <hr />
-
+        already has a file? - <b>{{publication.has_file}}</b> <a ng-show="publication.has_file" href="/api/storage/paper/{{publication.id}}" target="_blank">download</a>
+        <br />
+        <input type="file" nv-file-select uploader="uploader" name="file"/><br/>
+        <ul>
+            <li ng-repeat="item in uploader.queue">
+                Name: <span ng-bind="item.file.name"></span><br/>
+                <button ng-click="item.upload()">upload</button>
+            </li>
+        </ul>
     </div>
 </div>
 <script src="/resources/messages/admin.js"></script>

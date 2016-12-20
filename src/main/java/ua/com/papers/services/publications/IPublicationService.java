@@ -1,5 +1,6 @@
 package ua.com.papers.services.publications;
 
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ElasticSearchError;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
@@ -20,14 +21,14 @@ public interface IPublicationService {
     PublicationEntity getPublicationById(int id) throws NoSuchEntityException;
     Map<String, Object> getPublicationByIdMap(int id, Set<String> fields) throws NoSuchEntityException;
 
-    List<PublicationEntity> getPublications(int offset, int limit) throws NoSuchEntityException;
+    List<PublicationEntity> getPublications(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException;
 
-    List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException;
+    List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException;
 
     int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 
     int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchError;
     int updatePublication(PublicationEntity view) throws ServiceErrorException, ValidationException;
 
-    int countPublications(String restriction);
+    int countPublications(String restriction) throws WrongRestrictionException;
 }

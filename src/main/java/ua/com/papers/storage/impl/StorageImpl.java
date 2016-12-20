@@ -106,15 +106,23 @@ public class StorageImpl implements IStorage {
     }
 
     private String fullPath(String name, String folder){
-        if(folder == null || folder.isEmpty() || folder.compareTo("/") == 0){
-            if(name.charAt(0) == '/')
-                return name;
-            return '/' + name;
+        String path;
+
+        if (name.charAt(0) == '/') {
+            path = name;
         } else {
-            if(name.charAt(0) == '/')
-                return folder + name;
-            return folder + '/' + name;
+            path = '/' + name;
         }
+
+        if (folder != null && !folder.isEmpty() && folder.compareTo("/") != 0) {
+            if (folder.charAt(0) == '/') {
+                path = folder + path;
+            } else {
+                path = '/' + folder + path;
+            }
+        }
+
+        return path;
     }
 
     private DbxClientV2 client(){

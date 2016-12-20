@@ -209,4 +209,8 @@
         <property name="cookieName" value="papersLocaleCookie"/>
         <property name="cookieMaxAge" value="3600"/>
     </bean>
+
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="50000000"/>
+    </bean>
 </beans>

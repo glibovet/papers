@@ -1,8 +1,8 @@
 (function(exports){
 
-    var app = exports.app = angular.module('publication_edit', ['ui-notification', 'autocomplete']);
+    var app = exports.app = angular.module('publication_edit', ['ui-notification', 'autocomplete', 'angularFileUpload']);
 
-    app.controller('publication_controller', function($scope, $http, Notification){
+    app.controller('publication_controller', function($scope, $http, Notification, FileUploader){
         var params = UrlUtil.parse(angular.element('#loader').attr('src'));
         params.id = parseInt(params.id);
 
@@ -18,6 +18,7 @@
                         $scope.publication = response.data.result;
                         loadPublisher($scope, $http, Notification);
                         loadAuthors($scope, $http, Notification);
+                        hasFile($scope.publication, $http);
                     }
                 }, function(xhr){
                     console.log(xhr);
@@ -32,6 +33,7 @@
         savePublication($scope, $http, Notification);
         authorAutocompete($scope, $http, Notification);
         publisherAutocompete($scope, $http, Notification);
+        initUploadFIleForm($scope, FileUploader, params.id, Notification);
     });
 
     function loadPublisher($scope, $http, Notification) {
@@ -186,4 +188,52 @@
         };
     }
 
+
+    function initUploadFIleForm($scope, FileUploader, id, Notification) {
+        var headers = angular.extend({}, HEADERS);
+        delete headers['Content-Type'];
+        delete headers['Accept'];
+
+        var uploader = $scope.uploader = new FileUploader({
+            url: '/api/storage/paper/' + id,
+            headers: headers
+        });
+
+        uploader.onSuccessItem = function(item, response) {
+            if (response.result) {
+                Notification({message: 'file saved'}, 'success');
+                $scope.publication.has_file = true;
+            } else {
+                Notification({message: errorMessage(response.error)}, 'error');
+            }
+        };
+
+        uploader.onErrorItem = function(item, response) {
+            if (response.result) {
+                Notification({message: 'fail to save'}, 'error');
+            } else {
+                Notification({message: errorMessage(response.error)}, 'error');
+            }
+        };
+
+        uploader.onBeforeUploadItem = function() {
+            Notification({message: 'start uploading file..'}, 'info');
+        };
+
+        uploader.onProgressItem = function(item, progress) {
+            if (progress >= 99) {
+                Notification({message: 'processing file on server ..'}, 'info');
+            }
+        };
+    }
+
+    function hasFile(publication, $http) {
+        $http.get('/api/storage/paper/' + publication.id + '/has_file')
+            .then(function(response){
+                publication.has_file = !!response.data.result;
+            }, function(xhr){
+                console.log(xhr);
+                Notification({message: messages_admin['admin.ajax.error']}, 'error');
+            });
+    }
 })(window);

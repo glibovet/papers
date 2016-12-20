@@ -36,11 +36,11 @@
         <profile>
             <id>local</id>
             <properties>
-                <jdbc.username>b0e487139f716f</jdbc.username>
-                <jdbc.password>04110270</jdbc.password>
+                <jdbc.username>root</jdbc.username>
+                <jdbc.password>root</jdbc.password>
                 <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
-                <jdbc.database.name>beezzy</jdbc.database.name>
-                <jdbc.database.server>eu-cdbr-azure-north-d.cloudapp.net</jdbc.database.server>
+                <jdbc.database.name>papers</jdbc.database.name>
+                <jdbc.database.server>localhost</jdbc.database.server>
                 <jdbc.url>
                     <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
                 </jdbc.url>
@@ -59,10 +59,10 @@
                 </jdbc.url>
             </properties>
 
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+    </profile>
     </profiles>
 
   <dependencies>
@@ -272,13 +272,25 @@
 
       <!-- end jackson -->
 
-      <!-- dropbox -->
+      <!-- storage -->
       <dependency>
           <groupId>com.dropbox.core</groupId>
           <artifactId>dropbox-core-sdk</artifactId>
           <version>2.1.1</version>
       </dependency>
-      <!-- end dropbox -->
+
+      <dependency>
+          <groupId>commons-fileupload</groupId>
+          <artifactId>commons-fileupload</artifactId>
+          <version>1.2.1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+          <version>1.3.2</version>
+      </dependency>
+      <!-- end storage -->
 
       <!--Elastic-->
       <dependency>
