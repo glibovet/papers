@@ -79,9 +79,19 @@ public class StorageServiceImpl implements IStorageService {
     @Override
     @Transactional
     public void getPaper(int id, HttpServletResponse response) throws NoSuchEntityException, ForbiddenException, ServiceErrorException {
-        byte[] bytes = getPaperAsByteArray(id);
+        PublicationEntity entity = publicationService.getPublicationById(id);
+        if (!publicationValidateService.isPublicationAvailable(entity))
+            throw new ForbiddenException();
+
         try {
-            response.getOutputStream().write(bytes);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            FileData data = storage.download(outputStream, id + "", papersFolder);
+
+            response.setContentType("application/force-download");
+            response.setHeader("Content-Disposition", "attachment; filename="+entity.getFileNameOriginal() + '_' +data.name);
+            response.setHeader("Cache-Control","must-revalidate, post-check=0, pre-check=0");
+
+            response.getOutputStream().write(outputStream.toByteArray());
         } catch (IOException e) {
             throw new StorageException(e);
         }

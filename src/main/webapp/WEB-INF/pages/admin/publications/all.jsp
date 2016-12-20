@@ -67,6 +67,7 @@
                     <th>authors</th>
                     <th><spring:message code="publication.type" /></th>
                     <th>indexed</th>
+                    <th>has file</th>
                     <th>status</th>
                     <th><spring:message code="admin.actions" /></th>
                 </tr>
@@ -95,6 +96,9 @@
                             <br />
                             <button class="btn btn-success" ng-click="indexPublication(publication)">index publication</button>
                         </div>
+                    </td>
+                    <td>
+                        {{publication.has_file}}
                     </td>
                     <td>
                         {{publication.status_m}}

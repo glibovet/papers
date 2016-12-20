@@ -48,6 +48,7 @@
                     $scope.publications.forEach(function(p){
                         p.status_m = p.status.toLowerCase();
                         getAuthors(p, $http);
+                        hasFile(p, $http);
                     });
                 }
             });
@@ -146,6 +147,16 @@
                 console.log(xhr);
                 Notification({message: messages_admin['admin.ajax.error']}, 'error');
             })
+    }
+
+    function hasFile(publication, $http) {
+        $http.get('/api/storage/paper/' + publication.id + '/has_file')
+            .then(function(response){
+                publication.has_file = !!response.data.result;
+            }, function(xhr){
+                console.log(xhr);
+                Notification({message: messages_admin['admin.ajax.error']}, 'error');
+            });
     }
 
     function authorAutocompete($scope, $http, Notification) {

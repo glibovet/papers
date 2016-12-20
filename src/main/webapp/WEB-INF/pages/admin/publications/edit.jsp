@@ -78,6 +78,8 @@
     </div>
     <div class="row" ng-show="publication.id">
         <hr />
+        already has a file? - <b>{{publication.has_file}}</b> <a ng-show="publication.has_file" href="/api/storage/paper/{{publication.id}}" target="_blank">download</a>
+        <br />
         <input type="file" nv-file-select uploader="uploader" name="file"/><br/>
         <ul>
             <li ng-repeat="item in uploader.queue">
