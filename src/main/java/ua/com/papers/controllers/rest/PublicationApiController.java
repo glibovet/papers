@@ -53,9 +53,10 @@ public class PublicationApiController {
     getPublications(
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict,
             @RequestParam(value = "fields", required = false, defaultValue = Fields.User.DEFAULT) Set<String> fields
     ) throws PapersException {
-        return responseFactory.get(publicationService.getPublicationsMap(offset, limit, fields));
+        return responseFactory.get(publicationService.getPublicationsMap(offset, limit, fields, restrict));
     }
 
     @RequestMapping(
@@ -64,9 +65,9 @@ public class PublicationApiController {
     )
     public @ResponseBody Response<Integer>
     countPublications(
-
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict
     ) throws PapersException {
-        return responseFactory.get(publicationService.countPublications(null));
+        return responseFactory.get(publicationService.countPublications(restrict));
     }
 
     @RequestMapping(

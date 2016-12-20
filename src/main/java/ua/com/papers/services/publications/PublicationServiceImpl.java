@@ -6,11 +6,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.criteria.Criteria;
+import ua.com.papers.criteria.impl.PublicationCriteria;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ElasticSearchError;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.PublicationRepository;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
@@ -51,6 +55,9 @@ public class PublicationServiceImpl implements IPublicationService{
     @Autowired
     private IAuthorService authorService;
 
+    @Autowired
+    private ICriteriaRepository criteriaRepository;
+
     @Override
     @Transactional
     public PublicationEntity getPublicationById(int id) throws NoSuchEntityException {
@@ -68,17 +75,18 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Override
     @Transactional
-    public List<PublicationEntity> getPublications(int offset, int limit) throws NoSuchEntityException {
-        Page<PublicationEntity> list = publicationRepository.findAll(new PageRequest(offset/limit,limit));
-        if(list == null || list.getContent().isEmpty())
+    public List<PublicationEntity> getPublications(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException {
+        Criteria<PublicationEntity> criteria = new PublicationCriteria(offset, limit, restrict);
+        List<PublicationEntity> list = criteriaRepository.find(criteria);
+        if(list == null || list.isEmpty())
             throw new NoSuchEntityException("publication", String.format("[offset: %d, limit: %d]", offset, limit));
-        return list.getContent();
+        return list;
     }
 
     @Override
     @Transactional
-    public List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException {
-        return publicationConverter.convert(getPublications(offset, limit), fields);
+    public List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException {
+        return publicationConverter.convert(getPublications(offset, limit, restrict), fields);
     }
 
     @Override
@@ -124,8 +132,9 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Override
     @Transactional
-    public int countPublications(String restriction) {
-        return 0;
+    public int countPublications(String restriction) throws WrongRestrictionException {
+        Criteria<PublicationEntity> criteria = new PublicationCriteria(restriction);
+        return criteriaRepository.count(criteria);
     }
 
     private void merge(PublicationEntity entity, PublicationView view) throws NoSuchEntityException {
