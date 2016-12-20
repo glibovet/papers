@@ -6,6 +6,9 @@
 <head>
     <title><spring:message code="admin.publications.publications" /></title>
     <jsp:include page="../include.jsp" />
+
+    <script src="/resources/js/angular_plugins/autocomplete/angular-autocomplete.min.js"></script>
+    <link rel="stylesheet" href="/resources/js/angular_plugins/autocomplete/angular-autocomplete.min.css" />
 </head>
 <body>
 <jsp:include page="../header.jsp"/>
@@ -24,6 +27,32 @@
                 <div class="form-group">
                     <label><spring:message code="admin.query" /></label>
                     <input ng-model="filters.query" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>статус</label>
+                    <select ng-model="filters.status" class="form-control">
+                        <option value="">--- select ---</option>
+                        <option value="IN_PROCESS">in process</option>
+                        <option value="ACTIVE">active</option>
+                        <option value="DELETED">deleted</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>тип</label>
+                    <select ng-model="filters.type" class="form-control">
+                        <option value="">--- select ---</option>
+                        <option value="MASTER_WORK">дипломна</option>
+                        <option value="COURSE_WORK">курсова</option>
+                        <option value="ARTICLE">стаття</option>
+                        <option value="THESIS">тези</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>author</label>
+                    <autocomplete data="authors_autocompete" on-type="authorType" attr-placeholder="" attr-input-class="form-control" on-select="authorSelect"></autocomplete>
                 </div>
 
                 <button type="submit" class="btn btn-success"><spring:message code="admin.search" /></button>

@@ -3,7 +3,7 @@
     const LIMIT = 20;
     const FIELDS = 'fields=id,title,type,annotation,authors_id,in_index,status';
 
-    var app = angular.module('all_publications', ['ui-notification']);
+    var app = angular.module('all_publications', ['ui-notification', 'autocomplete']);
 
     app.controller('all_publications', function($scope, $http, Notification){
         $scope.filters = { };
@@ -26,7 +26,9 @@
 
         $scope.indexPublication = function(publication) {
             indexPublication(publication, $http, Notification);
-        }
+        };
+
+        authorAutocompete($scope, $http, Notification);
     });
 
 
@@ -73,7 +75,7 @@
 
     function restrict($scope){
         var f = $scope.filters;
-        return 'restrict=' + JSON.stringify({query: valid(f.query)});
+        return 'restrict=' + JSON.stringify({query: valid(f.query), authors_id: valid(f.authors_id), type: valid(f.type), status: valid(f.status)});
     }
 
     function valid(val){
@@ -144,5 +146,28 @@
                 console.log(xhr);
                 Notification({message: messages_admin['admin.ajax.error']}, 'error');
             })
+    }
+
+    function authorAutocompete($scope, $http, Notification) {
+        $scope.authors_autocompete = [];
+
+        $scope.authorType = function(val) {
+            $http.get('/api/authors/master/?fields=id,last_name,initials&restrict=' + JSON.stringify({query: val}))
+                .then(function(response){
+                    if (response.data.result) {
+                        $scope.authors_autocompete = [];
+                        response.data.result.forEach(function(e){
+                            $scope.authors_autocompete.push(e.last_name + ' ' + e.initials + ' id=' + e.id);
+                        });
+                    }
+                });
+        };
+
+        $scope.authorSelect = function(selected) {
+            var array = /[\w\W\s\.]+\s+id=(\d+)/.exec(selected);
+            var id = array[1];
+
+            $scope.filters.authors_id = [id];
+        };
     }
 })();
