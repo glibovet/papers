@@ -1,16 +1,17 @@
 package ua.com.papers.crawler.settings;
 
 import com.google.common.base.Preconditions;
-import lombok.Builder;
 import lombok.Value;
 
 import javax.validation.constraints.NotNull;
 
 /**
+ * <p>
+ *     Describes rule to select link from page
+ * </p>
  * Created by Максим on 12/18/2016.
  */
 @Value
-@Builder
 public class UrlSelectSetting {
 
     String cssSelector;

@@ -1,8 +1,5 @@
 package ua.com.papers.crawler;
 
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 import ua.com.papers.crawler.core.domain.Crawler;
 import ua.com.papers.crawler.core.domain.ICrawler;
@@ -84,21 +81,7 @@ public final class CrawlerFactory implements ICrawlerFactory {
                 .map(template ->
                         // page weight is result of multiplying number of found page parts using css selector
                         // by its (analyze chain) weight
-                {
-                    return new IAnalyzeChain() {
-                        @Override
-                        public int analyze(@NotNull(message = "cannot analyze null document") Document document) {
-                            Elements elements = document.select(template.getCssSelector());
-
-                            for (final Element element : elements) {
-                                System.out.println(element);
-                            }
-
-                            return template.getWeight() * elements.size();
-                        }
-                    };
-                })
-                //(IAnalyzeChain) document -> document.select(template.getCssSelector()).size() * template.getWeight())
+                (IAnalyzeChain) document -> document.select(template.getCssSelector()).size() * template.getWeight())
                 .collect(Collectors.toList());
     }
 

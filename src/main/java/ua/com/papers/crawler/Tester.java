@@ -24,26 +24,13 @@ public class Tester {
 
         final ICrawlerFactory factory = context.getBean(ICrawlerFactory.class);
 
-        AnalyzeTemplate.Builder analyze1 = new AnalyzeTemplate
-                .Builder("a[href^='/jenkins/']", 60);
-        //.addAction(AnalyzeTemplate.Action.REDIRECT);
-
-        AnalyzeTemplate.Builder analyze2 = new AnalyzeTemplate
-                .Builder("body > div.main > div.container > div > div.row", 60);
-
-        FormatTemplate.Builder format1 = new FormatTemplate
-                .Builder("body > div.main > div.container > div > div.row > div.content > div > h1", 1);
-
-        FormatTemplate.Builder format2 = new FormatTemplate
-                .Builder("body > div.main > div.container > div > div.row > div.content > div > p", 2);
-
         PageSetting pageSetting = PageSetting.builder()
                 .id(new PageID(1))
-                .analyzeTemplate(analyze1.build())
-                .analyzeTemplate(analyze2.build())
-                .formatTemplate(format1.build())
-                .formatTemplate(format2.build())
-                .selectSetting(UrlSelectSetting.builder().cssSelector("a[href^='/jenkins/']").attrName("href").build())
+                .analyzeTemplate(new AnalyzeTemplate("a[href^='/jenkins/']", 60))
+                .analyzeTemplate(new AnalyzeTemplate("body > div.main > div.container > div > div.row", 60))
+                .formatTemplate(new FormatTemplate(1, "body > div.main > div.container > div > div.row > div.content > div > h1"))
+                .formatTemplate(new FormatTemplate(2, "body > div.main > div.container > div > div.row > div.content > div > p"))
+                .selectSetting(new UrlSelectSetting("a[href^='/jenkins/']", "href"))
                 .build();
 
         Settings settings = new Settings.Builder(
@@ -95,6 +82,7 @@ public class Tester {
             @Override
             public void onPageAccepted(@NotNull Page page) {
                 try {
+                    writer.newLine();
                     writer.write("*******************************************************************************");
                     writer.newLine();
                     writer.write(page.toString());
