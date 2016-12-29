@@ -23,33 +23,39 @@ import java.util.logging.Level;
 @Log
 public final class Crawler implements ICrawler {
 
-    private final Queue<URL> urls;
+    private static final int PARSE_PAGE_TIMEOUT = 5_000;
+
     private final IAnalyzeManager analyzeManager;
     private final IUrlExtractor urlExtractor;
     private final IFormatManagerFactory formatManagerFactory;
 
-    public Crawler(@NotNull Collection<URL> startUrls, @NotNull IAnalyzeManager analyzeManager,
+    private volatile boolean canRun;
+
+    @lombok.Builder(builderClassName = "Builder")
+    private Crawler(@NotNull IAnalyzeManager analyzeManager,
                    @NotNull IUrlExtractor urlExtractor, @NotNull IFormatManagerFactory formatManagerFactory) {
-        Preconditions.checkNotNull(startUrls);
         this.analyzeManager = Preconditions.checkNotNull(analyzeManager);
         this.urlExtractor = Preconditions.checkNotNull(urlExtractor);
         this.formatManagerFactory = Preconditions.checkNotNull(formatManagerFactory);
-        this.urls = new LinkedList<>(startUrls);
     }
 
     @Override
-    public void start(@Nullable ICallback callback, @NotNull Collection<Object> handlers) {
+    public void start(@Nullable ICallback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urlsColl) {
+
+        Crawler.checkPreConditions(handlers, urlsColl);
 
         if (callback != null) {
             callback.onStart();
         }
 
+        final Queue<URL> urls = new LinkedList<>(urlsColl);
         val formatManager = formatManagerFactory.create(handlers);
         val MAX_CONTAINER_SIZE = 100;
         // todo redo
         val crawledPages = new HashMap<URL, Collection<Page>>(MAX_CONTAINER_SIZE);
+        canRun = true;
 
-        while (!urls.isEmpty()
+        while (canRun && !urls.isEmpty()
                 /*replace with spec condition*/ && urls.size() <= MAX_CONTAINER_SIZE) {
             val url = urls.poll();
             Collection<Page> crawledPagesColl = crawledPages.get(url);
@@ -60,7 +66,7 @@ public final class Crawler implements ICrawler {
 
             try {
 
-                val page = Crawler.parsePage(url, 5000);
+                val page = Crawler.parsePage(url, PARSE_PAGE_TIMEOUT);
 
                 if (crawledPagesColl == null) {
                     crawledPagesColl = new ArrayList<>(1);
@@ -110,18 +116,17 @@ public final class Crawler implements ICrawler {
     }
 
     @Override
-    public void start(@NotNull Collection<Object> handlers) {
-        start(null, handlers);
-    }
-
-    @Override
     public void stop() {
-
+        canRun = false;
     }
 
-    @Override
-    public void stop(long wait) {
+    private static void checkPreConditions(Collection<Object> handlers, Collection<URL> urlsColl) {
 
+        if(Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
+            throw new IllegalArgumentException("no handlers passed");
+
+        if(Preconditions.checkNotNull(urlsColl, "urls == null").isEmpty())
+            throw new IllegalArgumentException("no start urls passed");
     }
 
     private static Page parsePage(URL url, int timeout) throws IOException {

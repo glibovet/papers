@@ -34,7 +34,7 @@ public class Tester {
                 .build();
 
         Settings settings = new Settings.Builder(
-                new SchedulerSetting(),
+                new SchedulerSetting(executorService, startupDelay, indexDelay),
                 Collections.singletonList(
                         new URL("http://www.tutorialspoint.com/jenkins/")
                 ),

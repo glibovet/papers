@@ -46,4 +46,6 @@ public interface IPageIndexRepository {
      */
     void store(@NotNull Index index);
 
+    ICursor<Index> getIndexedPages();
+
 }

@@ -75,30 +75,15 @@ public interface ICrawler {
      * This method starts crawler
      *
      * @param handlers to process page parts, each handler should be annotated with
-     * {@linkplain PageHandler} or {@linkplain IllegalArgumentException} will be raised
+     *                 {@linkplain PageHandler} or {@linkplain IllegalArgumentException} will be raised
      * @param callback callback to monitor progress status
+     * @param urls     start urls to process
      */
-    void start(@Nullable ICallback callback, @NotNull Collection<Object> handlers);
-
-    /**
-     * This method starts crawler
-     *
-     * @param handlers to process page parts, each handler should be annotated with
-     * {@linkplain PageHandler} or {@linkplain IllegalArgumentException} will be raised
-     */
-    void start(@NotNull Collection<Object> handlers);
+    void start(@Nullable ICallback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urls);
 
     /**
      * Stops crawler immediately
      */
     void stop();
-
-    /**
-     * Waits at most specified amount of millis and finally
-     * stops crawler
-     *
-     * @param wait millis to wait
-     */
-    void stop(long wait);
 
 }

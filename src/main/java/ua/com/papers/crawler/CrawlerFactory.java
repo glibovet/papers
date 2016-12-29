@@ -2,10 +2,10 @@ package ua.com.papers.crawler;
 
 import org.springframework.stereotype.Service;
 import ua.com.papers.crawler.core.domain.Crawler;
-import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.analyze.*;
 import ua.com.papers.crawler.core.domain.format.FormatManagerFactory;
 import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
+import ua.com.papers.crawler.core.domain.schedule.IScheduler;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
 import ua.com.papers.crawler.core.domain.select.UrlExtractor;
 import ua.com.papers.crawler.settings.*;
@@ -38,7 +38,7 @@ public final class CrawlerFactory implements ICrawlerFactory {
     }
 
     @Override
-    public ICrawler create(@NotNull Settings settings) {
+    public IScheduler create(@NotNull Settings settings) {
         return new Crawler(settings.getStartUrls(), createAnalyzeManager(settings),
                 createUrlExtractor(settings),
                 createFormatFactory(settings));

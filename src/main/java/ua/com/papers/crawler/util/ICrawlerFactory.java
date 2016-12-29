@@ -1,7 +1,7 @@
 package ua.com.papers.crawler.util;
 
 import org.springframework.validation.annotation.Validated;
-import ua.com.papers.crawler.core.domain.ICrawler;
+import ua.com.papers.crawler.core.domain.schedule.IScheduler;
 import ua.com.papers.crawler.settings.Settings;
 
 import javax.validation.constraints.NotNull;
@@ -16,9 +16,9 @@ public interface ICrawlerFactory {
      * Creates crawler from settings
      *
      * @param settings settings to be used while creating crawler
-     * @return new instance of crawler
+     * @return new instance of crawler scheduler
      */
     @NotNull
-    ICrawler create(@NotNull Settings settings);
+    IScheduler create(@NotNull Settings settings);
 
 }
