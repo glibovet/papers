@@ -1,9 +1,11 @@
 package ua.com.papers.crawler;
 
+import lombok.val;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.domain.schedule.IScheduler;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.settings.*;
 import ua.com.papers.crawler.util.ICrawlerFactory;
@@ -33,20 +35,28 @@ public class Tester {
                 .selectSetting(new UrlSelectSetting("a[href^='/jenkins/']", "href"))
                 .build();
 
-        Settings settings = new Settings.Builder(
-                new SchedulerSetting(executorService, startupDelay, indexDelay),
-                Collections.singletonList(
-                        new URL("http://www.tutorialspoint.com/jenkins/")
-                ),
-                Collections.singletonList(
-                        pageSetting
-                )
-        ).build();
+        val oneMinute = 60 * 1_000L;
 
-        final ICrawler crawler = factory.create(settings);
+        Settings settings = Settings.builder()
+                .schedulerSetting(
+                        SchedulerSetting.builder()
+                                .indexDelay(oneMinute)
+                                .allowIndex(true)
+                                .build()
+                )
+                .startUrl(new URL("http://www.tutorialspoint.com/jenkins/"))
+                .pageSetting(pageSetting)
+                .build();
+
+        final IScheduler scheduler = factory.create(settings);
+
+        scheduler.start(crawlCall(), Collections.singletonList(new HandlerDemo()), settings.getStartUrls());
+    }
+
+    private static ICrawler.ICallback crawlCall() throws IOException {
         final BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Максим\\Desktop\\log.txt", false));
 
-        crawler.start(new ICrawler.ICallback() {
+        return new ICrawler.ICallback() {
 
             @Override
             public void onStart() {
@@ -60,7 +70,7 @@ public class Tester {
 
             @Override
             public void onPageRejected(@NotNull Page page) {
-          //      System.out.println("On page rejected " + page);
+                //      System.out.println("On page rejected " + page);
             }
 
             @Override
@@ -90,9 +100,9 @@ public class Tester {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-               // System.out.println("Page accepted " + page);
+                // System.out.println("Page accepted " + page);
             }
-        }, Collections.singletonList(new HandlerDemo()));
+        };
     }
 
 }

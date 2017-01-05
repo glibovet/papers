@@ -14,20 +14,27 @@ import java.util.concurrent.ScheduledExecutorService;
 @Builder(builderClassName = "Builder")
 public class SchedulerSetting {
 
-    public static final long NO_DELAY = 0L;
+    public static final long MIN_DELAY = 0L;
 
-    private ScheduledExecutorService executorService;
-    private long startupDelay;
-    private long indexDelay;
+    ScheduledExecutorService executorService;
+    long startupDelay;
+    long indexDelay;
+    boolean allowIndex;
 
-    private SchedulerSetting(@Nullable ScheduledExecutorService executorService, long startupDelay, long indexDelay) {
+    private SchedulerSetting(@Nullable ScheduledExecutorService executorService, long startupDelay, long indexDelay,
+                             boolean allowIndex) {
         this.executorService = executorService == null ? defaultExecutor() : executorService;
-        this.startupDelay = startupDelay;
-        this.indexDelay = indexDelay;
+        this.startupDelay = toDelay(startupDelay);
+        this.indexDelay = toDelay(indexDelay);
+        this.allowIndex = allowIndex;
     }
 
     private static ScheduledExecutorService defaultExecutor() {
         return Executors.newSingleThreadScheduledExecutor();
+    }
+
+    private static long toDelay(long original) {
+        return original < MIN_DELAY ? MIN_DELAY : original;
     }
 
 }

@@ -9,7 +9,6 @@ import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.storage.IPageIndexRepository;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Collection;
@@ -74,7 +73,9 @@ public class Scheduler implements IScheduler {
     }
 
     @lombok.Builder(builderClassName = "Builder")
-    private Scheduler(@NotNull ICrawler crawler, @NotNull ScheduledExecutorService executorService, long startupDelay, long indexDelay, IPageIndexRepository repository, IPageIndexer indexer) {
+    private Scheduler(@NotNull ICrawler crawler, @NotNull ScheduledExecutorService executorService, long startupDelay,
+                      long indexDelay, IPageIndexRepository repository, IPageIndexer indexer) {
+
         this.crawler = Preconditions.checkNotNull(crawler);
         this.executorService = Preconditions.checkNotNull(executorService);
         this.repository = Preconditions.checkNotNull(repository);
@@ -84,8 +85,32 @@ public class Scheduler implements IScheduler {
     }
 
     @Override
-    public void start(@Nullable ICrawler.ICallback crawlCallback, @Nullable IPageIndexer.ICallback indexCallback,
+    public void start(@NotNull ICrawler.ICallback crawlCallback, @NotNull IPageIndexer.ICallback indexCallback,
                       @NotNull Collection<Object> handlers, @NotNull Collection<URL> startUrls) {
+        doStart(crawlCallback, indexCallback, handlers, startUrls);
+    }
+
+    @Override
+    public void start(@NotNull ICrawler.ICallback crawlCallback, @NotNull Collection<Object> handlers,
+                      @NotNull Collection<URL> startUrls) {
+        doStart(crawlCallback, null, handlers, startUrls);
+    }
+
+    @Override
+    public void stop() {
+        executorService.shutdown();
+    }
+
+    @Override
+    public void stop(long timeout) throws InterruptedException {
+        executorService.shutdownNow();
+        executorService.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+    }
+
+    private void doStart(ICrawler.ICallback crawlCallback, IPageIndexer.ICallback indexCallback,
+                         Collection<Object> handlers, Collection<URL> startUrls) {
+
+        checkPreConditions(crawlCallback, indexCallback, handlers, startUrls);
 
         val mCrawlCall = prepareCrawlCallback(crawlCallback);
         // start crawler job
@@ -109,19 +134,23 @@ public class Scheduler implements IScheduler {
         }
     }
 
-    @Override
-    public void stop() {
-        executorService.shutdown();
-    }
-
-    @Override
-    public void stop(long timeout) throws InterruptedException {
-        executorService.shutdownNow();
-        executorService.awaitTermination(timeout, TimeUnit.MILLISECONDS);
-    }
-
     private ICrawler.ICallback prepareCrawlCallback(ICrawler.ICallback original) {
         return indexer == null ? original : new CallbackWrapper(original);
+    }
+
+    private void checkPreConditions(ICrawler.ICallback crawlCallback, IPageIndexer.ICallback indexCallback,
+                                           Collection<Object> handlers, Collection<URL> startUrls) {
+        Preconditions.checkNotNull(crawlCallback, "crawl callback == null");
+
+        if(Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
+            throw new IllegalArgumentException("no handlers passed");
+
+        if(Preconditions.checkNotNull(startUrls, "urls == null").isEmpty())
+            throw new IllegalArgumentException("no start urls passed");
+
+        if(indexer != null && indexCallback == null)
+            throw new NullPointerException(
+                    "index callback wasn't passed. Either disable indexing or pass index callback");
     }
 
     private static long minExecutorDelay(long value) {

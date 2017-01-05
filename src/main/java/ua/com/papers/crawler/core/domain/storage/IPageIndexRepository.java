@@ -5,6 +5,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
+import java.util.Iterator;
 
 /**
  * <p>
@@ -46,6 +47,6 @@ public interface IPageIndexRepository {
      */
     void store(@NotNull Index index);
 
-    ICursor<Index> getIndexedPages();
+    Iterator<Index> getIndexedPages();
 
 }

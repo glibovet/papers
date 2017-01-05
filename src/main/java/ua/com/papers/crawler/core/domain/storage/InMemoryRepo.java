@@ -7,12 +7,13 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
  * <p>
- * In memory repository build on the top
- * of hash map structure
+ * In memory thread-safe repository build on the top
+ * of hash map data structure
  * </p>
  * Created by Максим on 12/27/2016.
  */
@@ -21,7 +22,27 @@ public final class InMemoryRepo implements IPageIndexRepository {
 
     private final Map<URL, Index> cache;
 
-    public InMemoryRepo() {
+    private static InMemoryRepo instance;
+
+    public static InMemoryRepo getInstance() {
+        // double check idiom
+        InMemoryRepo localInstance = instance;
+
+        if (localInstance == null) {
+
+            synchronized (InMemoryRepo.class) {
+
+                localInstance = instance;
+
+                if (localInstance == null) {
+                    instance = localInstance = new InMemoryRepo();
+                }
+            }
+        }
+        return localInstance;
+    }
+
+    private InMemoryRepo() {
         cache = new HashMap<>(40);
     }
 
@@ -39,5 +60,10 @@ public final class InMemoryRepo implements IPageIndexRepository {
     @Override
     public void store(@NotNull Index index) {
         cache.put(index.getUrl(), index);
+    }
+
+    @Override
+    public Iterator<Index> getIndexedPages() {
+        return cache.values().iterator();
     }
 }

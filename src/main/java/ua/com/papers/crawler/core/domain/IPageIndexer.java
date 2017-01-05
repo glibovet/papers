@@ -2,7 +2,6 @@ package ua.com.papers.crawler.core.domain;
 
 import ua.com.papers.crawler.core.domain.bo.Page;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 
@@ -15,9 +14,11 @@ public interface IPageIndexer {
 
         default void onStart() {}
 
-        void onPageUpdated(@NotNull Page page);
+        void onIndexed(@NotNull Page page);
 
-        void onPageLost(@NotNull Page page);
+        void onUpdated(@NotNull Page page);
+
+        void onLost(@NotNull Page page);
 
         default void onStop() {}
 
@@ -25,6 +26,6 @@ public interface IPageIndexer {
 
     void addToIndex(@NotNull Page page);
 
-    void index(@Nullable ICallback callback, @NotNull Collection<Object> handlers);
+    void index(@NotNull ICallback callback, @NotNull Collection<Object> handlers);
 
 }

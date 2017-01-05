@@ -17,10 +17,12 @@ import java.net.URL;
 public class Index {
 
     DateTime lastVisit;
+    String contentHash;
     URL url;
 
-    public Index(@NotNull DateTime lastVisit, @NotNull URL url) {
+    public Index(@NotNull DateTime lastVisit, @NotNull URL url, @NotNull String contentHash) {
         this.lastVisit = Preconditions.checkNotNull(lastVisit);
         this.url = Preconditions.checkNotNull(url);
+        this.contentHash = Preconditions.checkNotNull(contentHash);
     }
 }

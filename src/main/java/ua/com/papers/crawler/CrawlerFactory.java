@@ -1,13 +1,17 @@
 package ua.com.papers.crawler;
 
+import lombok.val;
 import org.springframework.stereotype.Service;
 import ua.com.papers.crawler.core.domain.Crawler;
+import ua.com.papers.crawler.core.domain.PageIndexer;
 import ua.com.papers.crawler.core.domain.analyze.*;
 import ua.com.papers.crawler.core.domain.format.FormatManagerFactory;
 import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
 import ua.com.papers.crawler.core.domain.schedule.IScheduler;
+import ua.com.papers.crawler.core.domain.schedule.Scheduler;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
 import ua.com.papers.crawler.core.domain.select.UrlExtractor;
+import ua.com.papers.crawler.core.domain.storage.InMemoryRepo;
 import ua.com.papers.crawler.settings.*;
 import ua.com.papers.crawler.util.ICrawlerFactory;
 
@@ -39,9 +43,29 @@ public final class CrawlerFactory implements ICrawlerFactory {
 
     @Override
     public IScheduler create(@NotNull Settings settings) {
-        return new Crawler(settings.getStartUrls(), createAnalyzeManager(settings),
-                createUrlExtractor(settings),
-                createFormatFactory(settings));
+
+        val analyzeManager = createAnalyzeManager(settings);
+        val formatFactory = createFormatFactory(settings);
+        val crawler = Crawler.builder()
+                .analyzeManager(analyzeManager)
+                .formatManagerFactory(formatFactory)
+                .urlExtractor(createUrlExtractor(settings))
+                .build();
+
+        val scheduleSett = settings.getSchedulerSetting();
+
+        Scheduler.Builder builder = Scheduler.builder()
+                .crawler(crawler)
+                .executorService(scheduleSett.getExecutorService())
+                .startupDelay(scheduleSett.getStartupDelay())
+                .indexDelay(scheduleSett.getIndexDelay())
+                .repository(InMemoryRepo.getInstance());
+
+        if(scheduleSett.isAllowIndex()) {
+            builder.indexer(new PageIndexer(InMemoryRepo.getInstance(), formatFactory, analyzeManager));
+        }
+
+        return builder.build();
     }
 
     private static IFormatManagerFactory createFormatFactory(Settings settings) {
@@ -81,7 +105,7 @@ public final class CrawlerFactory implements ICrawlerFactory {
                 .map(template ->
                         // page weight is result of multiplying number of found page parts using css selector
                         // by its (analyze chain) weight
-                (IAnalyzeChain) document -> document.select(template.getCssSelector()).size() * template.getWeight())
+                        (IAnalyzeChain) document -> document.select(template.getCssSelector()).size() * template.getWeight())
                 .collect(Collectors.toList());
     }
 
