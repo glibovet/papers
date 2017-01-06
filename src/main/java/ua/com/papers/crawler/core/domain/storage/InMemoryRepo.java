@@ -6,9 +6,8 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * <p>
@@ -21,6 +20,7 @@ import java.util.Map;
 public final class InMemoryRepo implements IPageIndexRepository {
 
     private final Map<URL, Index> cache;
+    private final ReentrantReadWriteLock lock;
 
     private static InMemoryRepo instance;
 
@@ -43,27 +43,56 @@ public final class InMemoryRepo implements IPageIndexRepository {
     }
 
     private InMemoryRepo() {
+        lock = new ReentrantReadWriteLock();
         cache = new HashMap<>(40);
     }
 
     @Override
     public boolean isIndexed(@NotNull URL url) {
-        return cache.containsKey(Preconditions.checkNotNull(url));
+        lock.readLock().lock();
+
+        try {
+            return cache.containsKey(Preconditions.checkNotNull(url));
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Nullable
     @Override
     public Index getIndex(@NotNull URL url) {
-        return cache.get(Preconditions.checkNotNull(url));
+        lock.readLock().lock();
+
+        try {
+            return cache.get(Preconditions.checkNotNull(url));
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
     public void store(@NotNull Index index) {
-        cache.put(index.getUrl(), index);
+        lock.writeLock().lock();
+
+        try {
+            cache.put(index.getUrl(), index);
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     @Override
     public Iterator<Index> getIndexedPages() {
-        return cache.values().iterator();
+        lock.readLock().lock();
+
+        try {
+            // copy values into temporary collection
+            // in result each invocation of this method
+            // will return a new iterator with copied values;
+            // slow for a big collection
+            return new ArrayList<>(cache.values()).iterator();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 }

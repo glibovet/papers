@@ -3,12 +3,11 @@ package ua.com.papers.crawler.core.domain;
 import com.google.common.base.Preconditions;
 import lombok.extern.java.Log;
 import lombok.val;
-import org.joda.time.DateTime;
-import org.jsoup.Jsoup;
 import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
+import ua.com.papers.crawler.util.PageUtils;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -33,7 +32,7 @@ public final class Crawler implements ICrawler {
 
     @lombok.Builder(builderClassName = "Builder")
     private Crawler(@NotNull IAnalyzeManager analyzeManager,
-                   @NotNull IUrlExtractor urlExtractor, @NotNull IFormatManagerFactory formatManagerFactory) {
+                    @NotNull IUrlExtractor urlExtractor, @NotNull IFormatManagerFactory formatManagerFactory) {
         this.analyzeManager = Preconditions.checkNotNull(analyzeManager);
         this.urlExtractor = Preconditions.checkNotNull(urlExtractor);
         this.formatManagerFactory = Preconditions.checkNotNull(formatManagerFactory);
@@ -56,7 +55,7 @@ public final class Crawler implements ICrawler {
         canRun = true;
 
         while (canRun && !urls.isEmpty()
-                /*replace with spec condition*/ && urls.size() <= MAX_CONTAINER_SIZE) {
+                /*todo replace with spec condition*/ && urls.size() <= MAX_CONTAINER_SIZE) {
             val url = urls.poll();
             Collection<Page> crawledPagesColl = crawledPages.get(url);
 
@@ -66,7 +65,7 @@ public final class Crawler implements ICrawler {
 
             try {
 
-                val page = Crawler.parsePage(url, PARSE_PAGE_TIMEOUT);
+                val page = PageUtils.parsePage(url, PARSE_PAGE_TIMEOUT);
 
                 if (crawledPagesColl == null) {
                     crawledPagesColl = new ArrayList<>(1);
@@ -77,7 +76,9 @@ public final class Crawler implements ICrawler {
                 val analyzeRes = analyzeManager.analyze(page);
 
                 if (analyzeRes.isEmpty()) {
-
+                    // analyzed page 'weight' doesn't satisfies any specified one in
+                    // the analyze settings; NOTE that only pages with text content types
+                    // can be analyzed by crawler
                     log.log(Level.INFO, String.format("Rejected page: url %s", url));
 
                     if (callback != null) {
@@ -122,15 +123,11 @@ public final class Crawler implements ICrawler {
 
     private static void checkPreConditions(Collection<Object> handlers, Collection<URL> urlsColl) {
 
-        if(Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
+        if (Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
             throw new IllegalArgumentException("no handlers passed");
 
-        if(Preconditions.checkNotNull(urlsColl, "urls == null").isEmpty())
+        if (Preconditions.checkNotNull(urlsColl, "urls == null").isEmpty())
             throw new IllegalArgumentException("no start urls passed");
-    }
-
-    private static Page parsePage(URL url, int timeout) throws IOException {
-        return new Page(url, DateTime.now(), Jsoup.parse(url, timeout));
     }
 
 }

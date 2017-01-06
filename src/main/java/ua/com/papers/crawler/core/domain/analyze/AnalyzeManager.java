@@ -5,6 +5,7 @@ import lombok.Value;
 import org.elasticsearch.common.collect.Tuple;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.settings.PageSetting;
+import ua.com.papers.crawler.util.PageUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
@@ -27,11 +28,15 @@ public class AnalyzeManager implements IAnalyzeManager {
     @NotNull
     @Override
     public Collection<Result> analyze(@NotNull Page page) {
-        return analyzers.entrySet()
-                .stream()
-                .map(entry -> new Tuple<>(entry.getKey(), entry.getValue().analyze(page)))
-                .filter(t -> t.v2().getResultWeight() >= t.v1().getMinWeight())
-                .map(Tuple::v2)
-                .collect(Collectors.toList());
+        // you cannot analyze page which is can't be transformed into
+        // text document, for example, mp3 track
+        return !PageUtils.canParse(page.getContentType()) ?
+                Collections.emptyList() :
+                analyzers.entrySet()
+                        .stream()
+                        .map(entry -> new Tuple<>(entry.getKey(), entry.getValue().analyze(page)))
+                        .filter(t -> t.v2().getResultWeight() >= t.v1().getMinWeight())
+                        .map(Tuple::v2)
+                        .collect(Collectors.toList());
     }
 }

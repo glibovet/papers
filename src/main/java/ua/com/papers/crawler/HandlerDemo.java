@@ -1,5 +1,6 @@
 package ua.com.papers.crawler;
 
+import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.util.PageHandler;
 import ua.com.papers.crawler.util.PartHandle;
 import ua.com.papers.crawler.util.PostHandle;
@@ -18,12 +19,12 @@ public class HandlerDemo {
     }
 
     @PostHandle
-    public void onFinish() {
+    public void onFinish(Page page) {
         // analyzing is done
         System.out.println("onFinish#");
     }
 
-    @PartHandle(partId = 1, escapeHtml = false)
+    @PartHandle(partId = 1)
     public void onHandlePart1(String str) {
         System.out.println("onHandlePart1#" + str);
     }

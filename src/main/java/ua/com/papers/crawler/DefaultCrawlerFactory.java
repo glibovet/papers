@@ -26,8 +26,7 @@ import java.util.stream.Stream;
  * Created by Максим on 11/27/2016.
  */
 @Service
-// todo add builder instead static methods?
-public final class CrawlerFactory implements ICrawlerFactory {
+public final class DefaultCrawlerFactory implements ICrawlerFactory {
 
     /**
      * Default url selection criteria; all &lt;a&gt; tags with 'href' attribute will be extracted
@@ -38,7 +37,7 @@ public final class CrawlerFactory implements ICrawlerFactory {
         DEF_SELECT_SETTINGS = Collections.singletonList(new UrlSelectSetting("a[href]", "href"));
     }
 
-    public CrawlerFactory() {
+    public DefaultCrawlerFactory() {
     }
 
     @Override
@@ -91,22 +90,12 @@ public final class CrawlerFactory implements ICrawlerFactory {
         return new AnalyzeManager(settings
                 .getPageSettings()
                 .stream()
-                .collect(Collectors.toMap(s -> s, CrawlerFactory::createPageAnalyzer))
+                .collect(Collectors.toMap(s -> s, DefaultCrawlerFactory::createPageAnalyzer))
         );
     }
 
     private static IPageAnalyzer createPageAnalyzer(PageSetting setting) {
-        return new PageAnalyzer(setting.getMinWeight(), setting.getId(), toChains(setting.getAnalyzeTemplates()));
-    }
-
-    private static Collection<? extends IAnalyzeChain> toChains(Collection<? extends AnalyzeTemplate> templates) {
-        return templates
-                .stream()
-                .map(template ->
-                        // page weight is result of multiplying number of found page parts using css selector
-                        // by its (analyze chain) weight
-                        (IAnalyzeChain) document -> document.select(template.getCssSelector()).size() * template.getWeight())
-                .collect(Collectors.toList());
+        return new PageAnalyzer(setting.getMinWeight(), setting.getId(), setting.getAnalyzeTemplates());
     }
 
 }

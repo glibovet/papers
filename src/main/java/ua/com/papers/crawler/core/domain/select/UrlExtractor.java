@@ -8,6 +8,7 @@ import org.elasticsearch.common.collect.Tuple;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.settings.UrlSelectSetting;
+import ua.com.papers.crawler.util.PageUtils;
 import ua.com.papers.crawler.util.Url;
 
 import javax.validation.constraints.NotNull;
@@ -41,10 +42,10 @@ public class UrlExtractor implements IUrlExtractor {
 
         val selectSettings = idToSetting.get(id);
 
-        return selectSettings == null ? Collections.emptySet() : selectSettings
+        return selectSettings == null || !PageUtils.canParse(page.getContentType()) ? Collections.emptySet() : selectSettings
                 .stream()
                 // transform select setting into tuple which contains both selected elements and setting
-                .map(setting -> new Tuple<>(page.getDocument().select(setting.getCssSelector()), setting))
+                .map(setting -> new Tuple<>(page.toDocument().select(setting.getCssSelector()), setting))
                 // get selected elements and transform them into urls
                 .map(tuple -> tuple.v1()
                         .stream()

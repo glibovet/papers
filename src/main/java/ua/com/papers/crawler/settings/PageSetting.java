@@ -36,9 +36,9 @@ public final class PageSetting {
                         Collection<? extends FormatTemplate> formatTemplates,
                         Collection<? extends UrlSelectSetting> selectSettings) {
 
-        if (minWeight < 0)
+        if (minWeight < MIN_WEIGHT || minWeight > MAX_WEIGHT)
             throw new IllegalArgumentException(
-                    String.format("min weight < 0, was %s", minWeight));
+                    String.format("weight < %d || weight > %d, was %s", MIN_WEIGHT, MAX_WEIGHT, minWeight));
 
         if (Preconditions.checkNotNull(analyzeTemplates, "analyze templates == null")
                 .isEmpty())

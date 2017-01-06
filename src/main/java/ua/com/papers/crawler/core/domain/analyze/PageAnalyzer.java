@@ -2,8 +2,10 @@ package ua.com.papers.crawler.core.domain.analyze;
 
 import com.google.common.base.Preconditions;
 import lombok.Value;
+import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.vo.PageID;
+import ua.com.papers.crawler.settings.AnalyzeTemplate;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
@@ -16,10 +18,10 @@ import java.util.Collections;
 public class PageAnalyzer implements IPageAnalyzer {
 
     PageID pageID;
-    Collection<? extends IAnalyzeChain> chains;
+    Collection<? extends AnalyzeTemplate> templates;
     int minSum;
 
-    public PageAnalyzer(int minSum, @NotNull PageID pageID, @NotNull Collection<? extends IAnalyzeChain> chains) {
+    public PageAnalyzer(int minSum, @NotNull PageID pageID, @NotNull Collection<? extends AnalyzeTemplate> templates) {
 
         if (minSum < 0)
             throw new IllegalArgumentException(
@@ -27,16 +29,17 @@ public class PageAnalyzer implements IPageAnalyzer {
 
         this.minSum = minSum;
         this.pageID = Preconditions.checkNotNull(pageID);
-        this.chains = Collections.unmodifiableCollection(Preconditions.checkNotNull(chains));
+        this.templates = Collections.unmodifiableCollection(Preconditions.checkNotNull(templates));
     }
 
     @Override
     public Result analyze(@NotNull Page page) {
 
+        val doc = page.toDocument();
         int weightSum = 0;
 
-        for (final IAnalyzeChain chain : chains) {
-            weightSum += chain.analyze(page.getDocument());
+        for (final AnalyzeTemplate template : templates) {
+            weightSum += doc.select(template.getCssSelector()).size() * template.getWeight();
         }
         return new Result(pageID, weightSum);
     }

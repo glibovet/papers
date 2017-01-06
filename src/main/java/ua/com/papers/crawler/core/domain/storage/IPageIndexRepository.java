@@ -1,5 +1,8 @@
 package ua.com.papers.crawler.core.domain.storage;
 
+import com.google.common.base.Preconditions;
+import lombok.Value;
+import org.joda.time.DateTime;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Nullable;
@@ -20,6 +23,26 @@ import java.util.Iterator;
  */
 @Validated
 public interface IPageIndexRepository {
+
+    /**
+     * <p>
+     * Class which represents indexed page
+     * </p>
+     * Created by Максим on 12/27/2016.
+     */
+    @Value
+    class Index {
+
+        DateTime lastVisit;
+        String contentHash;
+        URL url;
+
+        public Index(@NotNull DateTime lastVisit, @NotNull URL url, @NotNull String contentHash) {
+            this.lastVisit = Preconditions.checkNotNull(lastVisit);
+            this.url = Preconditions.checkNotNull(url);
+            this.contentHash = Preconditions.checkNotNull(contentHash);
+        }
+    }
 
     /**
      * checks whether page was indexed

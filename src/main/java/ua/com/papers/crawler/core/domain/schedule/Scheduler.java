@@ -112,16 +112,6 @@ public class Scheduler implements IScheduler {
 
         checkPreConditions(crawlCallback, indexCallback, handlers, startUrls);
 
-        val mCrawlCall = prepareCrawlCallback(crawlCallback);
-        // start crawler job
-        executorService.schedule(() -> {
-            try {
-                crawler.start(mCrawlCall, handlers, startUrls);
-            } catch (final Exception e) {
-                log.log(Level.SEVERE, "Failed to start crawler", e);
-            }
-        }, startupDelay, TimeUnit.MILLISECONDS);
-
         if (indexer != null) {
             // periodical indexing if indexing wasn't disabled
             executorService.scheduleWithFixedDelay(() -> {
@@ -132,6 +122,16 @@ public class Scheduler implements IScheduler {
                 }
             }, startupDelay, indexDelay, TimeUnit.MILLISECONDS);
         }
+
+        val mCrawlCall = prepareCrawlCallback(crawlCallback);
+        // start crawler job
+        executorService.schedule(() -> {
+            try {
+                crawler.start(mCrawlCall, handlers, startUrls);
+            } catch (final Exception e) {
+                log.log(Level.SEVERE, "Failed to start crawler", e);
+            }
+        }, startupDelay, TimeUnit.MILLISECONDS);
     }
 
     private ICrawler.ICallback prepareCrawlCallback(ICrawler.ICallback original) {

@@ -4,6 +4,7 @@ import lombok.val;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ua.com.papers.crawler.core.domain.ICrawler;
+import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.schedule.IScheduler;
 import ua.com.papers.crawler.core.domain.vo.PageID;
@@ -16,6 +17,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.concurrent.Executors;
 
 public class Tester {
 
@@ -28,18 +30,20 @@ public class Tester {
 
         PageSetting pageSetting = PageSetting.builder()
                 .id(new PageID(1))
-                .analyzeTemplate(new AnalyzeTemplate("a[href^='/jenkins/']", 60))
-                .analyzeTemplate(new AnalyzeTemplate("body > div.main > div.container > div > div.row", 60))
+                .minWeight(20)
+                .analyzeTemplate(new AnalyzeTemplate("a[href^='/jenkins/']", 1))
+                .analyzeTemplate(new AnalyzeTemplate("body > div.main > div.container > div > div.row", 1))
                 .formatTemplate(new FormatTemplate(1, "body > div.main > div.container > div > div.row > div.content > div > h1"))
                 .formatTemplate(new FormatTemplate(2, "body > div.main > div.container > div > div.row > div.content > div > p"))
                 .selectSetting(new UrlSelectSetting("a[href^='/jenkins/']", "href"))
                 .build();
 
-        val oneMinute = 60 * 1_000L;
+        val oneMinute = 2 * 1_000L;
 
         Settings settings = Settings.builder()
                 .schedulerSetting(
                         SchedulerSetting.builder()
+                                .executorService(Executors.newScheduledThreadPool(2))
                                 .indexDelay(oneMinute)
                                 .allowIndex(true)
                                 .build()
@@ -50,7 +54,40 @@ public class Tester {
 
         final IScheduler scheduler = factory.create(settings);
 
-        scheduler.start(crawlCall(), Collections.singletonList(new HandlerDemo()), settings.getStartUrls());
+        scheduler.start(crawlCall(), indexCall(), Collections.singletonList(new HandlerDemo()), settings.getStartUrls());
+
+        //Thread.sleep(30_000);
+       // scheduler.stop();
+    }
+
+    private static IPageIndexer.ICallback indexCall() {
+        return new IPageIndexer.ICallback() {
+
+            @Override
+            public void onStart() {
+                System.out.println("On start / index");
+            }
+
+            @Override
+            public void onStop() {
+                System.out.println("On stop / index");
+            }
+
+            @Override
+            public void onIndexed(@NotNull Page page) {
+                System.out.println("On indexed " + page.getUrl());
+            }
+
+            @Override
+            public void onUpdated(@NotNull Page page) {
+                System.out.println("On updated " + page.getUrl());
+            }
+
+            @Override
+            public void onLost(@NotNull Page page) {
+                System.out.println("On lost " + page.getUrl());
+            }
+        };
     }
 
     private static ICrawler.ICallback crawlCall() throws IOException {

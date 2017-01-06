@@ -7,7 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * <p>
- * Annotation to mark method handler
+ * Annotation to mark methods which are responsible for page parts
+ * handling
  * </p>
  * Created by Максим on 11/27/2016.
  */

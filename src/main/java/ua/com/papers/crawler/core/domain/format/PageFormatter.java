@@ -32,7 +32,7 @@ public class PageFormatter implements IPageFormatter {
                 .stream()
                 .collect(Collectors
                         .toMap(t -> new PartID(t.getId()),
-                                t -> page.getDocument().select(t.getCssSelector())
+                                t -> page.toDocument().select(t.getCssSelector())
                         )
                 );
         return new FormattedPage(id, idToPart);

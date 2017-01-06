@@ -15,6 +15,7 @@ import ua.com.papers.crawler.util.PreHandle;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.logging.Level;
@@ -23,11 +24,11 @@ import java.util.stream.Collectors;
 /**
  * Created by Максим on 12/19/2016.
  */
-// todo processing methods caching
-    // todo warning for non existing part methods
 @Value
 @Log
 public class FormatManager implements IFormatManager {
+
+    private static final int DEFAULT_LIFECYCLE_METHODS_CNT = 2;
 
     IPageFormatter pageFormatter;
     Map<PageID, ? extends Collection<Object>> idToHandlers;
@@ -56,14 +57,15 @@ public class FormatManager implements IFormatManager {
                     .stream()
                     .collect(Collectors.toMap(e -> e.getKey().getId(), Map.Entry::getValue));
 
-            handlers.forEach(h -> invokeHandleMethods(idToPart, h));
+            handlers.forEach(h -> invokeHandleMethods(page, idToPart, h));
         }
     }
 
-    private static void invokeHandleMethods(Map<Integer, Elements> idToPart, Object handler) {
+    private static void invokeHandleMethods(Page page, Map<Integer, Elements> idToPart, Object handler) {
 
-        val preHandlers = new HashSet<Method>(2);
-        val postHandlers = new HashSet<Method>(2);
+        val cpyIdToPart = new HashMap<>(idToPart);
+        val preHandlers = new HashSet<Method>(DEFAULT_LIFECYCLE_METHODS_CNT);
+        val postHandlers = new HashSet<Method>(DEFAULT_LIFECYCLE_METHODS_CNT);
         val partHandlers = new HashSet<Method>();
 
         for (val method : handler.getClass().getMethods()) {
@@ -95,10 +97,12 @@ public class FormatManager implements IFormatManager {
             }
         }
 
-        preHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m, handler));
+        preHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m, page, handler));
         partHandlers.forEach(m -> {
             val annotation = m.getAnnotation(PartHandle.class);
             val elem = idToPart.get(annotation.partId());
+
+            cpyIdToPart.remove(annotation.partId());
 
             if (annotation.escapeHtml()) {
                 elem.forEach(e -> invokeProcessMethod(m, handler, e.text()));
@@ -106,26 +110,37 @@ public class FormatManager implements IFormatManager {
                 elem.forEach(e -> invokeProcessMethod(m, handler, e.outerHtml()));
             }
         });
-        postHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m, handler));
+        postHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m, page, handler));
+
+        if (!cpyIdToPart.isEmpty()) {
+            log.log(Level.WARNING, String.format("No handler methods found for map (id => content):\n%s", cpyIdToPart));
+        }
     }
 
-    private static void invokeLifecycleMethod(Method m, Object which) {
+    private static void invokeLifecycleMethod(Method m, Page page, Object who) {
+
+        val args = m.getParameterTypes();
 
         try {
-            m.invoke(which);
+
+            if (args.length == 1 && args[0].isAssignableFrom(Page.class)) {
+                m.invoke(who, page);
+            } else {
+                m.invoke(who);
+            }
         } catch (final Exception e) {
-            log.log(Level.SEVERE, String.format("Failed to invoke method %s for class %s", m, which.getClass()), e);
+            log.log(Level.SEVERE, String.format("Failed to invoke method %s for class %s", m, who.getClass()), e);
             // finish with error!
             throw new RuntimeException(e);
         }
     }
 
-    private static void invokeProcessMethod(Method m, Object which, String arg) {
+    private static void invokeProcessMethod(Method m, Object who, String arg) {
 
         try {
-            m.invoke(which, arg);
+            m.invoke(who, arg);
         } catch (final Exception e) {
-            log.log(Level.SEVERE, String.format("Failed to invoke method %s for class %s", m, which.getClass()), e);
+            log.log(Level.SEVERE, String.format("Failed to invoke method %s for class %s", m, who.getClass()), e);
             // finish with error!
             throw new RuntimeException(e);
         }
