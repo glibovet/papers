@@ -10,7 +10,7 @@ import java.util.Collection;
  */
 public interface IPageIndexer {
 
-    interface ICallback {
+    interface Callback {
 
         default void onStart() {}
 
@@ -26,6 +26,6 @@ public interface IPageIndexer {
 
     void addToIndex(@NotNull Page page);
 
-    void index(@NotNull ICallback callback, @NotNull Collection<Object> handlers);
+    void index(@NotNull Callback callback, @NotNull Collection<Object> handlers);
 
 }

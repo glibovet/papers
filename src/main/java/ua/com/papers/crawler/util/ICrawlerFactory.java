@@ -1,12 +1,15 @@
 package ua.com.papers.crawler.util;
 
 import org.springframework.validation.annotation.Validated;
-import ua.com.papers.crawler.core.domain.schedule.IScheduler;
+import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.settings.Settings;
 
 import javax.validation.constraints.NotNull;
 
 /**
+ * <p>
+ * Factory to create instances of {@linkplain ICrawlerManager}
+ * </p>
  * Created by Максим on 11/27/2016.
  */
 @Validated
@@ -19,6 +22,6 @@ public interface ICrawlerFactory {
      * @return new instance of crawler scheduler
      */
     @NotNull
-    IScheduler create(@NotNull Settings settings);
+    ICrawlerManager create(@NotNull Settings settings);
 
 }

@@ -1,18 +1,23 @@
 package ua.com.papers.crawler;
 
 import lombok.val;
-import org.springframework.stereotype.Service;
 import ua.com.papers.crawler.core.domain.Crawler;
 import ua.com.papers.crawler.core.domain.PageIndexer;
-import ua.com.papers.crawler.core.domain.analyze.*;
+import ua.com.papers.crawler.core.domain.analyze.AnalyzeManager;
+import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
+import ua.com.papers.crawler.core.domain.analyze.IPageAnalyzer;
+import ua.com.papers.crawler.core.domain.analyze.PageAnalyzer;
 import ua.com.papers.crawler.core.domain.format.FormatManagerFactory;
 import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
-import ua.com.papers.crawler.core.domain.schedule.IScheduler;
-import ua.com.papers.crawler.core.domain.schedule.Scheduler;
+import ua.com.papers.crawler.core.domain.schedule.CrawlerManager;
+import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
 import ua.com.papers.crawler.core.domain.select.UrlExtractor;
 import ua.com.papers.crawler.core.domain.storage.InMemoryRepo;
-import ua.com.papers.crawler.settings.*;
+import ua.com.papers.crawler.settings.FormatTemplate;
+import ua.com.papers.crawler.settings.PageSetting;
+import ua.com.papers.crawler.settings.Settings;
+import ua.com.papers.crawler.settings.UrlSelectSetting;
 import ua.com.papers.crawler.util.ICrawlerFactory;
 
 import javax.validation.constraints.NotNull;
@@ -25,7 +30,6 @@ import java.util.stream.Stream;
 /**
  * Created by Максим on 11/27/2016.
  */
-@Service
 public final class DefaultCrawlerFactory implements ICrawlerFactory {
 
     /**
@@ -33,15 +37,29 @@ public final class DefaultCrawlerFactory implements ICrawlerFactory {
      */
     private static final Collection<? extends UrlSelectSetting> DEF_SELECT_SETTINGS;
 
+    private static DefaultCrawlerFactory instance;
+
     static {
         DEF_SELECT_SETTINGS = Collections.singletonList(new UrlSelectSetting("a[href]", "href"));
     }
 
-    public DefaultCrawlerFactory() {
+    public static DefaultCrawlerFactory getInstance() {
+
+        DefaultCrawlerFactory local = instance;
+
+        if (local == null) {
+            synchronized (DefaultCrawlerFactory.class) {
+                instance = local = new DefaultCrawlerFactory();
+            }
+        }
+        return local;
+    }
+
+    private DefaultCrawlerFactory() {
     }
 
     @Override
-    public IScheduler create(@NotNull Settings settings) {
+    public ICrawlerManager create(@NotNull Settings settings) {
 
         val analyzeManager = createAnalyzeManager(settings);
         val formatFactory = createFormatFactory(settings);
@@ -53,14 +71,15 @@ public final class DefaultCrawlerFactory implements ICrawlerFactory {
 
         val scheduleSett = settings.getSchedulerSetting();
 
-        Scheduler.Builder builder = Scheduler.builder()
+        CrawlerManager.Builder builder = CrawlerManager.builder()
                 .crawler(crawler)
                 .executorService(scheduleSett.getExecutorService())
                 .startupDelay(scheduleSett.getStartupDelay())
                 .indexDelay(scheduleSett.getIndexDelay())
+                .startUrls(settings.getStartUrls())
                 .repository(InMemoryRepo.getInstance());
 
-        if(scheduleSett.isAllowIndex()) {
+        if (scheduleSett.isAllowIndex()) {
             builder.indexer(new PageIndexer(InMemoryRepo.getInstance(), formatFactory, analyzeManager));
         }
 

@@ -20,7 +20,7 @@ import java.util.Collection;
 @Validated
 public interface ICrawler {
 
-    interface ICallback {
+    interface Callback {
         /**
          * This callback gets invoked before
          * crawler starts do his job
@@ -79,10 +79,10 @@ public interface ICrawler {
      * @param callback callback to monitor progress status
      * @param urls     start urls to process
      */
-    void start(@Nullable ICallback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urls);
+    void start(@Nullable Callback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urls);
 
     /**
-     * Stops crawler immediately
+     * Stops crawler
      */
     void stop();
 

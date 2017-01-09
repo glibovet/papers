@@ -18,6 +18,6 @@ public @interface PageHandler {
     /**
      * Page id to handle
      */
-    int pageId();
+    int id();
 
 }

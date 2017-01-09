@@ -60,7 +60,7 @@ public class PageIndexer implements IPageIndexer {
     }
 
     @Override
-    public void index(@NotNull ICallback callback, @NotNull Collection<Object> handlers) {
+    public void index(@NotNull Callback callback, @NotNull Collection<Object> handlers) {
         PageIndexer.checkPreConditions(callback, handlers);
         // iterator implementation, for example, can be
         // just an ArrayList iterator for a relatively small repositories
@@ -163,7 +163,7 @@ public class PageIndexer implements IPageIndexer {
         return buffer.toString();
     }
 
-    private static void checkPreConditions(ICallback callback, Collection<Object> handlers) {
+    private static void checkPreConditions(Callback callback, Collection<Object> handlers) {
 
         Preconditions.checkNotNull(callback, "callback == null");
 

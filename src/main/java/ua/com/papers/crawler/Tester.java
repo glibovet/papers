@@ -6,7 +6,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.schedule.IScheduler;
+import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.settings.*;
 import ua.com.papers.crawler.util.ICrawlerFactory;
@@ -35,6 +35,8 @@ public class Tester {
                 .analyzeTemplate(new AnalyzeTemplate("body > div.main > div.container > div > div.row", 1))
                 .formatTemplate(new FormatTemplate(1, "body > div.main > div.container > div > div.row > div.content > div > h1"))
                 .formatTemplate(new FormatTemplate(2, "body > div.main > div.container > div > div.row > div.content > div > p"))
+                // selects article's images
+                .formatTemplate(new FormatTemplate(3, "body > div.main > div.container > div > div.row > div.content img[src]"))
                 .selectSetting(new UrlSelectSetting("a[href^='/jenkins/']", "href"))
                 .build();
 
@@ -48,20 +50,21 @@ public class Tester {
                                 .allowIndex(true)
                                 .build()
                 )
-                .startUrl(new URL("http://www.tutorialspoint.com/jenkins/"))
+                .startUrl(new URL("https://www.tutorialspoint.com/jenkins"))
                 .pageSetting(pageSetting)
                 .build();
 
-        final IScheduler scheduler = factory.create(settings);
+        final ICrawlerManager scheduler = factory.create(settings);
 
-        scheduler.start(crawlCall(), indexCall(), Collections.singletonList(new HandlerDemo()), settings.getStartUrls());
+        scheduler.startCrawling(Collections.singletonList(new HandlerDemo()), crawlCall());
+        scheduler.stop();
 
         //Thread.sleep(30_000);
        // scheduler.stop();
     }
 
-    private static IPageIndexer.ICallback indexCall() {
-        return new IPageIndexer.ICallback() {
+    private static IPageIndexer.Callback indexCall() {
+        return new IPageIndexer.Callback() {
 
             @Override
             public void onStart() {
@@ -90,10 +93,10 @@ public class Tester {
         };
     }
 
-    private static ICrawler.ICallback crawlCall() throws IOException {
+    private static ICrawler.Callback crawlCall() throws IOException {
         final BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Максим\\Desktop\\log.txt", false));
 
-        return new ICrawler.ICallback() {
+        return new ICrawler.Callback() {
 
             @Override
             public void onStart() {
