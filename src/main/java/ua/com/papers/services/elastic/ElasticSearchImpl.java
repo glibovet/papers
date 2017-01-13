@@ -81,7 +81,6 @@ public class ElasticSearchImpl implements IElasticSearch{
         return client.admin().indices()
                 .prepareExists(elasticIndex)
                 .execute().actionGet().isExists();
-
     }
 
     public Boolean indexDelete() throws ForbiddenException {
@@ -184,6 +183,13 @@ public class ElasticSearchImpl implements IElasticSearch{
                     endObject().
                     startObject("body").
                         field("type", "attachment").
+                        startObject("fields").
+                            startObject("content").
+                                field("type","string").
+                                field("term_vector","with_positions_offsets").
+                                field("store","true").
+                            endObject().
+                        endObject().
                     endObject().
                 endObject().
                 endObject().
