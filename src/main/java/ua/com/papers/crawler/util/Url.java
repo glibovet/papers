@@ -19,7 +19,7 @@ public class Url {
     public Url(String spec) {
         try {
             this.url = new URL(spec);
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }

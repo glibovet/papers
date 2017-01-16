@@ -1,15 +1,11 @@
 package ua.com.papers.crawler;
 
-import lombok.val;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import ua.com.papers.crawler.core.creator.ICreator;
+import ua.com.papers.crawler.core.creator.xml.XmlCreator;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
-import ua.com.papers.crawler.core.domain.vo.PageID;
-import ua.com.papers.crawler.settings.*;
-import ua.com.papers.crawler.util.ICrawlerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.io.BufferedWriter;
@@ -17,13 +13,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.concurrent.Executors;
 
 public class Tester {
 
     public static void main(String[] args) throws Exception {
 
-        final AbstractApplicationContext context =
+        //System.out.println(new File("src/main/resources/crawler/crawler-settings.xml").exists());
+
+       /* final AbstractApplicationContext context =
                 new ClassPathXmlApplicationContext("classpath:testContext.xml");
 
         final ICrawlerFactory factory = context.getBean(ICrawlerFactory.class);
@@ -52,9 +49,11 @@ public class Tester {
                 )
                 .startUrl(new URL("https://www.tutorialspoint.com/jenkins"))
                 .pageSetting(pageSetting)
-                .build();
+                .build();*/
 
-        final ICrawlerManager scheduler = factory.create(settings);
+        ICreator creator = new XmlCreator("src/main/resources/crawler/crawler-settings.xml");
+
+        final ICrawlerManager scheduler = creator.create();
 
         scheduler.startCrawling(Collections.singletonList(new HandlerDemo()), crawlCall());
         scheduler.stop();

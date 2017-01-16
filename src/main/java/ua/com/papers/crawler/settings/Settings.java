@@ -6,6 +6,7 @@ import lombok.Value;
 
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>
@@ -20,12 +21,12 @@ public final class Settings {
 
     SchedulerSetting schedulerSetting;
     @Singular
-    Collection<URL> startUrls;
+    List<URL> startUrls;
     @Singular
     Collection<PageSetting> pageSettings;
 
     private Settings(SchedulerSetting schedulerSetting,
-                     Collection<URL> startUrls,
+                     List<URL> startUrls,
                      Collection<PageSetting> pageSettings) {
         this.schedulerSetting = schedulerSetting;
         this.startUrls = startUrls;

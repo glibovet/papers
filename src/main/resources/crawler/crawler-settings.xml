@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<crawler>
+
+    <urls>
+        <url>https://www.tutorialspoint.com/jenkins</url>
+    </urls>
+
+    <scheduler-params>
+        <startup-delay>0</startup-delay>
+        <index-delay>60000</index-delay>
+        <threads>1</threads>
+    </scheduler-params>
+
+    <pages>
+        <page id="1">
+            <analyze-params>
+                <analyze weight="30">a[href^='/jenkins/']</analyze>
+                <analyze weight="30">body > div.main > div.container > div > div.row</analyze>
+            </analyze-params>
+            <extract-params>
+                <extract id="1">body > div.main > div.container > div > div.row > div.content > div > h1</extract>
+                <extract id="2">body > div.main > div.container > div > div.row > div.content > div > p</extract>
+                <extract id="3">body > div.main > div.container > div > div.row > div.content img[src]</extract>
+            </extract-params>
+            <url-params>
+                <extract attr="href" selector="a[href^='/jenkins/']" />
+            </url-params>
+        </page>
+    </pages>
+</crawler>
