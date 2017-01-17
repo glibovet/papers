@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.util;
+package ua.com.papers.crawler.core.creator;
 
 import org.springframework.validation.annotation.Validated;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;

@@ -6,7 +6,6 @@ import lombok.extern.java.Log;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.storage.IPageIndexRepository;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
@@ -25,7 +24,6 @@ public class CrawlerManager implements ICrawlerManager {
 
     IPageIndexer indexer;
     ICrawler crawler;
-    IPageIndexRepository repository;
     ScheduledExecutorService executorService;
     Collection<URL> startUrls;
     long startupDelay;
@@ -87,9 +85,7 @@ public class CrawlerManager implements ICrawlerManager {
 
         @Override
         public void onPageAccepted(@NotNull Page page) {
-            if (indexer != null) {
-                indexer.addToIndex(page);
-            }
+            indexer.addToIndex(page);
             original.onPageAccepted(page);
         }
 
@@ -112,7 +108,7 @@ public class CrawlerManager implements ICrawlerManager {
 
     @lombok.Builder(builderClassName = "Builder")
     private CrawlerManager(@NotNull ICrawler crawler, @NotNull ScheduledExecutorService executorService, long startupDelay,
-                           long indexDelay, @NotNull IPageIndexRepository repository, @NotNull IPageIndexer indexer,
+                           long indexDelay, @NotNull IPageIndexer indexer,
                            @NotNull Collection<URL> startUrls) {
 
         if(Preconditions.checkNotNull(startUrls, "startUrls == null").isEmpty())
@@ -120,9 +116,8 @@ public class CrawlerManager implements ICrawlerManager {
 
         this.crawler = Preconditions.checkNotNull(crawler);
         this.executorService = Preconditions.checkNotNull(executorService);
-        this.repository = Preconditions.checkNotNull(repository);
         this.startUrls = startUrls;
-        this.indexer = indexer;
+        this.indexer = Preconditions.checkNotNull(indexer);
         this.startupDelay = CrawlerManager.minExecutorDelay(startupDelay);
         this.indexDelay = CrawlerManager.minExecutorDelay(indexDelay);
         this.crawlProxy = new CrawlProxy();
@@ -157,9 +152,6 @@ public class CrawlerManager implements ICrawlerManager {
             throw new IllegalArgumentException("no handlers passed");
 
         Preconditions.checkNotNull(indexCallback, "index callback == null");
-
-        if(indexer == null)
-            throw new IllegalStateException("indexing was disabled, enable indexing in the settings first!");
 
         if(!indexProxy.isIndexing()) {
             // periodical indexing if indexing wasn't disabled

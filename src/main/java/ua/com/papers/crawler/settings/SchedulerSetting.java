@@ -19,14 +19,11 @@ public class SchedulerSetting {
     ScheduledExecutorService executorService;
     long startupDelay;
     long indexDelay;
-    boolean allowIndex;
 
-    private SchedulerSetting(@Nullable ScheduledExecutorService executorService, long startupDelay, long indexDelay,
-                             boolean allowIndex) {
+    private SchedulerSetting(@Nullable ScheduledExecutorService executorService, long startupDelay, long indexDelay) {
         this.executorService = executorService == null ? defaultExecutor() : executorService;
         this.startupDelay = toDelay(startupDelay);
         this.indexDelay = toDelay(indexDelay);
-        this.allowIndex = allowIndex;
     }
 
     private static ScheduledExecutorService defaultExecutor() {

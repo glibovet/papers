@@ -51,7 +51,7 @@ public class Tester {
                 .pageSetting(pageSetting)
                 .build();*/
 
-        ICreator creator = new XmlCreator("src/main/resources/crawler/crawler-settings.xml");
+        ICreator creator = XmlCreator.createXmlCreator("src/main/resources/crawler/crawler-settings.xml");
 
         final ICrawlerManager scheduler = creator.create();
 

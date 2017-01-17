@@ -1,14 +1,13 @@
 package ua.com.papers.crawler.core.creator.xml;
 
 import com.google.common.base.Preconditions;
-import lombok.Data;
-import lombok.val;
+import lombok.*;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+import ua.com.papers.crawler.core.creator.ICrawlerFactory;
 import ua.com.papers.crawler.core.creator.ICreator;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.settings.Settings;
-import ua.com.papers.crawler.util.ICrawlerFactory;
 
 import javax.validation.constraints.NotNull;
 import javax.xml.XMLConstants;
@@ -30,6 +29,15 @@ public abstract class AbstractClasspathXmlCreator implements ICreator {
     private final File file;
     private final ICrawlerFactory factory;
 
+    @Getter(value = AccessLevel.NONE)
+    @Setter(value = AccessLevel.NONE)
+    private Settings cachedSettings;
+
+    @Getter(value = AccessLevel.PROTECTED)
+    @Setter(value = AccessLevel.PROTECTED)
+    private boolean isCacheEnabled;
+
+
     public AbstractClasspathXmlCreator(@NotNull File file, @NotNull File xsd, @NotNull ICrawlerFactory factory) {
         AbstractClasspathXmlCreator.checkFile(file);
         AbstractClasspathXmlCreator.checkXmlValid(file, xsd);
@@ -37,10 +45,18 @@ public abstract class AbstractClasspathXmlCreator implements ICreator {
 
         this.file = file;
         this.factory = factory;
+        this.isCacheEnabled = true;
     }
 
     @Override
     public final ICrawlerManager create() {
+        // parsing xml file is quite expensive
+        // and long-running operation, so that's
+        // why caching settings is enabled by default,
+        // however, such behaviour may be disabled
+        if (isCacheEnabled() && cachedSettings != null) {
+            return factory.create(cachedSettings);
+        }
 
         final Document document;
 
@@ -54,10 +70,15 @@ public abstract class AbstractClasspathXmlCreator implements ICreator {
             throw new RuntimeException(e);
         }
 
-        return factory.create(parseFile(document));
+        if (isCacheEnabled()) {
+            return factory.create(cachedSettings = parseDocument(document));
+        }
+
+        cachedSettings = null;
+        return factory.create(parseDocument(document));
     }
 
-    protected abstract Settings parseFile(@NotNull Document doc);
+    protected abstract Settings parseDocument(@NotNull Document doc);
 
     protected static void checkFile(File file) {
         Preconditions.checkNotNull(file, "file == null");
@@ -79,7 +100,7 @@ public abstract class AbstractClasspathXmlCreator implements ICreator {
         } catch (final SAXException e) {
             throw new RuntimeException(
                     String.format("Invalid file %s, xsd %s", target, xsd), e);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(
                     String.format("An error occurred while reading file %s, xsd %s", target, xsd), e);
         }

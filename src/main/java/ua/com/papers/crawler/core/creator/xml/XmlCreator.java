@@ -1,16 +1,15 @@
 package ua.com.papers.crawler.core.creator.xml;
 
-import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.val;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import ua.com.papers.crawler.DefaultCrawlerFactory;
+import ua.com.papers.crawler.core.creator.ICrawlerFactory;
 import ua.com.papers.crawler.core.creator.ICreator;
+import ua.com.papers.crawler.core.creator.SimpleCrawlerFactory;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.settings.*;
-import ua.com.papers.crawler.util.ICrawlerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.io.File;
@@ -33,21 +32,43 @@ import java.util.concurrent.ScheduledExecutorService;
 public final class XmlCreator extends AbstractClasspathXmlCreator {
 
     private static final File XSD_LOCATION;
+    private static ICrawlerFactory DEFAULT_FACTORY;
 
     static {
+        // todo move to config???
         XSD_LOCATION = new File("src/main/resources/crawler/xsd/crawler.xsd");
     }
 
-    public XmlCreator(@NotNull String location) {
-        this(new File(location), DefaultCrawlerFactory.getInstance());
+    private XmlCreator(@NotNull File file, @NotNull ICrawlerFactory factory) {
+        super(file, XmlCreator.XSD_LOCATION, factory);
     }
 
-    public XmlCreator(@NotNull File file, @NotNull ICrawlerFactory factory) {
-        super(file, XmlCreator.XSD_LOCATION, Preconditions.checkNotNull(factory));
+    public static XmlCreator createXmlCreator(@NotNull String filePath, @NotNull ICrawlerFactory factory) {
+        return XmlCreator.createXmlCreator(new File(filePath), factory);
+    }
+
+    public static XmlCreator createXmlCreator(@NotNull String filePath) {
+        return XmlCreator.createXmlCreator(new File(filePath));
+    }
+
+    public static XmlCreator createXmlCreator(@NotNull File file, @NotNull ICrawlerFactory factory) {
+        return new XmlCreator(file, factory);
+    }
+
+    public static XmlCreator createXmlCreator(@NotNull File file) {
+
+        ICrawlerFactory local = DEFAULT_FACTORY;
+
+        if (local == null) {
+            synchronized (XmlCreator.class) {
+                DEFAULT_FACTORY = local = new SimpleCrawlerFactory();
+            }
+        }
+        return new XmlCreator(file, local);
     }
 
     @Override
-    protected Settings parseFile(@NotNull Document document) {
+    protected Settings parseDocument(@NotNull Document document) {
         val rootElem = document.getDocumentElement();
 
         return Settings.builder()
@@ -89,7 +110,6 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
                 .executorService(createExecService(threadsEl))
                 .startupDelay(XmlHelper.parseLong(startupEl))
                 .indexDelay(XmlHelper.parseLong(indexEl))
-                .allowIndex(true)
                 .build();
     }
 
@@ -104,11 +124,7 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
 
             val entry = (Element) nodes.item(i);
             val analyzeParamsEl = ((Element) entry.getElementsByTagName("analyze-params").item(0));
-            int minWeight = XmlHelper.parseInt(analyzeParamsEl, "min-weight");
-
-            if (minWeight == 0) {
-                minWeight = PageSetting.DEFAULT_WEIGHT;
-            }
+            val minWeight = XmlHelper.parseInt(analyzeParamsEl, "min-weight", PageSetting.DEFAULT_WEIGHT);
 
             val builder = PageSetting.builder()
                     .id(new PageID(XmlHelper.parseInt(entry, "id")))
