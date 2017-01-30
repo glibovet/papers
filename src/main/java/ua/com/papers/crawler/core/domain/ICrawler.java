@@ -64,9 +64,10 @@ public interface ICrawler {
          * Called each time crawler fails to perform operation or
          * inner exception occurs. Can be used for logging
          *
-         * @param th failure cause
+         * @param url page's url which caused exception
+         * @param th  failure cause
          */
-        default void onException(@NotNull Throwable th) {
+        default void onException(@NotNull URL url, @NotNull Throwable th) {
         }
 
     }
@@ -82,7 +83,8 @@ public interface ICrawler {
     void start(@Nullable Callback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urls);
 
     /**
-     * Stops crawler
+     * Stops crawler. <i>Note, that invocation of this method doesn't guarantee that crawler
+     * will be shutdown instantly</i>
      */
     void stop();
 

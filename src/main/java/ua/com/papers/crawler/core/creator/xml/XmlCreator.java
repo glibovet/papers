@@ -43,19 +43,19 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
         super(file, XmlCreator.XSD_LOCATION, factory);
     }
 
-    public static XmlCreator createXmlCreator(@NotNull String filePath, @NotNull ICrawlerFactory factory) {
-        return XmlCreator.createXmlCreator(new File(filePath), factory);
+    public static XmlCreator newInstance(@NotNull String filePath, @NotNull ICrawlerFactory factory) {
+        return XmlCreator.newInstance(new File(filePath), factory);
     }
 
-    public static XmlCreator createXmlCreator(@NotNull String filePath) {
-        return XmlCreator.createXmlCreator(new File(filePath));
+    public static XmlCreator newInstance(@NotNull String filePath) {
+        return XmlCreator.newInstance(new File(filePath));
     }
 
-    public static XmlCreator createXmlCreator(@NotNull File file, @NotNull ICrawlerFactory factory) {
+    public static XmlCreator newInstance(@NotNull File file, @NotNull ICrawlerFactory factory) {
         return new XmlCreator(file, factory);
     }
 
-    public static XmlCreator createXmlCreator(@NotNull File file) {
+    public static XmlCreator newInstance(@NotNull File file) {
 
         ICrawlerFactory local = DEFAULT_FACTORY;
 
@@ -163,8 +163,11 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
      */
     private Collection<FormatTemplate> parseExtractor(Element parent) {
 
-        val nodes = ((Element) parent.getElementsByTagName("extract-params").item(0))
-                .getElementsByTagName("extract");
+        val extractParams = (Element) parent.getElementsByTagName("extract-params").item(0);
+
+        if (extractParams == null) return Collections.emptyList();
+
+        val nodes = extractParams.getElementsByTagName("extract");
         val result = new ArrayList<FormatTemplate>(nodes.getLength());
 
         for (int i = 0; i < nodes.getLength(); ++i) {
@@ -180,8 +183,11 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
 
     private Collection<UrlSelectSetting> parseUrlExtractor(Element parent) {
 
-        val nodes = ((Element) parent.getElementsByTagName("url-params").item(0))
-                .getElementsByTagName("extract");
+        val extractParams = (Element) parent.getElementsByTagName("url-params").item(0);
+
+        if(extractParams == null) return Collections.emptyList();
+
+        val nodes = extractParams.getElementsByTagName("extract");
         val result = new ArrayList<UrlSelectSetting>(nodes.getLength());
 
         for (int i = 0; i < nodes.getLength(); ++i) {

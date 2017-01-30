@@ -15,7 +15,8 @@ public class ImageUrlAdapter implements IPartAdapter<Url> {
 
     @Override
     public Url convert(@NotNull Element element) {
-        val str = element.absUrl("src");
-        return str.length() == 0 ? null : new Url(str);
+        val url = element.absUrl("href");
+        System.out.println(url);
+        return url.length() == 0 ? null : new Url(url);
     }
 }

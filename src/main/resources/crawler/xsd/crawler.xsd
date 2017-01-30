@@ -98,22 +98,10 @@
     <xs:complexType name="urls">
         <xs:sequence>
             <!-- single url tag -->
-            <xs:element maxOccurs="unbounded" name="url">
-                <xs:complexType>
-                    <xs:simpleContent>
-                        <xs:extension base="url-pattern"/>
-                    </xs:simpleContent>
-                </xs:complexType>
-            </xs:element>
+            <xs:element maxOccurs="unbounded" name="url" type="xs:anyURI" />
             <!-- single url tag -->
         </xs:sequence>
     </xs:complexType>
-
-    <xs:simpleType name="url-pattern">
-        <xs:restriction base="xs:string">
-            <xs:pattern value="(https?:\/\/)?([\w\.]+)\.([a-z]{2,6}\.?)(\/[\w\.]*)*\/?"/>
-        </xs:restriction>
-    </xs:simpleType>
 
     <!-- end of urls tag definition -->
 

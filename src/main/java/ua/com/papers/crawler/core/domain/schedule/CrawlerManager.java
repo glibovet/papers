@@ -7,6 +7,7 @@ import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Collection;
@@ -15,6 +16,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /**
+ * <p>
+ * Default implementation of {@linkplain ICrawlerManager}
+ * </p>
  * Created by Максим on 12/29/2016.
  */
 @Value
@@ -30,41 +34,6 @@ public class CrawlerManager implements ICrawlerManager {
     long indexDelay;
 
     CrawlProxy crawlProxy;
-    IndexProxy indexProxy;
-
-    @Data
-    private static final class IndexProxy implements IPageIndexer.Callback {
-        @Setter(value = AccessLevel.NONE)
-        private volatile boolean isIndexing;
-        private IPageIndexer.Callback original;
-
-        @Override
-        public void onStart() {
-            isIndexing = true;
-            original.onStart();
-        }
-
-        @Override
-        public void onIndexed(@NotNull Page page) {
-            original.onIndexed(page);
-        }
-
-        @Override
-        public void onUpdated(@NotNull Page page) {
-            original.onUpdated(page);
-        }
-
-        @Override
-        public void onLost(@NotNull Page page) {
-            original.onLost(page);
-        }
-
-        @Override
-        public void onStop() {
-            original.onStop();
-            isIndexing = false;
-        }
-    }
 
     @Data
     private final class CrawlProxy implements ICrawler.Callback {
@@ -101,8 +70,8 @@ public class CrawlerManager implements ICrawlerManager {
         }
 
         @Override
-        public void onException(@NotNull Throwable th) {
-            original.onException(th);
+        public void onException(@NotNull URL url, @NotNull Throwable th) {
+            original.onException(url, th);
         }
     }
 
@@ -111,7 +80,7 @@ public class CrawlerManager implements ICrawlerManager {
                            long indexDelay, @NotNull IPageIndexer indexer,
                            @NotNull Collection<URL> startUrls) {
 
-        if(Preconditions.checkNotNull(startUrls, "startUrls == null").isEmpty())
+        if (Preconditions.checkNotNull(startUrls, "startUrls == null").isEmpty())
             throw new IllegalArgumentException("no start urls passed");
 
         this.crawler = Preconditions.checkNotNull(crawler);
@@ -121,25 +90,24 @@ public class CrawlerManager implements ICrawlerManager {
         this.startupDelay = CrawlerManager.minExecutorDelay(startupDelay);
         this.indexDelay = CrawlerManager.minExecutorDelay(indexDelay);
         this.crawlProxy = new CrawlProxy();
-        this.indexProxy = new IndexProxy();
     }
 
     @Override
     public void startCrawling(@NotNull Collection<Object> handlers, @NotNull ICrawler.Callback crawlCallback) {
 
-        if(Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
+        if (Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
             throw new IllegalArgumentException("no handlers passed");
 
         Preconditions.checkNotNull(crawlCallback, "crawl callback == null");
 
-        if(!crawlProxy.isCrawling()) {
+        if (!crawlProxy.isCrawling()) {
             // start crawler job
             crawlProxy.setOriginal(crawlCallback);
             executorService.schedule(() -> {
                 try {
                     crawler.start(crawlProxy, handlers, startUrls);
                 } catch (final Exception e) {
-                    log.log(Level.SEVERE, "Failed to start crawler", e);
+                    log.log(Level.SEVERE, "Error occurred while running crawler", e);
                 }
             }, startupDelay, TimeUnit.MILLISECONDS);
         }
@@ -148,22 +116,18 @@ public class CrawlerManager implements ICrawlerManager {
     @Override
     public void startIndexing(@NotNull Collection<Object> handlers, @NotNull IPageIndexer.Callback indexCallback) {
 
-        if(Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
+        if (Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
             throw new IllegalArgumentException("no handlers passed");
 
         Preconditions.checkNotNull(indexCallback, "index callback == null");
-
-        if(!indexProxy.isIndexing()) {
-            // periodical indexing if indexing wasn't disabled
-            indexProxy.setOriginal(indexCallback);
-            executorService.scheduleWithFixedDelay(() -> {
-                try {
-                    indexer.index(indexProxy, handlers);
-                } catch (final Exception e) {
-                    log.log(Level.SEVERE, "Failed to start indexer service", e);
-                }
-            }, startupDelay, indexDelay, TimeUnit.MILLISECONDS);
-        }
+        // runs periodical indexing
+        executorService.scheduleWithFixedDelay(() -> {
+            try {
+                indexer.index(indexCallback, handlers);
+            } catch (final Exception e) {
+                log.log(Level.SEVERE, "Failed to start indexer service", e);
+            }
+        }, startupDelay, indexDelay, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -172,11 +136,27 @@ public class CrawlerManager implements ICrawlerManager {
     }
 
     @Override
-    public void stop(long timeout) throws InterruptedException {
+    public void stop(long timeout, @Nullable ErrorCallback callback) {
+
         executorService.shutdownNow();
-        executorService.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+
+        try {
+            executorService.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+        } catch (final InterruptedException e) {
+            log.log(Level.WARNING, "Failed to stop executor service correctly", e);
+
+            if (callback != null) {
+                callback.onException(e);
+            }
+        }
     }
 
+    /**
+     * min delay which can be accepted by thread executor
+     *
+     * @param value argument to test
+     * @return value if value is greater than zero or zero in another case
+     */
     private static long minExecutorDelay(long value) {
         return value < 0L ? 0L : value;
     }

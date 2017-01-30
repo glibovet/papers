@@ -20,15 +20,24 @@ import java.util.*;
 import java.util.logging.Level;
 
 /**
+ * <p>Default implementation of {@linkplain ICrawler}</p>
  * Created by Максим on 12/1/2016.
  */
 @Log
 @Value
-public final class Crawler implements ICrawler {
+@Getter(value = AccessLevel.NONE)
+public class Crawler implements ICrawler {
 
-    private static final int PARSE_PAGE_TIMEOUT = 5_000;
+    /**
+     * This predicate takes into count only available free memory
+     */
+    static ICrawlerPredicate DEFAULT_PREDICATE =
+            (visitedUrls, acceptedPages) -> Runtime.getRuntime().freeMemory() > Crawler.getMinFreeMemory();
+
     @NonFinal
-    private static long minFreeMemory = 20 * 1048576L;// 20 Mbytes
+    static int parsePageTimeout = 5_000;
+    @NonFinal
+    static long minFreeMemory = 20971520L;// 20 Mbytes
 
     IAnalyzeManager analyzeManager;
     IUrlExtractor urlExtractor;
@@ -36,11 +45,7 @@ public final class Crawler implements ICrawler {
     ICrawlerPredicate predicate;
 
     @NonFinal
-    @Getter(value = AccessLevel.NONE)
-    private volatile boolean canRun;
-
-    private static final ICrawlerPredicate DEFAULT_PREDICATE =
-            (visitedUrls, acceptedPages) -> Runtime.getRuntime().freeMemory() > Crawler.getMinFreeMemory();
+    volatile boolean canRun;
 
     public static long getMinFreeMemory() {
         return minFreeMemory;
@@ -51,31 +56,63 @@ public final class Crawler implements ICrawler {
         Crawler.minFreeMemory = bytes;
     }
 
+    public static int getParsePageTimeout() {
+        return parsePageTimeout;
+    }
+
+    public static void setParsePageTimeout(int parsePageTimeout) {
+        Preconditions.checkArgument(parsePageTimeout > 0, "timeout < 0");
+        Crawler.parsePageTimeout = parsePageTimeout;
+    }
+
     @lombok.Builder(builderClassName = "Builder")
     private Crawler(@NotNull IAnalyzeManager analyzeManager,
                     @NotNull IUrlExtractor urlExtractor, @NotNull IFormatManagerFactory formatManagerFactory,
                     @NotNull ICrawlerPredicate predicate) {
-        this.analyzeManager = Preconditions.checkNotNull(analyzeManager);
-        this.urlExtractor = Preconditions.checkNotNull(urlExtractor);
-        this.formatManagerFactory = Preconditions.checkNotNull(formatManagerFactory);
+
+        this.analyzeManager = Preconditions.checkNotNull(analyzeManager, "analyze manager == null");
+        this.urlExtractor = Preconditions.checkNotNull(urlExtractor, "url extractor == null");
+        this.formatManagerFactory = Preconditions.checkNotNull(formatManagerFactory, "format manager factory");
         this.predicate = predicate == null ? DEFAULT_PREDICATE : predicate;
     }
 
     @Override
-    public void start(@Nullable Callback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urlsColl) {
+    public void start(@Nullable Callback callback, @NotNull Collection<Object> handlers,
+                      @NotNull Collection<URL> urlsColl) {
 
         Crawler.checkPreConditions(handlers, urlsColl);
 
         if (callback != null) {
             callback.onStart();
         }
+        // reset run flag
+        canRun = true;
+
+        try {
+            // runs all analyzing job
+            runLoop(callback, handlers, urlsColl);
+        } finally {
+            // guaranties that callback's #stop
+            // method will be called even if exception
+            // occurs
+            if (callback != null) {
+                callback.onStop();
+            }
+        }
+    }
+
+    @Override
+    public void stop() {
+        canRun = false;
+    }
+
+    private void runLoop(Callback callback, Collection<Object> handlers, Collection<URL> urlsColl) {
 
         final Queue<URL> urls = new LinkedList<>(urlsColl);
         int acceptedCnt = 0;
         val formatManager = formatManagerFactory.create(handlers);
-        // hash set takes much time to recalculate and copy data when growing
+        // hash set would take much time to recalculate hashes and copy data when growing;
         val crawledUrls = new TreeSet<URL>((o1, o2) -> o1.toExternalForm().compareTo(o2.toExternalForm()));
-        canRun = true;
 
         while (canRun && !urls.isEmpty()
                 && predicate.canRun(crawledUrls, acceptedCnt)) {
@@ -88,7 +125,7 @@ public final class Crawler implements ICrawler {
 
             try {
 
-                val page = PageUtils.parsePage(url, PARSE_PAGE_TIMEOUT);
+                val page = PageUtils.parsePage(url, parsePageTimeout);
                 val analyzeRes = analyzeManager.analyze(page);
 
                 crawledUrls.add(url);
@@ -110,7 +147,7 @@ public final class Crawler implements ICrawler {
                                         // add urls
                                         urlExtractor.extract(result.getPageID(), page)
                                                 .stream()
-                                                .filter(u -> !urls.contains(u) && !crawledUrls.contains(u))
+                                                .filter(u -> /*log N < N*/ !crawledUrls.contains(u) && !urls.contains(u))
                                                 .forEach(urls::add);
                                         // invoke page handlers
                                         formatManager.processPage(result.getPageID(), page);
@@ -121,25 +158,23 @@ public final class Crawler implements ICrawler {
                         callback.onPageAccepted(page);
                     }
                 }
-            } catch (final IOException e) {
+                // TODO: 1/30/2017 add sleeping logic
+                //Thread.sleep(100);
+
+            } catch (final /*InterruptedException |*/ IOException e) {
                 log.log(Level.WARNING, String.format("Failed to extract page content for url %s", url), e);
 
                 if (callback != null) {
-                    callback.onException(e);
+                    callback.onException(url, e);
                 }
             }
         }
-
-        if (callback != null) {
-            callback.onStop();
-        }
     }
 
-    @Override
-    public void stop() {
-        canRun = false;
-    }
-
+    /**
+     * Checks method preconditions; if preconditions aren't satisfied, then instance of
+     * {@linkplain IllegalArgumentException} will be thrown
+     */
     private static void checkPreConditions(Collection<Object> handlers, Collection<URL> urlsColl) {
 
         if (Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
