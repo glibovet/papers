@@ -2,8 +2,10 @@ package ua.com.papers.crawler;
 
 import com.google.common.base.Preconditions;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
-import ua.com.papers.crawler.util.*;
+import ua.com.papers.crawler.util.PageHandler;
+import ua.com.papers.crawler.util.PostHandle;
+import ua.com.papers.crawler.util.PreHandle;
+import ua.com.papers.crawler.util.Url;
 
 import javax.validation.constraints.NotNull;
 import java.io.BufferedWriter;
@@ -48,17 +50,17 @@ public class HandlerDemo {
         }
     }
 
-    @Handler(id = 1, converter = StringAdapter.class)
+    //@Handler(id = 1, converter = StringAdapter.class)
     public void onHandlePart1(String str) {
         writeLine(str);
     }
 
-    @Handler(id = 2, converter = StringAdapter.class)
+   // @Handler(id = 2, converter = StringAdapter.class)
     public void onHandlePart2(String str) {
         writeLine(str);
     }
 
-    @Handler(id = 3, converter = ImageUrlAdapter.class)
+  //  @Handler(id = 3, converter = ImageUrlAdapter.class)
     public void onHandleImage(Url url) {
         writeLine(url == null ? "Failed to parse url" : url.toString());
     }

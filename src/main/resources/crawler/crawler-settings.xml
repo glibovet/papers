@@ -35,6 +35,10 @@
                 <analyze weight="70">body > table > tbody > tr > td > table:nth-child(5) > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td > p > a</analyze>
             </analyze-params>
             <extract-params>
+                <!-- Publish house name -->
+                <extract id="1">body > table > tbody > tr > td > table:nth-child(5) > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td > table > tbody > tr:nth-child(3) > td:nth-child(2) > font > font > p</extract>
+                <!-- Publish house location -->
+                <extract id="2">body > table > tbody > tr > td > table:nth-child(5) > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(2) > p</extract>
                 <extract id="3">body > table > tbody > tr > td > table:nth-child(5) > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td > p > a[href]</extract>
             </extract-params>
             <url-params>
