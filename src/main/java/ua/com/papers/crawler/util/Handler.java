@@ -36,12 +36,14 @@ public @interface Handler {
         }
     }
 
+    int PAGE = 0;
+
     /**
      * @return page part id
      */
     int id();
 
-    int group() default 0;
+    int group() default PAGE;
 
     /**
      * @return converter to apply when transforming page content part

@@ -1,5 +1,6 @@
 package ua.com.papers.crawler.core.creator;
 
+import ua.com.papers.crawler.core.domain.ICrawlerPredicate;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.PageIndexer;
 import ua.com.papers.crawler.core.domain.analyze.AnalyzeManager;
@@ -16,6 +17,7 @@ import ua.com.papers.crawler.settings.PageSetting;
 import ua.com.papers.crawler.settings.Settings;
 import ua.com.papers.crawler.settings.UrlSelectSetting;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +47,12 @@ public class SimpleCrawlerFactory extends AbstractCrawlerFactory {
     }
 
     public SimpleCrawlerFactory() {
+    }
+
+    @Override
+    @Nullable
+    protected ICrawlerPredicate createRunPredicate() {
+        return null;
     }
 
     @Override

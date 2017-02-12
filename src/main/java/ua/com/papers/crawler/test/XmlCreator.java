@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.creator.xml;
+package ua.com.papers.crawler.test;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -7,6 +7,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import ua.com.papers.crawler.core.creator.ICrawlerFactory;
 import ua.com.papers.crawler.core.creator.ICreator;
+import ua.com.papers.crawler.core.creator.xml.AbstractClasspathXmlCreator;
+import ua.com.papers.crawler.core.creator.xml.XmlHelper;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.settings.*;
 

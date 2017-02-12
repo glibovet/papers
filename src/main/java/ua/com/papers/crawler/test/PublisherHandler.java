@@ -47,7 +47,8 @@ public class PublisherHandler {
     }
 
     @PreHandle
-    public void onPrepare() throws WrongRestrictionException, NoSuchEntityException {
+    public void onPrepare(Page page) throws WrongRestrictionException, NoSuchEntityException {
+        log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
 
         if (titleToId == null) {
             // load all data
@@ -67,6 +68,7 @@ public class PublisherHandler {
 
     @PostHandle
     public void onPageParsed(Page page) {
+        log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
 
         Preconditions.checkNotNull(publisherView, "inner exception! onPrepare# wasn't called");
 
@@ -91,14 +93,18 @@ public class PublisherHandler {
             }
 
             publisherView.setId(id);
+            log.log(Level.INFO, String.format("publisher was proceeded successfully %s", publisherView.getTitle()));
             callback.onPublisherReady(publisherView);
         }
     }
 
     @Handler(id = 1, converter = StringAdapter.class)
     public void onHandlePubHouseTitle(String title) {
+        log.log(Level.INFO, String.format("#onHandlePubHouseTitle %s, %s", getClass(), title));
 
-        if (!TextUtils.isEmpty(title)) {
+        if (TextUtils.isEmpty(title)) {
+            log.log(Level.WARNING, String.format("failed to parse title, %s", getClass()));
+        } else {
             publisherView.setTitle(title.replaceAll("[\\[\\],]", ""));
         }
     }

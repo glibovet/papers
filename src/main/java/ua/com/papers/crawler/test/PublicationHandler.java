@@ -24,6 +24,7 @@ import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.services.authors.IAuthorService;
 
 import javax.validation.constraints.NotNull;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
@@ -47,20 +48,23 @@ public class PublicationHandler {
     IAuthorService authorService;
     @NonFinal
     PublicationView publicationView;
-
-    Map<String, Integer> fullNameToId;
+    @NonFinal
+    SoftReference<Map<String, Integer>> fullNameToId;
 
     public PublicationHandler(IAuthorService authorService, IHandlerCallback callback) {
         this.authorService = Preconditions.checkNotNull(authorService);
         this.callback = Preconditions.checkNotNull(callback);
-        this.fullNameToId = new HashMap<>();
     }
 
     @PreHandle
-    public void onPrepare() throws WrongRestrictionException {
+    public void onPrepare(Page page) throws WrongRestrictionException {
+        log.log(Level.INFO, String.format("#onPrepare %s, url %s", getClass(), page.getUrl()));
 
+        if (fullNameToId == null || fullNameToId.get() == null) {
+            log.log(Level.INFO, "saving authors into cache");
 
-        if(fullNameToId.isEmpty()) {
+            val cache = new HashMap<String, Integer>();
+            fullNameToId = new SoftReference<>(cache);
 
             try {
 
@@ -71,7 +75,7 @@ public class PublicationHandler {
                     String key = entity.getLastName() + (TextUtils.isEmpty(entity.getInitials()) ? "" : entity.getInitials())
                             .trim();
 
-                    fullNameToId.put(key, entity.getId());
+                    cache.put(key, entity.getId());
                 }
 
                 /*fullNameToId = authorService.getAuthors(0, -1, null)
@@ -82,37 +86,19 @@ public class PublicationHandler {
                                 // if it was incorrectly saved
                                 AuthorEntity::getId));*/
             } catch (final NoSuchEntityException e) {//FIXME if db is empty
-                log.log(Level.WARNING, "FIXME", e);
+                log.log(Level.WARNING, "NoSuchEntityException, FIXME", e);
             }
         }
-        // reset variable
-        publicationView.setAuthorsId(null);
-        publicationView.setTitle(null);
-        publicationView.setPublisherId(null);
-        publicationView.setLink(null);
     }
 
     @PostHandle
     public void onPageEnd(Page page) {
-
-        /*if (TextUtils.isEmpty(publicationView.getLink())) {
-            log.log(Level.WARNING,
-                    String.format("Cannot create publication without url, page %s", page.getUrl()));
-            callback.onHandleFailure();
-            return;
-        }
-
-        if (publicationView.getAuthorsId() == null) {
-            log.log(Level.WARNING, "Failed to parse author ids, skipping");
-            callback.onHandleFailure();
-            return;
-        }*/
-
-        //callback.onPublicationReady(publicationView);
+        log.log(Level.INFO, String.format("#onPageEnd %s, url %s", getClass(), page.getUrl()));
     }
 
     @Handler(id = 3, group = 1)
     public void onHandleTitle(Element element) {
+        log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
 
         element.select("strong").remove();
         element.getElementsByTag("a").remove();
@@ -124,15 +110,13 @@ public class PublicationHandler {
 
     @Handler(id = 4, converter = StringAdapter.class, group = 1)
     public void onHandleAuthors(String authorsStr) {
-        try {
-            publicationView.setAuthorsId(getAuthorIdsByNames(authorsStr.trim().replaceAll("\\s*,\\s*", ",").split(",")));
-        } catch (Exception e) {
-            log.log(Level.WARNING, String.format("Failed to parse author ids for input: %s", authorsStr), e);
-        }
+        log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authorsStr));
+        publicationView.setAuthorsId(getAuthorIdsByNames(authorsStr.trim().replaceAll("\\s*,\\s*", ",").split(",")));
     }
 
     @Handler(id = 5, converter = UrlAdapter.class, group = 1)
     public void onHandleUrl(URL url) {
+        log.log(Level.INFO, String.format("#onHandleUrl %s, %s", getClass(), url));
 
         if (url == null) {
             log.log(Level.WARNING, "Failed to parse document url");
@@ -143,6 +127,7 @@ public class PublicationHandler {
 
     @PreHandle(group = 1)
     public void prePublication() {
+        log.log(Level.INFO, String.format("#prePublication %s", getClass()));
         this.publicationView = new PublicationView();
         this.publicationView.setStatus(PublicationStatusEnum.ACTIVE);
         this.publicationView.setType(PublicationTypeEnum.ARTICLE);
@@ -150,23 +135,28 @@ public class PublicationHandler {
 
     @PostHandle(group = 1)
     public void postPublication() {
-        if (!TextUtils.isEmpty(publicationView.getLink()) && publicationView.getAuthorsId() != null) {
+        log.log(Level.INFO, String.format("#postPublication %s", getClass()));
+
+        if (!TextUtils.isEmpty(publicationView.getLink())
+                && publicationView.getAuthorsId() != null) {
             callback.onPublicationReady(publicationView);
+            log.log(Level.INFO, String.format("publication were processed successfully, %s", publicationView.getLink()));
         } else {
-            callback.onHandleFailure();
+            log.log(Level.WARNING, "failed to process publication");
         }
     }
 
     private List<Integer> getAuthorIdsByNames(String[] fullNames) {
         final ArrayList<Integer> result = new ArrayList<>(fullNames.length);
 
-        Integer id;
+        Integer id = null;
 
         for (final String fullName : fullNames) {
             Preconditions.checkArgument(!TextUtils.isEmpty(fullName), "empty full name!");
             log.log(Level.INFO, String.format("full name %s", fullName));
 
-            if ((id = fullNameToId.get(fullName)) == null) {
+            if (fullNameToId.get() == null
+                    || (id = fullNameToId.get().get(fullName)) == null) {
                 // create new author
                 val credentialsArr = parseFullName(fullName);
                 val authorView = new AuthorView();
@@ -192,13 +182,14 @@ public class PublicationHandler {
                     authorView.setMaster_id(masterId);
                     authorView.setOriginal("original");// what?
                     id = authorService.createAuthor(authorView);
-                    fullNameToId.put(fullName, id);
+
+                    if (fullNameToId.get() != null) {
+                        fullNameToId.get().put(fullName, id);
+                    }
                 } catch (final ServiceErrorException | NoSuchEntityException e) {
                     log.log(Level.WARNING, "Service error occurred while saving publication", e);
                 } catch (final ValidationException e) {
                     log.log(Level.SEVERE, "Fatal error occurred while saving publication", e);
-                    // finish execution immediately and fix error
-                    throw new RuntimeException(e);
                 }
             }
 

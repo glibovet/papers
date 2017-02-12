@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 import java.net.URL;
 
 /**
- * example
+ * Transforms element into {@linkplain URL}
  * Created by Максим on 1/8/2017.
  */
 public class UrlAdapter implements IPartAdapter<URL> {

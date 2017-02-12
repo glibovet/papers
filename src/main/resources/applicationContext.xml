@@ -35,7 +35,7 @@
         </property>
     </bean>
 
-    <bean class="ua.com.papers.crawler.core.creator.xml.XmlCreator">
+    <bean class="ua.com.papers.crawler.test.XmlCreator">
         <constructor-arg name="xsdPath" value="${papers.crawler.xsd.location}"/>
         <constructor-arg name="filepath" value="${papers.crawler.location}"/>
         <constructor-arg name="factory" ref="appCrawlerFactory"/>
@@ -72,6 +72,9 @@
     <jpa:repositories
             base-package="ua.com.papers.persistence.dao" />
 
+    <jpa:repositories
+            base-package="ua.com.papers.crawler.test.repo"/>
+
     <bean class="org.springframework.orm.jpa.JpaTransactionManager"
           id="transactionManager">
         <property name="entityManagerFactory"
@@ -83,8 +86,8 @@
 
     <bean id="entityManagerFactory"
           class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-        <property name="dataSource" ref="mainDataSource" />
-        <property name="packagesToScan" value="ua.com.papers.pojo.entities"/>
+        <property name="dataSource" ref="mainDataSource"/>
+        <property name="packagesToScan" value="ua.com.papers.pojo.entities, ua.com.papers.crawler.test.repo"/>
         <property name="jpaVendorAdapter">
             <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
                 <property name="generateDdl" value="true" />
@@ -124,7 +127,6 @@
         <!-- enable csrf protection -->
         <!--<security:csrf disabled="true"/>-->
     </security:http>
-
 
 
     <!-- Select users and user_roles from database -->

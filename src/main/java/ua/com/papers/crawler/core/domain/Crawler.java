@@ -68,7 +68,7 @@ public class Crawler implements ICrawler {
     @lombok.Builder(builderClassName = "Builder")
     private Crawler(@NotNull IAnalyzeManager analyzeManager,
                     @NotNull IUrlExtractor urlExtractor, @NotNull IFormatManagerFactory formatManagerFactory,
-                    @NotNull ICrawlerPredicate predicate) {
+                    @Nullable ICrawlerPredicate predicate) {
 
         this.analyzeManager = Preconditions.checkNotNull(analyzeManager, "analyze manager == null");
         this.urlExtractor = Preconditions.checkNotNull(urlExtractor, "url extractor == null");

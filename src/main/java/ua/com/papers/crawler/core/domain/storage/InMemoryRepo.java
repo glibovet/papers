@@ -1,12 +1,14 @@
 package ua.com.papers.crawler.core.domain.storage;
 
 import com.google.common.base.Preconditions;
-import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -16,7 +18,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * </p>
  * Created by Максим on 12/27/2016.
  */
-@Repository
 public final class InMemoryRepo implements IPageIndexRepository {
 
     private final Map<URL, Index> cache;

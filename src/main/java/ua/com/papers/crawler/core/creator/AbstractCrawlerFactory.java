@@ -2,6 +2,7 @@ package ua.com.papers.crawler.core.creator;
 
 import lombok.val;
 import ua.com.papers.crawler.core.domain.Crawler;
+import ua.com.papers.crawler.core.domain.ICrawlerPredicate;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
@@ -10,6 +11,7 @@ import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
 import ua.com.papers.crawler.settings.Settings;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -40,6 +42,7 @@ public abstract class AbstractCrawlerFactory implements ICrawlerFactory {
                 .analyzeManager(analyzeManager)
                 .formatManagerFactory(formatFactory)
                 .urlExtractor(createUrlExtractor(settings))
+                .predicate(createRunPredicate())
                 .build();
 
         val scheduleSett = settings.getSchedulerSetting();
@@ -55,6 +58,9 @@ public abstract class AbstractCrawlerFactory implements ICrawlerFactory {
     }
 
     // implement methods to supply your own behaviour
+
+    @Nullable
+    protected abstract ICrawlerPredicate createRunPredicate();
 
     protected abstract IFormatManagerFactory createFormatFactory(@NotNull Settings settings);
 
