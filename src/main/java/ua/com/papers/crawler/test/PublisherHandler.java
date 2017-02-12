@@ -1,14 +1,21 @@
-package ua.com.papers.crawler;
+package ua.com.papers.crawler.test;
 
 import com.google.common.base.Preconditions;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Value;
+import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
 import ua.com.papers.crawler.util.*;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
+import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.entities.PublisherEntity;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.publisher.IPublisherService;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -22,34 +29,40 @@ import java.util.stream.Collectors;
  */
 @Log
 @PageHandler(id = 3)
+@Value
+@Getter(AccessLevel.NONE)
 public class PublisherHandler {
 
-    private final IHandlerCallback callback;
-    private final IPublisherService publisherService;
+    IHandlerCallback callback;
+    IPublisherService publisherService;
+    PublisherView publisherView;
 
+    @NonFinal
     private Map<String, Integer> titleToId;
-
-    private PublisherView publisherView;
 
     public PublisherHandler(IPublisherService publisherService, IHandlerCallback callback) {
         this.publisherService = Preconditions.checkNotNull(publisherService);
         this.callback = Preconditions.checkNotNull(callback);
+        this.publisherView = new PublisherView();
     }
 
     @PreHandle
-    public void onPrepare() {
+    public void onPrepare() throws WrongRestrictionException, NoSuchEntityException {
 
         if (titleToId == null) {
             // load all data
             try {
-                titleToId = publisherService.getPublishers(0, 0, null)
+                titleToId = publisherService.getPublishers(0, -1, null)
                         .stream()
                         .collect(Collectors.toMap(PublisherEntity::getTitle, PublisherEntity::getId));
-            } catch (final Exception e) {
-                throw new RuntimeException(e);
+            } catch (final NoSuchEntityException e) {//FIXME if db is empty...OMG, whyyyy
+                log.log(Level.WARNING, "FIXME", e);
+                titleToId = new HashMap<>();
             }
         }
-        publisherView = new PublisherView();
+        // reset instance
+        publisherView.setId(null);
+        publisherView.setTitle(null);
     }
 
     @PostHandle
@@ -62,22 +75,23 @@ public class PublisherHandler {
             callback.onHandleFailure();
         } else {
 
-            final Integer id = titleToId.get(publisherView.getTitle());
+            Integer id = titleToId.get(publisherView.getTitle());
 
             if (id == null) {
 
                 try {
-                    publisherView.setId(publisherService.createPublisher(publisherView));
-                    callback.onPublisherReady(publisherView);
+                    id = publisherService.createPublisher(publisherView);
+                    titleToId.put(publisherView.getTitle(), id);
                 } catch (final Exception e) {
                     log.log(Level.WARNING, String.format("failed to create publisher, title %s, page %s",
                             publisherView.getTitle(), page.getUrl()), e);
                     callback.onHandleFailure(e);
+                    return;
                 }
-            } else {
-                publisherView.setId(id);
-                callback.onPublisherReady(publisherView);
             }
+
+            publisherView.setId(id);
+            callback.onPublisherReady(publisherView);
         }
     }
 

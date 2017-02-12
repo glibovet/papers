@@ -1,5 +1,6 @@
-package ua.com.papers.crawler;
+package ua.com.papers.crawler.test;
 
+import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 
 import javax.validation.constraints.NotNull;
@@ -14,5 +15,7 @@ public interface IHandlerCallback {
     void onHandleFailure(@NotNull Throwable th);
 
     void onPublisherReady(@NotNull PublisherView publisherView);
+
+    void onPublicationReady(@NotNull PublicationView publicationView);
 
 }

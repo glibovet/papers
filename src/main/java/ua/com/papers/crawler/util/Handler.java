@@ -41,6 +41,8 @@ public @interface Handler {
      */
     int id();
 
+    int group() default 0;
+
     /**
      * @return converter to apply when transforming page content part
      * into method argument. By default page part will be returned

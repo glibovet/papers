@@ -1,7 +1,5 @@
-package ua.com.papers.crawler;
+package ua.com.papers.crawler.test;
 
-import lombok.val;
-import ua.com.papers.crawler.core.creator.xml.XmlCreator;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
@@ -9,20 +7,19 @@ import ua.com.papers.crawler.core.domain.bo.Page;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
 
 public class Tester {
 
     public static void main(String[] args) throws Exception {
 
-        val creator = XmlCreator.newInstance("src/main/resources/crawler/crawler-settings.xml");
+      /*val creator = XmlCreator.newInstance("src/main/resources/crawler/crawler-settings.xml");
         val scheduler = creator.create();
 
         scheduler.startCrawling(
                 Collections.singletonList(new HandlerDemo("C:\\Users\\Максим\\Desktop\\mlog.txt")),
                 crawlCall()
         );
-        scheduler.stop();
+        scheduler.stop();*/
 
         //Thread.sleep(30_000);
         // scheduler.stop();

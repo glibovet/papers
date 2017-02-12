@@ -7,7 +7,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import ua.com.papers.crawler.core.creator.ICrawlerFactory;
 import ua.com.papers.crawler.core.creator.ICreator;
-import ua.com.papers.crawler.core.creator.SimpleCrawlerFactory;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.settings.*;
 
@@ -31,40 +30,8 @@ import java.util.concurrent.ScheduledExecutorService;
 @Getter(value = AccessLevel.NONE)
 public final class XmlCreator extends AbstractClasspathXmlCreator {
 
-    private static final File XSD_LOCATION;
-    private static ICrawlerFactory DEFAULT_FACTORY;
-
-    static {
-        // todo move to config???
-        XSD_LOCATION = new File("src/main/resources/crawler/xsd/crawler.xsd");
-    }
-
-    private XmlCreator(@NotNull File file, @NotNull ICrawlerFactory factory) {
-        super(file, XmlCreator.XSD_LOCATION, factory);
-    }
-
-    public static XmlCreator newInstance(@NotNull String filePath, @NotNull ICrawlerFactory factory) {
-        return XmlCreator.newInstance(new File(filePath), factory);
-    }
-
-    public static XmlCreator newInstance(@NotNull String filePath) {
-        return XmlCreator.newInstance(new File(filePath));
-    }
-
-    public static XmlCreator newInstance(@NotNull File file, @NotNull ICrawlerFactory factory) {
-        return new XmlCreator(file, factory);
-    }
-
-    public static XmlCreator newInstance(@NotNull File file) {
-
-        ICrawlerFactory local = DEFAULT_FACTORY;
-
-        if (local == null) {
-            synchronized (XmlCreator.class) {
-                DEFAULT_FACTORY = local = new SimpleCrawlerFactory();
-            }
-        }
-        return new XmlCreator(file, local);
+    public XmlCreator(String xsdPath, String filepath, ICrawlerFactory factory) {
+        super(new File(filepath), new File(xsdPath), factory);
     }
 
     @Override
@@ -185,7 +152,7 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
 
         val extractParams = (Element) parent.getElementsByTagName("url-params").item(0);
 
-        if(extractParams == null) return Collections.emptyList();
+        if (extractParams == null) return Collections.emptyList();
 
         val nodes = extractParams.getElementsByTagName("extract");
         val result = new ArrayList<UrlSelectSetting>(nodes.getLength());

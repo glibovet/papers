@@ -35,6 +35,12 @@
         </property>
     </bean>
 
+    <bean class="ua.com.papers.crawler.core.creator.xml.XmlCreator">
+        <constructor-arg name="xsdPath" value="${papers.crawler.xsd.location}"/>
+        <constructor-arg name="filepath" value="${papers.crawler.location}"/>
+        <constructor-arg name="factory" ref="appCrawlerFactory"/>
+    </bean>
+
     <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>
     <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>
     <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>

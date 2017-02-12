@@ -5,6 +5,7 @@ import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Created by Максим on 12/17/2016.
@@ -18,9 +19,9 @@ public interface IPageFormatter {
      *
      * @param id   page id
      * @param page page to map
-     * @return instance of {@linkplain FormattedPage}
+     * @return the list of {@linkplain RawContent}
      */
     @NotNull
-    FormattedPage format(@NotNull PageID id, @NotNull Page page);
+    List<RawContent> format(@NotNull PageID id, @NotNull Page page);
 
 }

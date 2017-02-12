@@ -1,4 +1,4 @@
-package ua.com.papers.crawler;
+package ua.com.papers.crawler.test;
 
 import lombok.val;
 import org.jsoup.nodes.Element;
@@ -6,17 +6,17 @@ import ua.com.papers.crawler.core.domain.format.convert.IPartAdapter;
 import ua.com.papers.crawler.util.Url;
 
 import javax.validation.constraints.NotNull;
+import java.net.URL;
 
 /**
  * example
  * Created by Максим on 1/8/2017.
  */
-public class ImageUrlAdapter implements IPartAdapter<Url> {
+public class UrlAdapter implements IPartAdapter<URL> {
 
     @Override
-    public Url convert(@NotNull Element element) {
+    public URL convert(@NotNull Element element) {
         val url = element.absUrl("href");
-        System.out.println(url);
-        return url.length() == 0 ? null : new Url(url);
+        return url.length() == 0 ? /*was invalid url, see doc*/ null : new Url(url).getUrl();
     }
 }

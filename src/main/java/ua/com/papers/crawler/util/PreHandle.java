@@ -15,4 +15,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface PreHandle {
+
+    int PAGE = 0;
+
+    int group() default PAGE;
 }

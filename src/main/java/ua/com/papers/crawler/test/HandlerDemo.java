@@ -1,4 +1,4 @@
-package ua.com.papers.crawler;
+package ua.com.papers.crawler.test;
 
 import com.google.common.base.Preconditions;
 import ua.com.papers.crawler.core.domain.bo.Page;
@@ -60,7 +60,7 @@ public class HandlerDemo {
         writeLine(str);
     }
 
-  //  @Handler(id = 3, converter = ImageUrlAdapter.class)
+  //  @Handler(id = 3, converter = UrlAdapter.class)
     public void onHandleImage(Url url) {
         writeLine(url == null ? "Failed to parse url" : url.toString());
     }

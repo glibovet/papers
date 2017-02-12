@@ -6,15 +6,11 @@ import lombok.Getter;
 import lombok.Value;
 import lombok.extern.java.Log;
 import lombok.val;
-import org.jsoup.select.Elements;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.IPartAdapter;
 import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
 import ua.com.papers.crawler.core.domain.vo.PageID;
-import ua.com.papers.crawler.util.PageHandler;
-import ua.com.papers.crawler.util.Handler;
-import ua.com.papers.crawler.util.PostHandle;
-import ua.com.papers.crawler.util.PreHandle;
+import ua.com.papers.crawler.util.*;
 
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
@@ -36,10 +32,110 @@ public class FormatManager implements IFormatManager {
 
     IPageFormatter pageFormatter;
     Map<PageID, ? extends Collection<Object>> idToHandlers;
+    EnumMap<HandlerType, List<Method>> typeToMethods;
     /**
      * Map of cached converters
      */
     private static final Map<Class<? extends IPartAdapter<?>>, IPartAdapter<?>> CACHE;
+
+    private enum HandlerType {
+        PRE, POST, HANDLE
+    }
+
+    private interface Invoker {
+
+        void invoke();
+
+    }
+
+    @Value
+    private static class LifecycleInvoker implements Invoker {
+
+        Page page;
+        List<Tuple<Method, Object>> target;
+
+        LifecycleInvoker(Page page) {
+            this.page = page;
+            this.target = new ArrayList<>(0);
+        }
+
+        void addMethod(Method m, Object who) {
+            target.add(new Tuple<>(m, who));
+        }
+
+        @Override
+        public void invoke() {
+            target.forEach(m -> FormatManager.invokeLifecycleMethod(m.getV1(), page, m.getV2()));
+        }
+
+    }
+
+    @Value
+    private static class HandlerInvoker implements Invoker {
+
+        Page page;
+        int group;
+        List<Tuple<Method, Object>> preHandlers;
+        List<Tuple<Method, Object>> handlers;
+        List<Tuple<Method, Object>> postHandlers;
+        List<RawContent> content;
+
+        HandlerInvoker(int group, Page page, List<RawContent> contents) {
+            this.group = group;
+            this.page = page;
+            this.content = Collections.unmodifiableList(contents);
+            this.preHandlers = new ArrayList<>(1);
+            this.postHandlers = new ArrayList<>(1);
+            this.handlers = new ArrayList<>();
+        }
+
+        void addHandler(Method m, Object who) {
+            val actual = m.getAnnotation(Handler.class).group();
+            Preconditions.checkArgument(actual == group,
+                    String.format("Illegal group, was %d, should be %d", actual, group));
+            handlers.add(new Tuple<>(m, who));
+        }
+
+        void addPreHandler(Method m, Object who) {
+            val actual = m.getAnnotation(PreHandle.class).group();
+            Preconditions.checkArgument(actual == group,
+                    String.format("Illegal group, was %d, should be %d", actual, group));
+            preHandlers.add(new Tuple<>(m, who));
+        }
+
+        void addPostHandler(Method m, Object who) {
+            val actual = m.getAnnotation(PostHandle.class).group();
+            Preconditions.checkArgument(actual == group,
+                    String.format("Illegal group, was %d, should be %d", actual, group));
+            postHandlers.add(new Tuple<>(m, who));
+        }
+
+        @Override
+        public void invoke() {
+            // group
+            content.forEach(raw -> {
+                // pre group
+                preHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m.getV1(), page, m.getV2()));
+
+                val idToPart = raw.getIdToPart();
+
+                handlers.forEach(m -> {
+
+                    val annotation = m.getV1().getAnnotation(Handler.class);
+
+                    if (idToPart.containsKey(annotation.id())) {
+
+                        val elem = idToPart.get(annotation.id());
+                        val converter = FormatManager.getConverter(annotation.converter());
+
+                        FormatManager.invokeProcessMethod(m.getV1(), m.getV2(), converter.convert(elem));
+                    }
+                });
+                // post group
+                postHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m.getV1(), page, m.getV2()));
+            });
+        }
+    }
 
     static {
         CACHE = Collections.synchronizedMap(
@@ -73,26 +169,293 @@ public class FormatManager implements IFormatManager {
                 .collect(Collectors.groupingBy(h -> new PageID(h.getClass().getAnnotation(PageHandler.class).id()),
                         Collectors.mapping(h -> h, Collectors.toList()))
                 );
+        this.typeToMethods = new EnumMap<>(HandlerType.class);
     }
 
     @Override
     public void processPage(@NotNull PageID pageID, @NotNull Page page) {
         val handlers = idToHandlers.get(pageID);
 
-        if (handlers != null) {
+        if (handlers != null && !handlers.isEmpty()) {
 
-            val idToPart = pageFormatter.format(pageID, page)
-                    .getIdToPart()
-                    .entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(e -> e.getKey().getId(), Map.Entry::getValue));
+            val content = pageFormatter.format(pageID, page);
+            val preInvokers = new ArrayList<LifecycleInvoker>();
+            val invokers = new ArrayList<HandlerInvoker>();
+            val postInvokers = new ArrayList<LifecycleInvoker>();
 
-            handlers.forEach(h -> invokeHandleMethods(page, idToPart, h));
+            for (val handler : handlers) {
+                preInvokers.addAll(extractLifecyclePreInvokers(page, handler));
+                invokers.addAll(extractHandlerInvokers(page, handler, content));
+                postInvokers.addAll(extractLifecyclePostInvokers(page, handler));
+            }
+
+            preInvokers.forEach(LifecycleInvoker::invoke);
+            invokers.forEach(HandlerInvoker::invoke);
+            postInvokers.forEach(LifecycleInvoker::invoke);
+
+           /* val mapped = new EnumMap<HandlerType, List<Invoker>>(HandlerType.class);
+
+            for (val handler : handlers) {
+                mergeMaps(mapped, extractMethods(content, page, handler));
+            }
+
+            if (mapped.containsKey(HandlerType.PRE)) {
+                mapped.get(HandlerType.PRE).forEach(Invoker::invoke);
+            }
+
+            if (mapped.containsKey(HandlerType.HANDLE)) {
+                mapped.get(HandlerType.HANDLE).forEach(Invoker::invoke);
+            }
+
+            if (mapped.containsKey(HandlerType.POST)) {
+                mapped.get(HandlerType.POST).forEach(Invoker::invoke);
+            }*/
         }
     }
 
-    private void invokeHandleMethods(Page page, Map<Integer, Elements> idToPart, Object handler) {
+    private static void mergeMaps(EnumMap<HandlerType, List<Invoker>> in,
+                                  EnumMap<HandlerType, List<Invoker>> src) {
 
+        if (in.isEmpty()) {
+            in.putAll(src);
+        } else {
+            src.keySet().forEach(type -> {
+
+                val tmp = src.get(type);
+
+                if (in.containsKey(type)) {
+                    in.get(type).addAll(tmp);
+                } else {
+                    in.put(type, tmp);
+                }
+            });
+        }
+    }
+
+    private List<LifecycleInvoker> extractLifecyclePreInvokers(Page page, Object handler) {
+        val result = new ArrayList<LifecycleInvoker>(1);
+
+        for (val m : handler.getClass().getMethods()) {
+
+            FormatManager.checkMethod(m, handler);
+            // global lifecycle method
+            val preCond = m.isAnnotationPresent(PreHandle.class)
+                    && m.getAnnotation(PreHandle.class).group() == PreHandle.PAGE;
+
+            if (preCond) {
+                result.add(new LifecycleInvoker(page));
+            }
+        }
+
+        return result;
+    }
+
+    private List<LifecycleInvoker> extractLifecyclePostInvokers(Page page, Object handler) {
+        val result = new ArrayList<LifecycleInvoker>(1);
+
+        for (val m : handler.getClass().getMethods()) {
+
+            FormatManager.checkMethod(m, handler);
+            // global lifecycle method
+            val postCond = m.isAnnotationPresent(PostHandle.class)
+                    && m.getAnnotation(PostHandle.class).group() == PostHandle.PAGE;
+
+            if (postCond) {
+                result.add(new LifecycleInvoker(page));
+            }
+        }
+
+        return result;
+    }
+
+    private static List<HandlerInvoker> extractHandlerInvokers(Page page, Object h, List<RawContent> contents) {
+        val result = new ArrayList<HandlerInvoker>();
+
+        for (val m : h.getClass().getMethods()) {
+
+            FormatManager.checkMethod(m, h);
+            // annotated method doesn't have annotation at all or accepts one or zero arguments
+            val pre = m.getAnnotation(PreHandle.class);
+            val post = m.getAnnotation(PostHandle.class);
+            val part = m.getAnnotation(Handler.class);
+
+            if (post != null || pre != null || part != null) {
+                // current method is annotated with @PostHandle, @PreHandle or @Handler
+                val group = part != null ? m.getAnnotation(Handler.class).group()
+                        : (post != null ? m.getAnnotation(PostHandle.class).group()
+                        : m.getAnnotation(PreHandle.class).group());
+
+                if (group != 0) {
+                    // such methods were already registered
+                    // for later invocation
+                    boolean found = false;
+
+                    for (val invoker : result) {
+
+                        if (invoker.group == group) {
+                            addHandlerForAnnotation(invoker, m, h);
+                            found = true;
+                        }
+                    }
+
+                    if (!found) {
+                        val invoker = new HandlerInvoker(group, page, contents);
+                        addHandlerForAnnotation(invoker, m, h);
+                        result.add(invoker);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private static void addHandlerForAnnotation(HandlerInvoker invoker, Method m, Object h) {
+
+        val pre = m.getAnnotation(PreHandle.class);
+        val post = m.getAnnotation(PostHandle.class);
+
+        if (pre != null) {
+            invoker.addPreHandler(m, h);
+        } else if (post != null) {
+            invoker.addPostHandler(m, h);
+        } else {
+            invoker.addHandler(m, h);
+        }
+    }
+
+    private static void checkMethod(Method method, Object handler) {
+        val argsLen = method.getParameterTypes().length;
+        // annotated method doesn't have annotation at all or accepts one or zero arguments
+        val preCond = FormatManager.checkLifecycleMethod(PreHandle.class, method);
+        val postCond = FormatManager.checkLifecycleMethod(PostHandle.class, method);
+        val partCond = method.getAnnotation(Handler.class) != null;
+
+        Preconditions.checkArgument(!partCond || argsLen == 1, String.format(
+                "Method annotated with %s can accept exactly one argument (see converter generic param)", Handler.class));
+        // annotations counter
+        val cnt = plusOne(preCond) + plusOne(postCond) + plusOne(partCond);
+
+        if (cnt > 1)
+            // only one annotation allowed per method!
+            throw new IllegalStateException(
+                    String.format("two or more annotations %s, %s, %s on method %s in class %s",
+                            PreHandle.class, PostHandle.class, Handler.class, method, handler.getClass()));
+    }
+
+    private EnumMap<HandlerType, List<Invoker>> extractMethods(List<RawContent> contents, Page page, Object handler) {
+
+        EnumMap<HandlerType, List<Invoker>> result = new EnumMap<>(HandlerType.class);
+
+        for (val method : handler.getClass().getMethods()) {
+            //TODO skip equals, hash code and etc.
+            val argsLen = method.getParameterTypes().length;
+            // annotated method doesn't have annotation at all or accepts one or zero arguments
+            val preCond = FormatManager.checkLifecycleMethod(PreHandle.class, method);
+            val postCond = FormatManager.checkLifecycleMethod(PostHandle.class, method);
+            // annotated method handles page part
+            val partCond = method.getAnnotation(Handler.class) != null;
+
+            Preconditions.checkArgument(!partCond || argsLen == 1, String.format(
+                    "Method annotated with %s can accept exactly one argument (see converter generic param)", Handler.class));
+            // annotations counter
+            val cnt = plusOne(preCond) + plusOne(postCond) + plusOne(partCond);
+
+            if (cnt > 1)
+                // only one annotation allowed per method!
+                throw new IllegalStateException(
+                        String.format("two or more annotations %s, %s, %s on method %s in class %s",
+                                PreHandle.class, PostHandle.class, Handler.class, method, handler.getClass()));
+
+            if (cnt > 0) {
+
+                if (postCond || preCond) {
+                    // current method is annotated with @PostHandle or @PreHandle
+                    val group = postCond ? method.getAnnotation(PostHandle.class).group()
+                            : method.getAnnotation(PreHandle.class).group();
+
+                    if (group != 0) {
+                        // this is local group post/pre handler method
+                        if (result.containsKey(HandlerType.HANDLE)) {
+                            // method was already registered for later invocation
+                            result.get(HandlerType.HANDLE).stream()
+                                    .map(invoker -> ((HandlerInvoker) invoker))
+                                    .filter(invoker -> invoker.group == group)
+                                    .forEach(invoker -> {
+                                        if (postCond) {
+                                            invoker.addPostHandler(method, handler);
+                                        } else {
+                                            invoker.addPreHandler(method, handler);
+                                        }
+                                    });
+                        } else {
+                            val invoker = new HandlerInvoker(group, page, contents);
+
+                            if (postCond) {
+                                invoker.addPostHandler(method, handler);
+                            } else {
+                                invoker.addPreHandler(method, handler);
+                            }
+                            putMethod(result, HandlerType.HANDLE, invoker);
+                        }
+                    } else if (postCond) {
+                        // this just post handler method
+                        putMethod(result, HandlerType.POST, new LifecycleInvoker(page));
+                    } else {
+                        // this just pre handler method
+                        putMethod(result, HandlerType.PRE, new LifecycleInvoker(page));
+                    }
+                } else {
+                    // current method is annotated with @Handler
+                    val group = method.getAnnotation(Handler.class).group();
+
+                    if (result.containsKey(HandlerType.HANDLE)) {
+                        // such methods were already registered
+                        // for later invocation
+                        boolean found = false;
+
+                        for (val i : result.get(HandlerType.HANDLE)) {
+                            val invoker = (HandlerInvoker) i;
+
+                            if (invoker.group == group) {
+                                invoker.addHandler(method, handler);
+                                found = true;
+                            }
+                        }
+
+                        if (!found) {
+                            val invoker = new HandlerInvoker(group, page, contents);
+                            invoker.addHandler(method, handler);
+                            putMethod(result, HandlerType.HANDLE, invoker);
+                        }
+
+                        /*result.get(HandlerType.HANDLE).stream()
+                                .map(invoker -> ((HandlerInvoker) invoker))
+                                .filter(invoker -> invoker.group == group)
+                                .forEach(invoker -> invoker.addHandler(method, handler));*/
+                    } else {
+                        val invoker = new HandlerInvoker(group, page, contents);
+                        invoker.addHandler(method, handler);
+                        putMethod(result, HandlerType.HANDLE, invoker);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private static void putMethod(EnumMap<HandlerType, List<Invoker>> in, HandlerType type, Invoker invoker) {
+        List<Invoker> methods = in.get(type);
+
+        if (methods == null) {
+            methods = new ArrayList<>(1);
+        }
+        methods.add(invoker);
+        in.put(type, methods);
+    }
+
+    private void invokeHandleMethods(Page page, RawContent content, Object handler) {
+
+        val idToPart = content.getIdToPart();
         val cpyIdToPart = new HashMap<>(idToPart);
         val preHandlers = new HashSet<Method>(DEFAULT_LIFECYCLE_METHODS_CNT);
         val postHandlers = new HashSet<Method>(DEFAULT_LIFECYCLE_METHODS_CNT);
@@ -122,22 +485,24 @@ public class FormatManager implements IFormatManager {
 
             if (cnt > 0) {
 
-                if (partCond)
+                if (partCond) {
                     partHandlers.add(method);
-                else if (postCond)
+                } else if (postCond) {
                     postHandlers.add(method);
-                else
+                } else {
                     preHandlers.add(method);
+                }
             }
         }
-
+        // invoke pre-handlers
         preHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m, page, handler));
+        // invoke methods for each scope sequentially
         partHandlers.forEach(m -> {
             val annotation = m.getAnnotation(Handler.class);
             val elem = idToPart.get(annotation.id());
             val converter = FormatManager.getConverter(annotation.converter());
 
-            elem.forEach(e -> FormatManager.invokeProcessMethod(m, handler, converter.convert(e)));
+            FormatManager.invokeProcessMethod(m, handler, converter.convert(elem));
             cpyIdToPart.remove(annotation.id());
         });
         postHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m, page, handler));
@@ -173,7 +538,7 @@ public class FormatManager implements IFormatManager {
                 throw new RuntimeException(String.format("An error occurred while creating a new instance of %s", cl), e);
             }
         }
-        return result;
+        return Preconditions.checkNotNull(result, String.format("No handler for %s", cl));
     }
 
     private static void invokeLifecycleMethod(Method m, Page page, Object who) {
