@@ -76,7 +76,7 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
         val indexEl = (Element) root.getElementsByTagName("index-delay").item(0);
 
         return SchedulerSetting.builder()
-                .executorService(createExecService(threadsEl))
+                .threads(XmlHelper.parseInt(threadsEl, 1))
                 .startupDelay(XmlHelper.parseLong(startupEl))
                 .indexDelay(XmlHelper.parseLong(indexEl))
                 .build();

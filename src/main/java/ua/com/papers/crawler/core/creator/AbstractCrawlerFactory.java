@@ -45,13 +45,9 @@ public abstract class AbstractCrawlerFactory implements ICrawlerFactory {
                 .predicate(createRunPredicate())
                 .build();
 
-        val scheduleSett = settings.getSchedulerSetting();
-
         return CrawlerManager.builder()
                 .crawler(crawler)
-                .executorService(scheduleSett.getExecutorService())
-                .startupDelay(scheduleSett.getStartupDelay())
-                .indexDelay(scheduleSett.getIndexDelay())
+                .setting(settings.getSchedulerSetting())
                 .startUrls(settings.getStartUrls())
                 .indexer(createPageIndexer(settings, formatFactory, analyzeManager))
                 .build();

@@ -33,8 +33,7 @@ public class AppCrawlerFactory extends SimpleCrawlerFactory {
     @Nullable
     @Override
     protected ICrawlerPredicate createRunPredicate() {
-        return (visitedUrls, acceptedPages) -> Runtime.getRuntime().freeMemory() > Crawler.getMinFreeMemory()
-                && visitedUrls.size() <= 100;
+        return (visitedUrls, acceptedPages) -> Runtime.getRuntime().freeMemory() > Crawler.getMinFreeMemory();
     }
 
     @Override

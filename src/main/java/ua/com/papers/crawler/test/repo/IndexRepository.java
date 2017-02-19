@@ -23,7 +23,6 @@ import java.util.Iterator;
 public final class IndexRepository implements IPageIndexRepository {
 
     JpaRepository<IndexEntity, String> repository;
-
     @Autowired
     public IndexRepository(JpaRepository<IndexEntity, String> repository) {
         this.repository = repository;
@@ -69,8 +68,7 @@ public final class IndexRepository implements IPageIndexRepository {
     }
 
     private static Index toIndex(IndexEntity entity) {
-        val millis = entity.getLastVisit().toInstant().toEpochMilli();
-        return new Index(new DateTime(millis), new Url(entity.getUrl()).getUrl(), entity.getContentHash());
+        return new Index(new DateTime(entity.getLastVisit().getTime()), new Url(entity.getUrl()).getUrl(), entity.getContentHash());
     }
 
 }

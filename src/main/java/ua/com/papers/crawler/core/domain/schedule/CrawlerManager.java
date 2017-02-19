@@ -2,15 +2,18 @@ package ua.com.papers.crawler.core.domain.schedule;
 
 import com.google.common.base.Preconditions;
 import lombok.*;
+import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.settings.SchedulerSetting;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Collection;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -28,22 +31,22 @@ public class CrawlerManager implements ICrawlerManager {
 
     IPageIndexer indexer;
     ICrawler crawler;
-    ScheduledExecutorService executorService;
     Collection<URL> startUrls;
-    long startupDelay;
-    long indexDelay;
+    SchedulerSetting setting;
+
+    @NonFinal ScheduledExecutorService executorService;
+    @NonFinal volatile boolean isCrawling;
+    @NonFinal volatile boolean isIndexing;
 
     CrawlProxy crawlProxy;
 
     @Data
     private final class CrawlProxy implements ICrawler.Callback {
-        @Setter(value = AccessLevel.NONE)
-        private volatile boolean isCrawling;
+
         private ICrawler.Callback original;
 
         @Override
         public void onStart() {
-            isCrawling = true;
             original.onStart();
         }
 
@@ -76,20 +79,18 @@ public class CrawlerManager implements ICrawlerManager {
     }
 
     @lombok.Builder(builderClassName = "Builder")
-    private CrawlerManager(@NotNull ICrawler crawler, @NotNull ScheduledExecutorService executorService, long startupDelay,
-                           long indexDelay, @NotNull IPageIndexer indexer,
+    private CrawlerManager(@NotNull ICrawler crawler, @NotNull SchedulerSetting setting, @NotNull IPageIndexer indexer,
                            @NotNull Collection<URL> startUrls) {
 
         if (Preconditions.checkNotNull(startUrls, "startUrls == null").isEmpty())
             throw new IllegalArgumentException("no start urls passed");
 
+        this.setting = Preconditions.checkNotNull(setting);
         this.crawler = Preconditions.checkNotNull(crawler);
-        this.executorService = Preconditions.checkNotNull(executorService);
         this.startUrls = startUrls;
         this.indexer = Preconditions.checkNotNull(indexer);
-        this.startupDelay = CrawlerManager.minExecutorDelay(startupDelay);
-        this.indexDelay = CrawlerManager.minExecutorDelay(indexDelay);
         this.crawlProxy = new CrawlProxy();
+        this.executorService = createExecutor(setting.getThreads());
     }
 
     @Override
@@ -100,16 +101,20 @@ public class CrawlerManager implements ICrawlerManager {
 
         Preconditions.checkNotNull(crawlCallback, "crawl callback == null");
 
-        if (!crawlProxy.isCrawling()) {
+        if (!isCrawling) {
             // start crawler job
             crawlProxy.setOriginal(crawlCallback);
             executorService.schedule(() -> {
+                isCrawling = true;
                 try {
                     crawler.start(crawlProxy, handlers, startUrls);
                 } catch (final Exception e) {
                     log.log(Level.SEVERE, "Error occurred while running crawler", e);
+                } finally {
+                    stop();
+                    isCrawling = false;
                 }
-            }, startupDelay, TimeUnit.MILLISECONDS);
+            }, setting.getStartupDelay(), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -120,19 +125,37 @@ public class CrawlerManager implements ICrawlerManager {
             throw new IllegalArgumentException("no handlers passed");
 
         Preconditions.checkNotNull(indexCallback, "index callback == null");
-        // runs periodical indexing
-        executorService.scheduleWithFixedDelay(() -> {
-            try {
-                indexer.index(indexCallback, handlers);
-            } catch (final Exception e) {
-                log.log(Level.SEVERE, "Failed to start indexer service", e);
-            }
-        }, startupDelay, indexDelay, TimeUnit.MILLISECONDS);
+
+        if(!isIndexing) {
+            // runs periodical indexing
+            executorService.scheduleWithFixedDelay(() -> {
+                isIndexing = true;
+                try {
+                    indexer.index(indexCallback, handlers);
+                } catch (final Exception e) {
+                    log.log(Level.SEVERE, "Failed to start indexer service", e);
+                } finally {
+                    stop();
+                    isIndexing = false;
+                }
+            }, setting.getStartupDelay(), setting.getIndexDelay(), TimeUnit.MILLISECONDS);
+        }
+    }
+
+    @Override
+    public boolean isCrawling() {
+        return isCrawling;
+    }
+
+    @Override
+    public boolean isIndexing() {
+        return isIndexing;
     }
 
     @Override
     public void stop() {
         executorService.shutdown();
+        executorService = createExecutor(setting.getThreads());
     }
 
     @Override
@@ -148,7 +171,17 @@ public class CrawlerManager implements ICrawlerManager {
             if (callback != null) {
                 callback.onException(e);
             }
+        } finally {
+            executorService = createExecutor(setting.getThreads());
         }
+    }
+
+    private static ScheduledExecutorService createExecutor(int threads) {
+
+        if (threads == 1) {
+            return Executors.newSingleThreadScheduledExecutor();
+        }
+        return Executors.newScheduledThreadPool(threads);
     }
 
     /**

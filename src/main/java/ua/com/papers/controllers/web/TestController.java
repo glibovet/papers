@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ua.com.papers.crawler.core.creator.ICreator;
 import ua.com.papers.crawler.core.domain.ICrawler;
+import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.test.ArticleComposer;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -56,6 +57,26 @@ public class TestController {
                 crawlCall()
         );
         scheduler.stop();
+
+        System.out.println("On done");
+        return "index/index";
+    }
+
+    @RequestMapping(value = {"/reindex"}, method = RequestMethod.GET)
+    public String reIndex() {
+
+        val scheduler = creator.create();
+
+        scheduler.startIndexing(
+                articleComposer.asHandlers(),
+                indexCall()
+        );
+
+        scheduler.startCrawling(
+                articleComposer.asHandlers(),
+                crawlCall()
+        );
+        //scheduler.stop();
 
         System.out.println("On done");
         return "index/index";
@@ -144,6 +165,36 @@ public class TestController {
             @Override
             public void onPageAccepted(@NotNull Page page) {
                 System.out.println("Page accepted " + page.getUrl());
+            }
+        };
+    }
+
+    private static IPageIndexer.Callback indexCall() {
+        return new IPageIndexer.Callback() {
+
+            @Override
+            public void onStart() {
+                System.out.println("On start / index");
+            }
+
+            @Override
+            public void onStop() {
+                System.out.println("On stop / index");
+            }
+
+            @Override
+            public void onIndexed(@NotNull Page page) {
+                System.out.println("On indexed " + page.getUrl());
+            }
+
+            @Override
+            public void onUpdated(@NotNull Page page) {
+                System.out.println("On updated " + page.getUrl());
+            }
+
+            @Override
+            public void onLost(@NotNull Page page) {
+                System.out.println("On lost " + page.getUrl());
             }
         };
     }

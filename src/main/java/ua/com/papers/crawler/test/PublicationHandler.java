@@ -14,7 +14,6 @@ import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
-import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
@@ -137,8 +136,11 @@ public class PublicationHandler {
     public void postPublication() {
         log.log(Level.INFO, String.format("#postPublication %s", getClass()));
 
-        if (!TextUtils.isEmpty(publicationView.getLink())
-                && publicationView.getAuthorsId() != null) {
+        val isValid = !TextUtils.isEmpty(publicationView.getLink())
+                && !TextUtils.isEmpty(publicationView.getTitle())
+                && publicationView.getAuthorsId() != null && !publicationView.getAuthorsId().isEmpty();
+
+        if (isValid) {
             callback.onPublicationReady(publicationView);
             log.log(Level.INFO, String.format("publication were processed successfully, %s", publicationView.getLink()));
         } else {
@@ -152,7 +154,6 @@ public class PublicationHandler {
         Integer id = null;
 
         for (final String fullName : fullNames) {
-            Preconditions.checkArgument(!TextUtils.isEmpty(fullName), "empty full name!");
             log.log(Level.INFO, String.format("full name %s", fullName));
 
             if (fullNameToId.get() == null
@@ -188,12 +189,13 @@ public class PublicationHandler {
                     }
                 } catch (final ServiceErrorException | NoSuchEntityException e) {
                     log.log(Level.WARNING, "Service error occurred while saving publication", e);
-                } catch (final ValidationException e) {
+                } catch (final Exception e) {
                     log.log(Level.SEVERE, "Fatal error occurred while saving publication", e);
                 }
             }
-
-            result.add(id);
+            if (id != null) {
+                result.add(id);
+            }
         }
         result.trimToSize();
         return result;

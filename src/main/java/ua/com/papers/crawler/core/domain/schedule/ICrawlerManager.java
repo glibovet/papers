@@ -43,6 +43,10 @@ public interface ICrawlerManager {
      */
     void startIndexing(@NotNull Collection<Object> handlers, @NotNull IPageIndexer.Callback indexCallback);
 
+    boolean isCrawling();
+
+    boolean isIndexing();
+
     /**
      * Releases resources hold by crawler and stops
      * it

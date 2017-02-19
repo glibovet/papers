@@ -32,6 +32,7 @@ public class FormatManager implements IFormatManager {
 
     IPageFormatter pageFormatter;
     Map<PageID, ? extends Collection<Object>> idToHandlers;
+    Object lock = new Object();
     /**
      * Map of cached converters
      */
@@ -184,9 +185,11 @@ public class FormatManager implements IFormatManager {
                 postInvokers.addAll(extractLifecyclePostInvokers(page, handler));
             }
 
-            preInvokers.forEach(LifecycleInvoker::invoke);
-            invokers.forEach(HandlerInvoker::invoke);
-            postInvokers.forEach(LifecycleInvoker::invoke);
+            synchronized (lock) {
+                preInvokers.forEach(LifecycleInvoker::invoke);
+                invokers.forEach(HandlerInvoker::invoke);
+                postInvokers.forEach(LifecycleInvoker::invoke);
+            }
         }
     }
 
@@ -237,7 +240,7 @@ public class FormatManager implements IFormatManager {
             val post = m.getAnnotation(PostHandle.class);
             val part = m.getAnnotation(Handler.class);
 
-            if(pre == null && post == null && part == null) continue;
+            if (pre == null && post == null && part == null) continue;
 
             // current method is annotated with @PostHandle, @PreHandle or @Handler
             val group = part != null ? m.getAnnotation(Handler.class).group()

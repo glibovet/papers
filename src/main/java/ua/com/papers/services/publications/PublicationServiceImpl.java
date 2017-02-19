@@ -1,22 +1,24 @@
 package ua.com.papers.services.publications;
 
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.dao.repositories.PublicationRepository;
+import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
-
 import ua.com.papers.pojo.view.PublicationView;
+import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.publisher.IPublisherService;
-import ua.com.papers.services.publisher.IPublisherValidateService;
-import ua.com.papers.services.utils.SessionUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +40,9 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Autowired
     private IPublicationValidateService publicationValidateService;
+
+    @Autowired
+    private IAuthorService authorService;
 
     @Override
     @Transactional
@@ -120,6 +125,27 @@ public class PublicationServiceImpl implements IPublicationService{
             entity.setPublisher(publisherService.getPublisherById(view.getPublisherId()));
         }else if (entity.getPublisher()!=null)
             view.setPublisherId(entity.getPublisher().getId());
+        if(view.getAuthorsId() != null && !view.getAuthorsId().isEmpty()) {
+            // FIXME: 2/19/2017 remove workaround
+            Set<AuthorMasterEntity> entities;
+
+            try {
+
+                StringBuilder sb = new StringBuilder("{\"ids\":[");
+
+                for(val id : view.getAuthorsId()) {
+                    sb.append("\"").append(id.intValue()).append("\",");
+                }
+
+                sb.setLength(sb.length() - 1);
+                sb.append("]}");
+
+                entities = new HashSet<>(authorService.getAuthorMasters(0, -1, sb.toString()));
+            } catch (WrongRestrictionException e) {
+                throw new RuntimeException("failed to get authors", e);
+            }
+            entity.setAuthors(entities);
+        }
     }
 
 }

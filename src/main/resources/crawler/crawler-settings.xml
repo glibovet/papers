@@ -8,7 +8,7 @@
     <scheduler-params>
         <startup-delay>0</startup-delay>
         <index-delay>60000</index-delay>
-        <threads>1</threads>
+        <threads>2</threads>
     </scheduler-params>
 
     <pages>
