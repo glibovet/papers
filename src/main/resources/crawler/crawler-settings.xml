@@ -8,6 +8,7 @@
     <scheduler-params>
         <startup-delay>0</startup-delay>
         <index-delay>60000</index-delay>
+        <separate-indexing>1</separate-indexing>
         <threads>2</threads>
     </scheduler-params>
 

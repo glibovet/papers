@@ -39,6 +39,7 @@ public abstract class AbstractCrawlerFactory implements ICrawlerFactory {
         val analyzeManager = createAnalyzeManager(settings);
         val formatFactory = createFormatFactory(settings);
         val crawler = Crawler.builder()
+                .maxThreads(settings.getSchedulerSetting().getThreads())
                 .analyzeManager(analyzeManager)
                 .formatManagerFactory(formatFactory)
                 .urlExtractor(createUrlExtractor(settings))

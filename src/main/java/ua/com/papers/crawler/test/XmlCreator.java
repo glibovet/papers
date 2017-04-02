@@ -74,11 +74,13 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
         val threadsEl = (Element) root.getElementsByTagName("threads").item(0);
         val startupEl = (Element) root.getElementsByTagName("startup-delay").item(0);
         val indexEl = (Element) root.getElementsByTagName("index-delay").item(0);
+        val separatedIndexingEl = (Element) root.getElementsByTagName("separate-indexing").item(0);
 
         return SchedulerSetting.builder()
                 .threads(XmlHelper.parseInt(threadsEl, 1))
                 .startupDelay(XmlHelper.parseLong(startupEl))
                 .indexDelay(XmlHelper.parseLong(indexEl))
+                .isSeparatedIndex(XmlHelper.parseInt(separatedIndexingEl, 1) == 1)
                 .build();
     }
 

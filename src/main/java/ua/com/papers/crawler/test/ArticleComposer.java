@@ -79,20 +79,24 @@ public final class ArticleComposer {
             return;
         }
 
-        try {
+        for (val publication : publicationViews) {
 
-            for (val publication : publicationViews) {
+            try {
+
                 publication.setPublisherId(publisherView.getId());
                 publicationService.createPublication(publication);
-            }
 
-            log.log(Level.INFO, String.format("page with url %s was successfully saved", page.getUrl()));
-        } catch (final ServiceErrorException | NoSuchEntityException e) {
-            log.log(Level.WARNING, "Service error occurred while saving publication", e);
-        } catch (final ValidationException e) {
-            log.log(Level.SEVERE, "Fatal error occurred while saving publication", e);
-            // finish execution immediately and fix error
-            throw new RuntimeException(e);
+                log.log(Level.INFO, String.format("page with url %s was successfully saved", page.getUrl()));
+            } catch (final ServiceErrorException | NoSuchEntityException e) {
+                log.log(Level.WARNING, "Service error occurred while saving publication", e);
+            } catch (final ValidationException e) {
+                log.log(Level.SEVERE,
+                        String.format("Fatal error occurred while saving publication, cause: publication %s, publisher %s",
+                                publication, publisherView),
+                        e);
+                // finish execution immediately and fix error
+                throw new RuntimeException(e);
+            }
         }
     }
 

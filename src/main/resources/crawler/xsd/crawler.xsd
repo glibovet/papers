@@ -27,6 +27,8 @@
                         minOccurs="0"/>
             <xs:element name="threads" type="xs:positiveInteger"
                         minOccurs="0"/>
+            <xs:element name="separate-indexing" type="xs:positiveInteger"
+                        minOccurs="0"/>
         </xs:all>
     </xs:complexType>
 

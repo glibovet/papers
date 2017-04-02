@@ -92,4 +92,18 @@ public class PublicationView {
     public void setAuthorsId(List<Integer> authorsId) {
         this.authorsId = authorsId;
     }
+
+    @Override
+    public String toString() {
+        return "PublicationView{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", annotation='" + annotation + '\'' +
+                ", type=" + type +
+                ", link='" + link + '\'' +
+                ", publisherId=" + publisherId +
+                ", status=" + status +
+                ", authorsId=" + authorsId +
+                '}';
+    }
 }

@@ -63,4 +63,16 @@ public class PublisherView {
     public void setAddress(Integer address) {
         this.address = address;
     }
+
+    @Override
+    public String toString() {
+        return "PublisherView{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", url='" + url + '\'' +
+                ", contacts='" + contacts + '\'' +
+                ", address=" + address +
+                '}';
+    }
 }

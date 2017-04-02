@@ -90,7 +90,7 @@ public class CrawlerManager implements ICrawlerManager {
         this.startUrls = startUrls;
         this.indexer = Preconditions.checkNotNull(indexer);
         this.crawlProxy = new CrawlProxy();
-        this.executorService = createExecutor(setting.getThreads());
+        this.executorService = createExecutor(setting.isSeparatedIndexing());
     }
 
     @Override
@@ -155,7 +155,7 @@ public class CrawlerManager implements ICrawlerManager {
     @Override
     public void stop() {
         executorService.shutdown();
-        executorService = createExecutor(setting.getThreads());
+        executorService = createExecutor(setting.isSeparatedIndexing());
     }
 
     @Override
@@ -172,16 +172,16 @@ public class CrawlerManager implements ICrawlerManager {
                 callback.onException(e);
             }
         } finally {
-            executorService = createExecutor(setting.getThreads());
+            executorService = createExecutor(setting.isSeparatedIndexing());
         }
     }
 
-    private static ScheduledExecutorService createExecutor(int threads) {
+    private static ScheduledExecutorService createExecutor(boolean isSeparatedIndex) {
 
-        if (threads == 1) {
+        if (!isSeparatedIndex) {
             return Executors.newSingleThreadScheduledExecutor();
         }
-        return Executors.newScheduledThreadPool(threads);
+        return Executors.newScheduledThreadPool(2);
     }
 
     /**
