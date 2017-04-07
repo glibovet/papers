@@ -1,5 +1,6 @@
 package ua.com.papers.services.publications;
 
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,15 +19,12 @@ import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.PublicationRepository;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
-
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.elastic.IElasticSearch;
 import ua.com.papers.services.publisher.IPublisherService;
-import ua.com.papers.services.publisher.IPublisherValidateService;
-import ua.com.papers.services.utils.SessionUtils;
-
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -152,9 +150,30 @@ public class PublicationServiceImpl implements IPublicationService{
             entity.setPublisher(publisherService.getPublisherById(view.getPublisher_id()));
         }else if (entity.getPublisher()!=null)
             view.setPublisher_id(entity.getPublisher().getId());
-
         if (view.getStatus() != null)entity.setStatus(view.getStatus());
         else view.setStatus(entity.getStatus());
+            view.setPublisher_id(entity.getPublisher().getId());
+        if(view.getAuthors_id() != null && !view.getAuthors_id().isEmpty()) {
+            // FIXME: 2/19/2017 remove workaround
+            Set<AuthorMasterEntity> entities;
+
+            try {
+
+                StringBuilder sb = new StringBuilder("{\"ids\":[");
+
+                for(val id : view.getAuthors_id()) {
+                    sb.append("\"").append(id.intValue()).append("\",");
+                }
+
+                sb.setLength(sb.length() - 1);
+                sb.append("]}");
+
+                entities = new HashSet<>(authorService.getAuthorMasters(0, -1, sb.toString()));
+            } catch (WrongRestrictionException e) {
+                throw new RuntimeException("failed to get authors", e);
+            }
+            entity.setAuthors(entities);
+        }
     }
 
     private void addAuthors(PublicationEntity entity, PublicationView view) {
