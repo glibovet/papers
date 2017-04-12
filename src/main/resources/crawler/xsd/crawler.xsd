@@ -21,13 +21,13 @@
 
     <xs:complexType name="scheduler-params">
         <xs:all>
-            <xs:element name="startup-delay" type="nonNegativeLong"
-                        minOccurs="0"/>
             <xs:element name="index-delay" type="nonNegativeLong"
                         minOccurs="0"/>
-            <xs:element name="threads" type="xs:positiveInteger"
+            <xs:element name="processing-delay" type="nonNegativeLong"
                         minOccurs="0"/>
-            <xs:element name="separate-indexing" type="xs:positiveInteger"
+            <xs:element name="index-threads" type="xs:positiveInteger"
+                        minOccurs="0"/>
+            <xs:element name="processing-threads" type="xs:positiveInteger"
                         minOccurs="0"/>
         </xs:all>
     </xs:complexType>

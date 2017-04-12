@@ -6,10 +6,10 @@
     </urls>
 
     <scheduler-params>
-        <startup-delay>0</startup-delay>
         <index-delay>60000</index-delay>
-        <separate-indexing>1</separate-indexing>
-        <threads>2</threads>
+        <processing-delay>30000</processing-delay>
+        <processing-threads>4</processing-threads>
+        <index-threads>4</index-threads>
     </scheduler-params>
 
     <pages>

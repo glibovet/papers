@@ -4,6 +4,10 @@ import lombok.val;
 import org.w3c.dom.Element;
 
 /**
+ * <p>
+ *     Helper class which provides utility methods
+ *     to simplify XML parsing process
+ * </p>
  * Created by Максим on 1/16/2017.
  */
 public final class XmlHelper {

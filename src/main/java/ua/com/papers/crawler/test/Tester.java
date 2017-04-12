@@ -52,6 +52,11 @@ public class Tester {
             public void onLost(@NotNull Page page) {
                 System.out.println("On lost " + page.getUrl());
             }
+
+            @Override
+            public void onException(@NotNull URL url, @NotNull Throwable th) {
+
+            }
         };
     }
 

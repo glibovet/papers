@@ -139,7 +139,7 @@ public class FormatManager implements IFormatManager {
                 new HashMap<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>() {
                     {
                         // register default converters
-                        put(Handler.DummyAdapter.class, Handler.DummyAdapter.instance);
+                        put(Handler.SkipAdapter.class, Handler.SkipAdapter.instance);
                         put(StringAdapter.class, StringAdapter.instance);
                     }
                 }
@@ -185,11 +185,11 @@ public class FormatManager implements IFormatManager {
                 postInvokers.addAll(extractLifecyclePostInvokers(page, handler));
             }
 
-            synchronized (lock) {
+            //synchronized (lock) {
                 preInvokers.forEach(LifecycleInvoker::invoke);
                 invokers.forEach(HandlerInvoker::invoke);
                 postInvokers.forEach(LifecycleInvoker::invoke);
-            }
+            //}
         }
     }
 

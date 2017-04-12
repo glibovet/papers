@@ -12,10 +12,7 @@ import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
 import ua.com.papers.crawler.core.domain.select.UrlExtractor;
 import ua.com.papers.crawler.core.domain.storage.InMemoryRepo;
-import ua.com.papers.crawler.settings.FormatTemplate;
-import ua.com.papers.crawler.settings.PageSetting;
-import ua.com.papers.crawler.settings.Settings;
-import ua.com.papers.crawler.settings.UrlSelectSetting;
+import ua.com.papers.crawler.settings.*;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -87,9 +84,10 @@ public class SimpleCrawlerFactory extends AbstractCrawlerFactory {
     }
 
     @Override
-    protected IPageIndexer createPageIndexer(@NotNull Settings settings, @NotNull IFormatManagerFactory formatFactory, @NotNull IAnalyzeManager analyzeManager) {
+    protected IPageIndexer createPageIndexer(@NotNull Settings settings, @NotNull IFormatManagerFactory formatFactory,
+                                             @NotNull IAnalyzeManager analyzeManager) {
         // creates page indexer that holds indexed pages in RAM!
-        return new PageIndexer(InMemoryRepo.getInstance(), formatFactory, analyzeManager);
+        return new PageIndexer(InMemoryRepo.getInstance(), formatFactory, analyzeManager, settings.getSchedulerSetting());
     }
 
     private IPageAnalyzer createPageAnalyzer(PageSetting setting) {

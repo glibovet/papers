@@ -21,6 +21,10 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * <p>
+ *     XML-based abstract creator which
+ *     partially implements {@linkplain ICreator}
+ * </p>
  * Created by Максим on 1/16/2017.
  */
 @Data

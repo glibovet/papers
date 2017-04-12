@@ -3,6 +3,7 @@ package ua.com.papers.crawler.core.domain;
 import ua.com.papers.crawler.core.domain.bo.Page;
 
 import javax.validation.constraints.NotNull;
+import java.net.URL;
 import java.util.Collection;
 
 /**
@@ -20,6 +21,8 @@ public interface IPageIndexer {
 
         void onLost(@NotNull Page page);
 
+        void onException(@NotNull URL url, @NotNull Throwable th);
+
         default void onStop() {}
 
     }
@@ -27,5 +30,7 @@ public interface IPageIndexer {
     void addToIndex(@NotNull Page page);
 
     void index(@NotNull Callback callback, @NotNull Collection<Object> handlers);
+
+    void stop();
 
 }

@@ -67,7 +67,7 @@ public interface ICrawler {
          * @param url page's url which caused exception
          * @param th  failure cause
          */
-        default void onException(@NotNull URL url, @NotNull Throwable th) {
+        default void onException(@Nullable URL url, @NotNull Throwable th) {
         }
 
     }

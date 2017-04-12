@@ -10,16 +10,16 @@ import lombok.val;
 import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
+import ua.com.papers.crawler.settings.Conditions;
+import ua.com.papers.crawler.settings.SchedulerSetting;
 import ua.com.papers.crawler.util.PageUtils;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.TreeSet;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
@@ -48,10 +48,9 @@ public class Crawler implements ICrawler {
     IUrlExtractor urlExtractor;
     IFormatManagerFactory formatManagerFactory;
     ICrawlerPredicate predicate;
-    int maxThreads;
+    SchedulerSetting schedulerSetting;
 
-    @NonFinal
-    volatile boolean canRun;
+    @NonFinal ExecutorService executor;
 
     public static long getMinFreeMemory() {
         return minFreeMemory;
@@ -74,14 +73,13 @@ public class Crawler implements ICrawler {
     @lombok.Builder(builderClassName = "Builder")
     private Crawler(@NotNull IAnalyzeManager analyzeManager,
                     @NotNull IUrlExtractor urlExtractor, @NotNull IFormatManagerFactory formatManagerFactory,
-                    @Nullable ICrawlerPredicate predicate, int maxThreads) {
+                    @Nullable ICrawlerPredicate predicate, @NotNull SchedulerSetting schedulerSetting) {
 
-        Preconditions.checkArgument(maxThreads > 0, "max threads <= 0");
-        this.analyzeManager = Preconditions.checkNotNull(analyzeManager, "analyze manager == null");
-        this.urlExtractor = Preconditions.checkNotNull(urlExtractor, "url extractor == null");
-        this.formatManagerFactory = Preconditions.checkNotNull(formatManagerFactory, "format manager factory");
+        this.analyzeManager = Conditions.isNotNull(analyzeManager, "analyze manager == null");
+        this.urlExtractor = Conditions.isNotNull(urlExtractor, "url extractor == null");
+        this.formatManagerFactory = Conditions.isNotNull(formatManagerFactory, "format manager factory");
         this.predicate = predicate == null ? DEFAULT_PREDICATE : predicate;
-        this.maxThreads = maxThreads;
+        this.schedulerSetting = Conditions.isNotNull(schedulerSetting);
     }
 
     @Override
@@ -89,12 +87,11 @@ public class Crawler implements ICrawler {
                       @NotNull Collection<URL> urlsColl) {
 
         Crawler.checkPreConditions(handlers, urlsColl);
+        stop();
 
         if (callback != null) {
             callback.onStart();
         }
-        // reset run flag
-        canRun = true;
 
         try {
             // runs all analyzing job
@@ -111,25 +108,45 @@ public class Crawler implements ICrawler {
 
     @Override
     public void stop() {
-        canRun = false;
+
+        if(executor != null) {
+            try {
+                executor.awaitTermination(0, TimeUnit.MILLISECONDS);
+            } catch (final InterruptedException e) {
+                log.log(Level.WARNING, "Stopped unexpectedly", e);
+            }
+        }
     }
 
     private void runLoop(Callback callback, Collection<Object> handlers, Collection<URL> urlsColl) {
 
         val urls = new LinkedList<URL>(urlsColl);
+        urls.addAll(urlsColl);
+        urls.addAll(urlsColl);
+        urls.addAll(urlsColl);
+
         val acceptedCnt = new AtomicInteger(0);
         val formatManager = formatManagerFactory.create(handlers);
         // hash set would take much time to recalculate hashes and copy data when growing;
         val crawledUrls = new TreeSet<URL>((o1, o2) -> o1.toExternalForm().compareTo(o2.toExternalForm()));
         val lock = new ReentrantReadWriteLock();
-
-        @Value
-        class Loop implements Runnable {
+        // runs crawling in a loop
+        class Looper implements Callable<Void> , Runnable {
 
             @Override
             public void run() {
+                try {
+                    call();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public Void call() throws Exception {
 
                 while (canRun()) {
+                    log.log(Level.INFO, String.format("#mThread %s", Thread.currentThread()));
                     final URL url;
 
                     try {
@@ -139,9 +156,11 @@ public class Crawler implements ICrawler {
                         lock.writeLock().unlock();
                     }
 
-                    if (callback != null) {
-                        callback.onUrlEntered(url);
-                    }
+                 //   if (callback != null) {
+                   //     callback.onUrlEntered(url);
+                 //   }
+
+                   // Thread.yield();
 
                     try {
 
@@ -156,9 +175,9 @@ public class Crawler implements ICrawler {
                             // can be analyzed by crawler
                             log.log(Level.INFO, String.format("Rejected page: url %s", url));
 
-                            if (callback != null) {
-                                callback.onPageRejected(page);
-                            }
+                           // if (callback != null) {
+                           //     callback.onPageRejected(page);
+                           // }
                         } else {
                             log.log(Level.INFO, String.format("Accepted page: url %s", url));
                             acceptedCnt.incrementAndGet();
@@ -177,46 +196,65 @@ public class Crawler implements ICrawler {
                                                     lock.writeLock().unlock();
                                                 }
 
-                                                formatManager.processPage(result.getPageID(), page);
+                                                //formatManager.processPage(result.getPageID(), page);
                                             }
                                     );
 
-                            if (callback != null) {
-                                callback.onPageAccepted(page);
-                            }
+                           // if (callback != null) {
+                            //    callback.onPageAccepted(page);
+                            //}
                         }
                         // TODO: 1/30/2017 add sleeping logic
-                        //Thread.sleep(100);
+                        //Thread.sleep(schedulerSetting.getProcessingDelay());
 
                     } catch (final /*InterruptedException |*/ IOException e) {
                         log.log(Level.WARNING, String.format("Failed to extract page content for url %s", url), e);
 
-                        if (callback != null) {
-                            callback.onException(url, e);
-                        }
+                       // if (callback != null) {
+                         //   callback.onException(url, e);
+                      //  }
                     }
                 }
+                return null;
             }
 
             private boolean canRun() {
                 try {
                     lock.readLock().lock();
-                    return canRun && !urls.isEmpty()
-                            && predicate.canRun(crawledUrls, acceptedCnt.get());
+                    return !urls.isEmpty() && predicate.canRun(crawledUrls, acceptedCnt.get());
                 } finally {
                     lock.readLock().unlock();
                 }
             }
+        }
+        Conditions.isNull(executor);
+      //  List<Looper> callables = new ArrayList<>(schedulerSetting.getProcessingThreads());
+        executor = Executors.newFixedThreadPool(schedulerSetting.getProcessingThreads());
 
+        Collection<Future<?>> future = new ArrayList<>();
+
+        for (int i = 0; i < schedulerSetting.getProcessingThreads(); ++i) {
+            future.add(executor.submit((Runnable) new Looper()));
+            //callables.add(new Looper());
         }
 
-        val scheduler = Executors.newFixedThreadPool(maxThreads);
+        executor.shutdown();
 
-        for (int i = 0; i < maxThreads; ++i) {
-            scheduler.execute(new Loop());
+        for(Future<?> f : future) {
+            try {
+                f.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
         }
 
-        scheduler.shutdown();
+       // try {
+         //   executor.invokeAll(callables);
+        //} catch (InterruptedException e) {
+          //  callback.onException(null, e);
+        //}
     }
 
     /**
@@ -225,10 +263,10 @@ public class Crawler implements ICrawler {
      */
     private static void checkPreConditions(Collection<Object> handlers, Collection<URL> urlsColl) {
 
-        if (Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
+        if (Conditions.isNotNull(handlers, "handlers == null").isEmpty())
             throw new IllegalArgumentException("no handlers passed");
 
-        if (Preconditions.checkNotNull(urlsColl, "urls == null").isEmpty())
+        if (Conditions.isNotNull(urlsColl, "urls == null").isEmpty())
             throw new IllegalArgumentException("no start urls passed");
     }
 

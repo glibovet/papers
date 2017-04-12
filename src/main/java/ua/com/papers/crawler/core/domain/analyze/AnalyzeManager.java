@@ -8,9 +8,9 @@ import ua.com.papers.crawler.settings.PageSetting;
 import ua.com.papers.crawler.util.PageUtils;
 
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -27,16 +27,16 @@ public class AnalyzeManager implements IAnalyzeManager {
 
     @NotNull
     @Override
-    public Collection<Result> analyze(@NotNull Page page) {
+    public Set<Result> analyze(@NotNull Page page) {
         // you cannot analyze page which is can't be transformed into
         // text document, for example, mp3 track
         return !PageUtils.canParse(page.getContentType()) ?
-                Collections.emptyList() :
+                Collections.emptySet() :
                 analyzers.entrySet()
                         .stream()
                         .map(entry -> new Tuple<>(entry.getKey(), entry.getValue().analyze(page)))
                         .filter(t -> t.v2().getResultWeight() >= t.v1().getMinWeight())
                         .map(Tuple::v2)
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toSet());
     }
 }

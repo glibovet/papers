@@ -1,6 +1,5 @@
 package ua.com.papers.controllers.web;
 
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,6 +8,7 @@ import ua.com.papers.crawler.core.creator.ICreator;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.test.ArticleComposer;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
@@ -36,7 +36,8 @@ public class TestController {
     private final IPublisherService publisherService;
     private final IAuthorService authorService;
     private final ArticleComposer articleComposer;
-    private final ICreator creator;
+
+    ICrawlerManager crawler;
 
     @Autowired
     public TestController(IPublicationService service, IPublisherService publisherService, IAuthorService authorService, ArticleComposer articleComposer, ICreator creator) {
@@ -44,41 +45,32 @@ public class TestController {
         this.publisherService = publisherService;
         this.authorService = authorService;
         this.articleComposer = articleComposer;
-        this.creator = creator;
+        this.crawler = creator.create();
     }
 
     @RequestMapping(value = {"/crawl"}, method = RequestMethod.GET)
     public String indexPage() {
 
-        val scheduler = creator.create();
-
-        scheduler.startCrawling(
+        crawler.startCrawling(
                 articleComposer.asHandlers(),
                 crawlCall()
         );
-        scheduler.stop();
+        return "index/index";
+    }
 
-        System.out.println("On done");
+    @RequestMapping(value = {"/stop"}, method = RequestMethod.GET)
+    public String stopIndexPage() {
+        crawler.stop();
         return "index/index";
     }
 
     @RequestMapping(value = {"/reindex"}, method = RequestMethod.GET)
     public String reIndex() {
-
-        val scheduler = creator.create();
-
-        scheduler.startIndexing(
+        crawler.startIndexing(
                 articleComposer.asHandlers(),
                 indexCall()
         );
 
-        scheduler.startCrawling(
-                articleComposer.asHandlers(),
-                crawlCall()
-        );
-        //scheduler.stop();
-
-        System.out.println("On done");
         return "index/index";
     }
 
@@ -195,6 +187,11 @@ public class TestController {
             @Override
             public void onLost(@NotNull Page page) {
                 System.out.println("On lost " + page.getUrl());
+            }
+
+            @Override
+            public void onException(@NotNull URL url, @NotNull Throwable th) {
+
             }
         };
     }

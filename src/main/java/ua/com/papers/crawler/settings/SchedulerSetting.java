@@ -10,17 +10,22 @@ public class SchedulerSetting {
 
     public static final long MIN_DELAY = 0L;
 
-    boolean isSeparatedIndexing;
-    int threads;
-    long startupDelay;
+    int indexThreads;
+    int processingThreads;
     long indexDelay;
+    long processingDelay;
 
     @lombok.Builder(builderClassName = "Builder")
-    private SchedulerSetting(int threads, long startupDelay, long indexDelay, boolean isSeparatedIndex) {
-        this.threads = threads;
-        this.startupDelay = toDelay(startupDelay);
+    private SchedulerSetting(int processingThreads, int indexThreads, long indexDelay, long processingDelay) {
+        Conditions.checkArgument(processingThreads >= 1,
+                String.format("invalid processing threads num, was %d", processingThreads));
+        Conditions.checkArgument(indexThreads >= 1,
+                String.format("invalid indexing threads num, was %d", indexThreads));
+
         this.indexDelay = toDelay(indexDelay);
-        this.isSeparatedIndexing = isSeparatedIndex;
+        this.processingDelay = toDelay(processingDelay);
+        this.processingThreads = processingThreads;
+        this.indexThreads = indexThreads;
     }
 
     private static long toDelay(long original) {

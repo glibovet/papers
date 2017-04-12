@@ -39,6 +39,6 @@ public class AppCrawlerFactory extends SimpleCrawlerFactory {
     @Override
     protected IPageIndexer createPageIndexer(@NotNull Settings settings, @NotNull IFormatManagerFactory formatFactory,
                                              @NotNull IAnalyzeManager analyzeManager) {
-        return new PageIndexer(repository, formatFactory, analyzeManager);
+        return new PageIndexer(repository, formatFactory, analyzeManager, settings.getSchedulerSetting());
     }
 }

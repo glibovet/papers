@@ -1,22 +1,17 @@
 package ua.com.papers.crawler.core.domain.schedule;
 
 import com.google.common.base.Preconditions;
-import lombok.*;
-import lombok.experimental.NonFinal;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Value;
 import lombok.extern.java.Log;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.settings.SchedulerSetting;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Collection;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 /**
  * <p>
@@ -32,22 +27,57 @@ public class CrawlerManager implements ICrawlerManager {
     IPageIndexer indexer;
     ICrawler crawler;
     Collection<URL> startUrls;
-    SchedulerSetting setting;
-
-    @NonFinal ScheduledExecutorService executorService;
-    @NonFinal volatile boolean isCrawling;
-    @NonFinal volatile boolean isIndexing;
 
     CrawlProxy crawlProxy;
+    IndexProxy indexProxy;
 
-    @Data
-    private final class CrawlProxy implements ICrawler.Callback {
+    private final class IndexProxy implements IPageIndexer.Callback {
 
-        private ICrawler.Callback original;
+        IPageIndexer.Callback original;
+        volatile boolean isIndexing;
 
         @Override
         public void onStart() {
             original.onStart();
+            isIndexing = true;
+        }
+
+        @Override
+        public void onStop() {
+            original.onStop();
+            isIndexing = false;
+        }
+
+        @Override
+        public void onIndexed(@NotNull Page page) {
+            original.onIndexed(page);
+        }
+
+        @Override
+        public void onUpdated(@NotNull Page page) {
+            original.onUpdated(page);
+        }
+
+        @Override
+        public void onLost(@NotNull Page page) {
+            original.onLost(page);
+        }
+
+        @Override
+        public void onException(@NotNull URL url, @NotNull Throwable th) {
+            original.onException(url, th);
+        }
+    }
+
+    private final class CrawlProxy implements ICrawler.Callback {
+
+        ICrawler.Callback original;
+        volatile boolean isCrawling;
+
+        @Override
+        public void onStart() {
+            original.onStart();
+            isCrawling = true;
         }
 
         @Override
@@ -79,18 +109,17 @@ public class CrawlerManager implements ICrawlerManager {
     }
 
     @lombok.Builder(builderClassName = "Builder")
-    private CrawlerManager(@NotNull ICrawler crawler, @NotNull SchedulerSetting setting, @NotNull IPageIndexer indexer,
+    private CrawlerManager(@NotNull ICrawler crawler, @NotNull IPageIndexer indexer,
                            @NotNull Collection<URL> startUrls) {
 
         if (Preconditions.checkNotNull(startUrls, "startUrls == null").isEmpty())
             throw new IllegalArgumentException("no start urls passed");
 
-        this.setting = Preconditions.checkNotNull(setting);
         this.crawler = Preconditions.checkNotNull(crawler);
         this.startUrls = startUrls;
         this.indexer = Preconditions.checkNotNull(indexer);
         this.crawlProxy = new CrawlProxy();
-        this.executorService = createExecutor(setting.isSeparatedIndexing());
+        this.indexProxy = new IndexProxy();
     }
 
     @Override
@@ -101,20 +130,11 @@ public class CrawlerManager implements ICrawlerManager {
 
         Preconditions.checkNotNull(crawlCallback, "crawl callback == null");
 
-        if (!isCrawling) {
+        if (!crawlProxy.isCrawling) {
             // start crawler job
-            crawlProxy.setOriginal(crawlCallback);
-            executorService.schedule(() -> {
-                isCrawling = true;
-                try {
-                    crawler.start(crawlProxy, handlers, startUrls);
-                } catch (final Exception e) {
-                    log.log(Level.SEVERE, "Error occurred while running crawler", e);
-                } finally {
-                    stop();
-                    isCrawling = false;
-                }
-            }, setting.getStartupDelay(), TimeUnit.MILLISECONDS);
+            crawlProxy.isCrawling = true;
+            crawlProxy.original = crawlCallback;
+            crawler.start(crawlProxy, handlers, startUrls);
         }
     }
 
@@ -126,72 +146,27 @@ public class CrawlerManager implements ICrawlerManager {
 
         Preconditions.checkNotNull(indexCallback, "index callback == null");
 
-        if(!isIndexing) {
-            // runs periodical indexing
-            executorService.scheduleWithFixedDelay(() -> {
-                isIndexing = true;
-                try {
-                    indexer.index(indexCallback, handlers);
-                } catch (final Exception e) {
-                    log.log(Level.SEVERE, "Failed to start indexer service", e);
-                } finally {
-                    stop();
-                    isIndexing = false;
-                }
-            }, setting.getStartupDelay(), setting.getIndexDelay(), TimeUnit.MILLISECONDS);
+        if(!indexProxy.isIndexing) {
+            indexProxy.isIndexing = true;
+            indexProxy.original = indexCallback;
+            indexer.index(indexProxy, handlers);
         }
     }
 
     @Override
     public boolean isCrawling() {
-        return isCrawling;
+        return crawlProxy.isCrawling;
     }
 
     @Override
     public boolean isIndexing() {
-        return isIndexing;
+        return indexProxy.isIndexing;
     }
 
     @Override
     public void stop() {
-        executorService.shutdown();
-        executorService = createExecutor(setting.isSeparatedIndexing());
-    }
-
-    @Override
-    public void stop(long timeout, @Nullable ErrorCallback callback) {
-
-        executorService.shutdownNow();
-
-        try {
-            executorService.awaitTermination(timeout, TimeUnit.MILLISECONDS);
-        } catch (final InterruptedException e) {
-            log.log(Level.WARNING, "Failed to stop executor service correctly", e);
-
-            if (callback != null) {
-                callback.onException(e);
-            }
-        } finally {
-            executorService = createExecutor(setting.isSeparatedIndexing());
-        }
-    }
-
-    private static ScheduledExecutorService createExecutor(boolean isSeparatedIndex) {
-
-        if (!isSeparatedIndex) {
-            return Executors.newSingleThreadScheduledExecutor();
-        }
-        return Executors.newScheduledThreadPool(2);
-    }
-
-    /**
-     * min delay which can be accepted by thread executor
-     *
-     * @param value argument to test
-     * @return value if value is greater than zero or zero in another case
-     */
-    private static long minExecutorDelay(long value) {
-        return value < 0L ? 0L : value;
+        crawler.stop();
+        indexer.stop();
     }
 
 }
