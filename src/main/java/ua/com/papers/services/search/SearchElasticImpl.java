@@ -1,6 +1,7 @@
 package ua.com.papers.services.search;
 
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -80,11 +81,13 @@ public class SearchElasticImpl implements ISearchService {
     }
 
     private SearchHits query(String query, int offset){
-        QueryBuilder qb = QueryBuilders.simpleQueryStringQuery(query)
-                .field("title")
-                .field("annotation")
-                .field("authors")
-                .field("body.content");
+        QueryBuilder qb = QueryBuilders.multiMatchQuery(query)
+                .field("title").boost(3)
+                .field("annotation").boost(2)
+                .field("authors").boost(2)
+                .field("body.content")
+                .fuzziness(Fuzziness.AUTO);
+
         SearchResponse sr = client.prepareSearch()
                 .setQuery(qb)
                 .setFrom(offset)
