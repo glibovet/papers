@@ -60,7 +60,8 @@ public class TestController {
 
     @RequestMapping(value = {"/stop"}, method = RequestMethod.GET)
     public String stopIndexPage() {
-        crawler.stop();
+        crawler.stopCrawling();
+        crawler.stopIndexing();
         return "index/index";
     }
 

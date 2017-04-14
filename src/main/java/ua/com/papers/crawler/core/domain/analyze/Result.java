@@ -4,6 +4,9 @@ import lombok.Value;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 
 /**
+ * <p>
+ *     Page analyze result
+ * </p>
  * Created by Максим on 12/18/2016.
  */
 @Value

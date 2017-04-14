@@ -5,7 +5,6 @@ import org.springframework.validation.annotation.Validated;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.util.PageHandler;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Collection;
@@ -67,7 +66,7 @@ public interface ICrawler {
          * @param url page's url which caused exception
          * @param th  failure cause
          */
-        default void onException(@Nullable URL url, @NotNull Throwable th) {
+        default void onException(@NotNull URL url, @NotNull Throwable th) {
         }
 
     }
@@ -80,7 +79,7 @@ public interface ICrawler {
      * @param callback callback to monitor progress status
      * @param urls     start urls to process
      */
-    void start(@Nullable Callback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urls);
+    void start(@NotNull Callback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urls);
 
     /**
      * Stops crawler. <i>Note, that invocation of this method doesn't guarantee that crawler

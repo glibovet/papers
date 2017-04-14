@@ -7,6 +7,7 @@ import ua.com.papers.crawler.core.domain.bo.Page;
 import javax.validation.constraints.NotNull;
 
 /**
+ * <p>Single page analyzer contract</p>
  * Created by Максим on 12/1/2016.
  */
 @Service

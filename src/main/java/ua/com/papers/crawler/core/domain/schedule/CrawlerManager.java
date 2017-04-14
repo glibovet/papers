@@ -164,13 +164,13 @@ public class CrawlerManager implements ICrawlerManager {
     }
 
     @Override
-    public void stop() {
+    public void stopCrawling() {
+        crawler.stop();
+    }
 
-        try {
-            crawler.stop();
-        } finally {
-            indexer.stop();
-        }
+    @Override
+    public void stopIndexing() {
+        indexer.stop();
     }
 
 }
