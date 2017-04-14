@@ -20,11 +20,12 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.TreeSet;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
@@ -45,7 +46,7 @@ public class Crawler implements ICrawler {
             (visitedUrls, acceptedPages) -> Runtime.getRuntime().freeMemory() > Crawler.getMinFreeMemory();
 
     @NonFinal
-    static int parsePageTimeout = 5_000;
+    static int parsePageTimeout = 5_000;// millis
     @NonFinal
     static long minFreeMemory = 20971520L;// 20 Mbytes
 
@@ -88,15 +89,12 @@ public class Crawler implements ICrawler {
     }
 
     @Override
-    public void start(@Nullable Callback callback, @NotNull Collection<Object> handlers,
+    public void start(@NotNull Callback callback, @NotNull Collection<Object> handlers,
                       @NotNull Collection<URL> urlsColl) {
 
-        Crawler.checkPreConditions(handlers, urlsColl);
+        Crawler.checkPreConditions(callback, handlers, urlsColl);
         stop();
-
-        if (callback != null) {
-            callback.onStart();
-        }
+        callback.onStart();
 
         try {
             // runs all analyzing job
@@ -105,9 +103,7 @@ public class Crawler implements ICrawler {
             // guaranties that callback's #stop
             // method will be called even if exception
             // occurs
-            if (callback != null) {
-                callback.onStop();
-            }
+            callback.onStop();
         }
     }
 
@@ -115,9 +111,6 @@ public class Crawler implements ICrawler {
     public void stop() {
 
         if(executor != null) {
-
-            log.log(Level.INFO, "#onStop");
-
             try {
                 executor.shutdownNow();
                 executor.awaitTermination(0, TimeUnit.MILLISECONDS);
@@ -137,8 +130,7 @@ public class Crawler implements ICrawler {
         val crawledUrls = new TreeSet<URL>((o1, o2) -> o1.toExternalForm().compareTo(o2.toExternalForm()));
         val lock = new ReentrantReadWriteLock();
         // runs crawling in a loop
-        @Value
-        class Looper implements Runnable {
+        @Value class Looper implements Runnable {
 
             int thIndex;
 
@@ -147,39 +139,36 @@ public class Crawler implements ICrawler {
 
                 try {
                     await();
-                }  catch (final InterruptedException e) {
-                    log.log(Level.INFO, String.format("Interrupted thread %s", Thread.currentThread()), e);
+                } catch (final InterruptedException e) {
+                    log.log(Level.INFO, String.format("#Interrupted thread %s", Thread.currentThread()), e);
                     return;
                 }
 
-                while (canRun()) {
-
-                    log.log(Level.INFO, Thread.currentThread()+"");
+                URL url;
+                while ((url = pollUrl()) != null) {
 
                     try {
-                        loop();
+                        loop(url);
                     } catch (final PageProcessException e) {
                         log.log(Level.WARNING, String.format("Failed to extract page content for url %s", e.getUrl()), e);
-
-                        if (callback != null) {
-                            callback.onException(e.getUrl(), e);
-                        }
+                        callback.onException(e.getUrl(), e);
                     } catch (final InterruptedException e) {
                         log.log(Level.INFO, String.format("Interrupted thread %s", Thread.currentThread()), e);
                         break;
                     }
                 }
-                log.log(Level.INFO, "#Thread finished " + Thread.currentThread());
+                log.log(Level.INFO, String.format("#Thread %s finished job", Thread.currentThread()));
             }
             // checks whether thread
             // can continue url processing
-            private boolean canRun() {
+            private URL pollUrl() {
                 try {
-                    lock.readLock().lock();
-                    return !Thread.currentThread().isInterrupted() && !urls.isEmpty()
+                    lock.writeLock().lock();
+                    val canRun = !Thread.currentThread().isInterrupted() && !urls.isEmpty()
                             && predicate.canRun(crawledUrls, acceptedCnt.get());
+                    return canRun ? urls.poll() : null;
                 } finally {
-                    lock.readLock().unlock();
+                    lock.writeLock().unlock();
                 }
             }
             // makes thread await for execution
@@ -195,7 +184,7 @@ public class Crawler implements ICrawler {
                             // is empty
                             break;
                         } else {
-                            log.log(Level.INFO, "awaiting " + Thread.currentThread());
+                            log.log(Level.INFO, String.format("Thread %s is waiting", Thread.currentThread()));
                         }
                     } finally {
                         lock.readLock().unlock();
@@ -204,31 +193,19 @@ public class Crawler implements ICrawler {
                 }
             }
             // runs url processing loop, the main logic resides here
-            private void loop() throws InterruptedException, PageProcessException {
+            private void loop(final URL url) throws InterruptedException, PageProcessException {
+                log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
 
-                final URL url;
-
-                try {
-                    lock.writeLock().lock();
-                    url = urls.poll();
-                } finally {
-                    lock.writeLock().unlock();
-                }
-
-                if (callback != null) {
-                    callback.onUrlEntered(url);
-                }
-
+                callback.onUrlEntered(url);
                 final Page page;
 
                 try {
-                    page = PageUtils.parsePage(url, parsePageTimeout);
-                } catch (IOException e) {
+                    page = PageUtils.parsePage(url, Crawler.parsePageTimeout);
+                } catch (final IOException e) {
                     throw new PageProcessException(e, url);
                 }
 
                 val analyzeRes = analyzeManager.analyze(page);
-
                 crawledUrls.add(url);
 
                 if (analyzeRes.isEmpty()) {
@@ -236,15 +213,12 @@ public class Crawler implements ICrawler {
                     // the analyze settings; NOTE that only pages with text content types
                     // can be analyzed by crawler
                     log.log(Level.INFO, String.format("Rejected page: url %s", url));
-
-                    if (callback != null) {
-                        callback.onPageRejected(page);
-                    }
+                    callback.onPageRejected(page);
                 } else {
                     log.log(Level.INFO, String.format("Accepted page: url %s", url));
                     acceptedCnt.incrementAndGet();
                     analyzeRes.forEach(result -> {
-                                // add urls
+                                // add urls to processing queue
                                 val extracted = urlExtractor.extract(result.getPageID(), page);
                                 try {
                                     lock.writeLock().lock();
@@ -258,38 +232,17 @@ public class Crawler implements ICrawler {
                                 formatManager.processPage(result.getPageID(), page);
                             }
                     );
-
-                    if (callback != null) {
-                        callback.onPageAccepted(page);
-                    }
+                    callback.onPageAccepted(page);
                 }
 
                 Thread.sleep(schedulerSetting.getProcessingDelay());
             }
         }
 
-        if(executor != null) {
-            stop();
-        }
-
-        //Conditions.isNull(executor, "Executor wasn't released properly");
-        Collection<Future<?>> futures = new ArrayList<>(schedulerSetting.getProcessingThreads());
         executor = Executors.newFixedThreadPool(schedulerSetting.getProcessingThreads());
-
         for (int i = 0; i < schedulerSetting.getProcessingThreads(); ++i) {
-            futures.add(executor.submit(new Looper(i)));
+            executor.submit(new Looper(i));
         }
-
-        for(Future<?> f : futures) {
-            try {
-                f.get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
         // await termination
         executor.shutdown();
     }
@@ -298,7 +251,9 @@ public class Crawler implements ICrawler {
      * Checks method preconditions; if preconditions aren't satisfied, then instance of
      * {@linkplain IllegalArgumentException} will be thrown
      */
-    private static void checkPreConditions(Collection<Object> handlers, Collection<URL> urlsColl) {
+    private static void checkPreConditions(Callback callback, Collection<Object> handlers, Collection<URL> urlsColl) {
+
+        Conditions.isNotNull(callback, "callback == null");
 
         if (Conditions.isNotNull(handlers, "handlers == null").isEmpty())
             throw new IllegalArgumentException("no handlers passed");

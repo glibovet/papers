@@ -6,6 +6,9 @@ import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 /**
+ * <p>
+ * Class which allows to analyze web-pages
+ * </p>
  * Created by Максим on 12/18/2016.
  */
 public interface IAnalyzeManager {

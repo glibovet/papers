@@ -91,7 +91,8 @@ public class PageIndexer implements IPageIndexer {
 
                 IPageIndexRepository.Index index;
 
-                while ((index = next()) != null) {
+                while (!Thread.currentThread().isInterrupted() && (index = next()) != null) {
+                    log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
 
                     try {
 
@@ -110,10 +111,16 @@ public class PageIndexer implements IPageIndexer {
                         } else {
                             callback.onIndexed(page);
                         }
+
+                        Thread.sleep(setting.getIndexDelay());
                     } catch (final IOException e) {
                         log.log(Level.WARNING, String.format("Failed to index %s", index));
+                    } catch (final InterruptedException e) {
+                        log.log(Level.INFO, String.format("#Interrupted thread %s", Thread.currentThread()), e);
+                        break;
                     }
                 }
+                log.log(Level.INFO, String.format("#Thread %s finished job", Thread.currentThread()));
             }
 
             private IPageIndexRepository.Index next() {
@@ -122,7 +129,6 @@ public class PageIndexer implements IPageIndexer {
                 }
             }
         }
-        Conditions.isNull(executor);
         executor = Executors.newFixedThreadPool(setting.getIndexThreads());
 
         for (int i = 0; i < setting.getIndexThreads(); ++i) {
@@ -137,6 +143,7 @@ public class PageIndexer implements IPageIndexer {
 
         if (executor != null) {
             try {
+                executor.shutdownNow();
                 executor.awaitTermination(0, TimeUnit.MILLISECONDS);
             } catch (final InterruptedException e) {
                 log.log(Level.WARNING, "Stopped unexpectedly", e);

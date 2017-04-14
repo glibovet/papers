@@ -15,11 +15,6 @@ import java.util.Collection;
  */
 public interface ICrawlerManager {
 
-    interface ErrorCallback {
-
-        void onException(@NotNull Throwable th);
-    }
-
     /**
      * Starts crawling. Each invocation of this method will create a new crawler and start job in a separate
      * thread for if configuration allows this, in another case task will be inserted at the end of the job queue
@@ -42,14 +37,26 @@ public interface ICrawlerManager {
      */
     void startIndexing(@NotNull Collection<Object> handlers, @NotNull IPageIndexer.Callback indexCallback);
 
+    /**
+     * @return true if crawling process is currently running
+     */
     boolean isCrawling();
 
+    /**
+     * @return true if indexing process is currently running
+     */
     boolean isIndexing();
 
     /**
      * Releases resources hold by crawler and stops
      * it
      */
-    void stop();
+    void stopCrawling();
+
+    /**
+     * Releases resources hold by indexer and stops
+     * it
+     */
+    void stopIndexing();
 
 }
