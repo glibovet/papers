@@ -7,7 +7,7 @@
 
     <scheduler-params>
         <index-delay>60000</index-delay>
-        <processing-delay>30000</processing-delay>
+        <processing-delay>3000</processing-delay>
         <processing-threads>4</processing-threads>
         <index-threads>4</index-threads>
     </scheduler-params>

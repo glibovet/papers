@@ -40,10 +40,10 @@
                 <jdbc.password>qwerty1</jdbc.password>
                 <jdbc.driverClassName>org.h2.Driver</jdbc.driverClassName>
                 <!--<jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>-->
-                <jdbc.database.name>project</jdbc.database.name>
+                <jdbc.database.name>project3</jdbc.database.name>
                <!-- <jdbc.database.server>localhost</jdbc.database.server-->
                 <jdbc.url>
-                    jdbc:h2:~/papers
+                    jdbc:h2:~/project3
                 </jdbc.url>
                 <!--<jdbc.url>
                     <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
