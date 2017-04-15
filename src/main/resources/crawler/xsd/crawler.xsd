@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- start of crawler tag -->
+    <xs:element name="crawler">
+        <xs:complexType>
+            <xs:all>
+                <xs:element name="pages" type="pages">
+                    <xs:unique name="onePageIdPerDoc">
+                        <xs:selector xpath="page"/>
+                        <xs:field xpath="@id"/>
+                    </xs:unique>
+                </xs:element>
+                <xs:element name="urls" type="urls"/>
+                <xs:element name="scheduler-params" type="scheduler-params"
+                            minOccurs="0"/>
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+    <!-- end of crawler tag -->
+
+    <xs:complexType name="scheduler-params">
+        <xs:all>
+            <xs:element name="startup-delay" type="nonNegativeLong"
+                        minOccurs="0"/>
+            <xs:element name="index-delay" type="nonNegativeLong"
+                        minOccurs="0"/>
+            <xs:element name="threads" type="xs:positiveInteger"
+                        minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="pages">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" name="page" type="page"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="page">
+        <xs:all>
+            <xs:element name="analyze-params" type="analyze-params"/>
+            <xs:element name="extract-params" type="extract-params"
+                        minOccurs="0">
+                <xs:unique name="oneId">
+                    <xs:selector xpath="extract"/>
+                    <xs:field xpath="@id"/>
+                </xs:unique>
+            </xs:element>
+            <xs:element name="url-params" type="url-params" minOccurs="0"/>
+        </xs:all>
+        <xs:attribute name="id" type="xs:integer" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="analyze-params">
+        <xs:sequence maxOccurs="unbounded">
+            <xs:element name="analyze">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="non-empty-string">
+                            <xs:attribute name="weight" type="analyze-weight"
+                                          use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="min-weight" type="analyze-weight"
+                      default="100"/>
+    </xs:complexType>
+
+    <xs:complexType name="extract-params">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="extract">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="non-empty-string">
+                            <xs:attribute name="id" type="xs:integer" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="url-params">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="extract">
+                <xs:complexType>
+                    <xs:attribute name="attr" type="non-empty-string" use="required"/>
+                    <xs:attribute name="selector" type="non-empty-string"
+                                  use="required"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- start of urls tag definition -->
+    <xs:complexType name="urls">
+        <xs:sequence>
+            <!-- single url tag -->
+            <xs:element maxOccurs="unbounded" name="url" type="xs:anyURI" />
+            <!-- single url tag -->
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- end of urls tag definition -->
+
+    <!-- util -->
+    <xs:simpleType name="analyze-weight">
+        <xs:restriction base="xs:nonNegativeInteger">
+            <xs:maxInclusive value="100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="nonNegativeLong">
+        <xs:restriction base="xs:long">
+            <xs:minInclusive value="0"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="non-empty-string">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

@@ -10,7 +10,7 @@
   <url>http://maven.apache.org</url>
 
   <properties>
-        <java-version>1.7</java-version>
+        <java-version>1.8</java-version>
         <!-- Build Properties -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -34,22 +34,22 @@
 
     <profiles>
         <profile>
-        <id>local</id>
-        <properties>
-            <jdbc.username>root</jdbc.username>
-            <jdbc.password>root</jdbc.password>
-            <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
-            <jdbc.database.name>papers</jdbc.database.name>
-            <jdbc.database.server>localhost</jdbc.database.server>
-            <jdbc.url>
-                <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
-            </jdbc.url>
-        </properties>
+            <id>local</id>
+            <properties>
+                <jdbc.username>root</jdbc.username>
+                <jdbc.password>root</jdbc.password>
+                <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
+                <jdbc.database.name>papers</jdbc.database.name>
+                <jdbc.database.server>localhost</jdbc.database.server>
+                <jdbc.url>
+                    <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
+                </jdbc.url>
+            </properties>
 
-        <activation>
-            <activeByDefault>true</activeByDefault>
-        </activation>
-    </profile>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
     </profiles>
 
   <dependencies>
@@ -59,6 +59,20 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+
+      <!-- Lombok dependency -->
+      <dependency>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok</artifactId>
+          <version>1.16.12</version>
+          <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>javax.el</groupId>
+          <artifactId>javax.el-api</artifactId>
+          <version>2.2.4</version>
+      </dependency>
 
     <!--Spring project-->
     <dependency>
@@ -297,8 +311,16 @@
           <artifactId>fluent-json</artifactId>
           <version>2.0.0</version>
       </dependency>
-
-
+      <dependency>
+          <groupId>org.jsoup</groupId>
+          <artifactId>jsoup</artifactId>
+          <version>1.10.1</version>
+      </dependency>
+      <dependency>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+          <version>2.0.1</version>
+      </dependency>
   </dependencies>
 
     <dependencyManagement>
