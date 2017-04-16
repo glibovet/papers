@@ -443,10 +443,12 @@
           <plugin>
                     <groupId>com.jelastic</groupId>
                     <artifactId>jelastic-maven-plugin</artifactId>
-                    <version>1.7</version>
+                    <version>1.8</version>
                     <configuration>
                         <email>${jelastic.login}</email>
                         <password>${jelastic.pass}</password>
+						<context>papers</context>
+						<environment>papaers-server</environment>
                         <api_hoster>app.mircloud.host</api_hoster>
                     </configuration>
                 </plugin>		  
@@ -476,5 +478,17 @@
       </plugins>
 
   </build>
+  <pluginRepositories>
+	<pluginRepository>
+     <id>sonatype-oss-public</id>
+     <url>https://oss.sonatype.org/content/groups/public</url>
+     <releases>
+         <enabled>true</enabled>
+     </releases>
+     <snapshots>
+         <enabled>true</enabled>
+     </snapshots>
+ </pluginRepository>
+  </pluginRepositories
 
 </project>
