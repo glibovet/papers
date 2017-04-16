@@ -56,7 +56,7 @@
                 <jdbc.username>papers</jdbc.username>
                 <jdbc.password>7pzWNDtg7l7k</jdbc.password>
                 <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
-                <jdbc.database.nikname>papers</jdbc.database.nikname>
+                <jdbc.database.name>papers</jdbc.database.name>
                 <jdbc.database.server>mysql30587-papaers-server.mircloud.host</jdbc.database.server>
                 <jdbc.url>jdbc:mysql://mysql30587-papaers-server.mircloud.host:3306/papers?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;connectionCollation=utf8_general_ci&amp;characterSetResults=UTF-8</jdbc.url>				
 				<jelastic.env>papaers-server</jelastic.env>
