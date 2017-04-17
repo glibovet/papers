@@ -152,3 +152,8 @@ body {
     opacity: 0.6;
     z-index: 500;
 }
+
+em {
+    font-weight: 700;
+    font-style: italic;
+}

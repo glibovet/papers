@@ -16,12 +16,12 @@
                 <h1 class="cover-heading">тут типу текст запрошення до пошуку</h1>
                 <p class="lead">знайдіть будь-яку наукову роботу в два кліки</p>
                 <p class="lead">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Дослідження морських котиків">
+                    <form class="input-group" action="/search" method="get">
+                        <input name="q" type="text" class="form-control" placeholder="Дослідження морських котиків">
                         <span class="input-group-btn">
-                            <button class="btn btn-default" id="search" type="button">Шукати! <i class="fa fa-search" aria-hidden="true"></i></button>
+                            <button type="submit" class="btn btn-default" id="search" type="button">Шукати! <i class="fa fa-search" aria-hidden="true"></i></button>
                         </span>
-                    </div>
+                    </form>
                 </p>
             </div>
         </div>

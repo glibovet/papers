@@ -95,7 +95,7 @@ public class SearchElasticImpl implements ISearchService {
                 .addHighlightedField("title", 100, 1)
                 .addHighlightedField("authors", 50, 1)
                 .addHighlightedField("annotation", 100, 1)
-                .addHighlightedField("body.content", 100, 1)
+                .addHighlightedField("body.content", 500, 1)
                 .execute()
                 .actionGet();
         return sr.getHits();
