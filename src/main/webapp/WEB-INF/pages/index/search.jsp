@@ -49,7 +49,7 @@
                                 <h1> ${publication.title} </h1>
                                 <p> ${publication.body} </p>
                                 <span class="input-group-btn">
-                                    <a href="http://localhost:8080/api/storage/paper/${publication.id}" class="btn btn-default" type="button">Завантажити <i class="fa fa-download" aria-hidden="true"></i></a>
+                                    <a href="/api/storage/paper/${publication.id}" class="btn btn-default" type="button">Завантажити <i class="fa fa-download" aria-hidden="true"></i></a>
                                 </span>
 
                             </div>
