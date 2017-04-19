@@ -224,7 +224,7 @@ public class ElasticSearchImpl implements IElasticSearch{
             try {
                 Settings settings = Settings.settingsBuilder()
                         .put("cluster.name", elasticClusterName).build();
-                client = TransportClient.builder()/*.settings(settings)*/.build()
+                client = TransportClient.builder().settings(settings).build()
                         .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticHost), elasticPort));
             } catch (UnknownHostException e) {}
         }
