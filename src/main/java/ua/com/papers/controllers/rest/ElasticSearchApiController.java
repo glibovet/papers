@@ -44,6 +44,14 @@ public class ElasticSearchApiController {
     }
 
     @RequestMapping(
+            value = "/index_all",
+            method = RequestMethod.POST
+    )
+    public @ResponseBody Response<Boolean> indexAll() throws ForbiddenException, ElasticSearchError {
+        return responseFactory.get(elasticSearch.indexAll());
+    }
+
+    @RequestMapping(
             value = "/index",
             method = RequestMethod.DELETE
     )

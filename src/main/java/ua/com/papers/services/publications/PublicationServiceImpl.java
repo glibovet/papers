@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by Andrii on 26.09.2016.
@@ -148,6 +149,16 @@ public class PublicationServiceImpl implements IPublicationService{
     @Transactional
     public void removePublicationsFromIndex() {
         publicationRepository.removePublicationsFromIndex();
+    }
+
+    @Override
+    @Transactional
+    public List<PublicationEntity> getAllPublications() {
+        List<PublicationEntity> list = publicationRepository.findAll();
+        if (list == null) {
+            return new ArrayList<>();
+        }
+        return list;
     }
 
     private void merge(PublicationEntity entity, PublicationView view) throws NoSuchEntityException {

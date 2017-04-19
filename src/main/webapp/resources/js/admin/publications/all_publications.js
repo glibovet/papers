@@ -211,7 +211,7 @@
 
     function indexAll($scope, $http, Notification) {
         Notification({message: 'почата індексація всіх публікацій'}, 'info');
-        $http.post('/api/elastic/index', {}, {headers: HEADERS})
+        $http.post('/api/elastic/index_all', {}, {headers: HEADERS})
             .then(function(response){
                 if (response.data.result) {
                     Notification({message: 'закінчено індексування публікацій'}, 'success');

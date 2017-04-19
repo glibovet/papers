@@ -35,4 +35,6 @@ public interface IPublicationService {
     int countPublications(String restriction) throws WrongRestrictionException;
 
     void removePublicationsFromIndex();
+
+    List<PublicationEntity> getAllPublications();
 }

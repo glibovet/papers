@@ -32,6 +32,7 @@ import ua.com.papers.storage.IStorageService;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import static org.elasticsearch.client.Requests.createIndexRequest;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
@@ -97,7 +98,35 @@ public class ElasticSearchImpl implements IElasticSearch{
         if (!indexExist()){
             return createIndex();
         }
+
         PublicationEntity publication = publicationService.getPublicationById(id);
+        return indexPublication(publication);
+    }
+
+    @Override
+    @Transactional
+    public boolean indexAll() throws ForbiddenException, ElasticSearchError {
+        if(!sessionUtils.isUserWithRole(RolesEnum.admin))
+            throw new ForbiddenException();
+        if (client == null)
+            initializeIndex();
+        if (!indexExist()){
+            return createIndex();
+        }
+
+        List<PublicationEntity> entities = publicationService.getAllPublications();
+        for (PublicationEntity entity : entities) {
+            try {
+                indexPublication(entity);
+            } catch (ValidationException | NoSuchEntityException |ServiceErrorException e) {
+                // nothing to do
+            }
+        }
+
+        return true;
+    }
+
+    private boolean indexPublication(PublicationEntity publication) throws NoSuchEntityException, ServiceErrorException, ForbiddenException, ValidationException {
         XContentBuilder builder = buildPublicationJsonForIndexing(publication);
         if (builder == null)
             return false;
@@ -106,7 +135,6 @@ public class ElasticSearchImpl implements IElasticSearch{
                 .execute()
                 .actionGet();
         publication.setInIndex(true);
-        publication.setStatus(PublicationStatusEnum.ACTIVE);
         publicationService.updatePublication(publication);
         return true;
     }

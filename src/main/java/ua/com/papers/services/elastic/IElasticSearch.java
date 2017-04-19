@@ -15,4 +15,6 @@ public interface IElasticSearch {
     Boolean indexDelete() throws ElasticSearchError, ForbiddenException;
 
     Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchError;
+
+    boolean indexAll() throws ForbiddenException, ElasticSearchError;
 }
