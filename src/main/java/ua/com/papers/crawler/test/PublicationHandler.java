@@ -120,7 +120,7 @@ public class PublicationHandler {
         if (url == null) {
             log.log(Level.WARNING, "Failed to parse document url");
         } else {
-            publicationView.setLink(url.toExternalForm());
+            publicationView.setFile_link(url.toExternalForm());
         }
     }
 
@@ -133,8 +133,11 @@ public class PublicationHandler {
     }
 
     @PostHandle(group = 1)
-    public void postPublication() {
+    public void postPublication(Page page) {
         log.log(Level.INFO, String.format("#postPublication %s", getClass()));
+
+        // save parsed page link
+        publicationView.setLink(page.getUrl().toExternalForm());
 
         val isValid = !TextUtils.isEmpty(publicationView.getLink())
                 && !TextUtils.isEmpty(publicationView.getTitle())

@@ -83,6 +83,15 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Override
     @Transactional
+    public List<PublicationEntity> getPublications(int offset, int limit, PublicationCriteria criteria) throws NoSuchEntityException {
+        List<PublicationEntity> list = criteriaRepository.find(criteria);
+        if(list == null || list.isEmpty())
+            throw new NoSuchEntityException("publication", String.format("[offset: %d, limit: %d]", offset, limit));
+        return list;
+    }
+
+    @Override
+    @Transactional
     public List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException {
         return publicationConverter.convert(getPublications(offset, limit, restrict), fields);
     }
@@ -146,6 +155,8 @@ public class PublicationServiceImpl implements IPublicationService{
         else view.setType(entity.getType());
         if (view.getLink()!=null&&!"".equals(view.getLink())) entity.setLink(view.getLink());
         else view.setLink(entity.getLink());
+        if (view.getFile_link()!=null&&!"".equals(view.getFile_link())) entity.setFileLink(view.getFile_link());
+        else view.setFile_link(entity.getFileLink());
         if (view.getPublisher_id() != null && view.getPublisher_id()!=0){
             entity.setPublisher(publisherService.getPublisherById(view.getPublisher_id()));
         }else if (entity.getPublisher()!=null)

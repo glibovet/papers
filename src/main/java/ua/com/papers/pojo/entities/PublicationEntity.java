@@ -67,6 +67,9 @@ public class PublicationEntity implements Serializable {
     @Column(name="fileNameOriginal")
     private String fileNameOriginal;
 
+    @Column(name = "file_link")
+    private String fileLink;
+
     public String getFileNameOriginal() {
         return fileNameOriginal;
     }
@@ -153,6 +156,14 @@ public class PublicationEntity implements Serializable {
 
     public void setAuthors(Set<AuthorMasterEntity> authors) {
         this.authors = authors;
+    }
+
+    public String getFileLink() {
+        return fileLink;
+    }
+
+    public void setFileLink(String fileLink) {
+        this.fileLink = fileLink;
     }
 
     public void addAuthor(AuthorMasterEntity author) {

@@ -11,6 +11,7 @@ public class Fields {
         public static final String ANNOTATION = "annotation";
         public static final String TYPE = "type";
         public static final String LINK = "link";
+        public static final String FILE_LINK = "file_link";
         public static final String PUBLISHER = "publisher_id";
         public static final String IN_INDEX = "in_index";
         public static final String STATUS = "status";

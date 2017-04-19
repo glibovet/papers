@@ -1,5 +1,6 @@
 package ua.com.papers.services.publications;
 
+import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ElasticSearchError;
@@ -22,6 +23,7 @@ public interface IPublicationService {
     Map<String, Object> getPublicationByIdMap(int id, Set<String> fields) throws NoSuchEntityException;
 
     List<PublicationEntity> getPublications(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException;
+    List<PublicationEntity> getPublications(int offset, int limit, PublicationCriteria criteria) throws NoSuchEntityException;
 
     List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException;
 

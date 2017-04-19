@@ -11,6 +11,7 @@ import ua.com.papers.pojo.enums.PublicationTypeEnum;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -19,6 +20,8 @@ import java.util.List;
 public class PublicationCriteria extends Criteria<PublicationEntity> {
 
     private String query;
+    private String link;
+    private String title;
     private List<Integer> ids;
     private List<Integer> authors_id;
     private List<Integer> publishers_id;
@@ -40,6 +43,8 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
             this.publishers_id = parsed.publishers_id;
             this.status = parsed.status;
             this.type = parsed.type;
+            this.link = parsed.link;
+            this.title = parsed.title;
         }
     }
 
@@ -91,6 +96,22 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         this.type = type;
     }
 
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     @Override
     public Query createQuery(EntityManager em) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -139,6 +160,16 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
             Predicate p4 = cb.like(expression, likeQuery);
 
             query.where(cb.or(p1, p2, p3, p4));
+        }
+
+        if (this.link != null && !this.link.isEmpty()) {
+            Expression<String> expression = root.get("link");
+            query.where(cb.equal(expression, link));
+        }
+
+        if (this.title != null && !this.title.isEmpty()) {
+            Expression<String> expression = root.get("title");
+            query.where(cb.equal(expression, this.title));
         }
 
         if (this.status != null) {

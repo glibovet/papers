@@ -29,6 +29,8 @@ public class PublicationView {
 
     private List<Integer> authors_id;
 
+    private String file_link;
+
     public Integer getId() {
         return id;
     }
@@ -91,5 +93,13 @@ public class PublicationView {
 
     public void setAuthors_id(List<Integer> authors_id) {
         this.authors_id = authors_id;
+    }
+
+    public String getFile_link() {
+        return file_link;
+    }
+
+    public void setFile_link(String file_link) {
+        this.file_link = file_link;
     }
 }

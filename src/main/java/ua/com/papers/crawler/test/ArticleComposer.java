@@ -12,9 +12,14 @@ import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.util.PageHandler;
 import ua.com.papers.crawler.util.PostHandle;
 import ua.com.papers.crawler.util.PreHandle;
+import ua.com.papers.criteria.impl.PublicationCriteria;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ElasticSearchError;
+import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
@@ -83,7 +88,34 @@ public final class ArticleComposer {
 
             for (val publication : publicationViews) {
                 publication.setPublisher_id(publisherView.getId());
-                publicationService.createPublication(publication);
+
+                PublicationEntity fromDb = null;
+                try {
+                    PublicationCriteria criteria = new PublicationCriteria("{}");
+                    criteria.setLink(publication.getLink());
+                    criteria.setTitle(publication.getTitle());
+
+                    List<PublicationEntity> searchResult = publicationService.getPublications(0, 2, criteria);
+
+                    if (searchResult.size() == 1) {
+                        fromDb = searchResult.get(0);
+                    } else if (searchResult.size() > 1) {
+                        log.log(Level.WARNING, "More then one publication for `unique_page` [%s] found", page.getUrl().getPath());
+                    }
+                } catch (WrongRestrictionException | NoSuchEntityException e) {
+                    // nothing to do
+                }
+
+                if (fromDb != null) {
+                    publication.setId(fromDb.getId());
+                    try {
+                        publicationService.updatePublication(publication);
+                    } catch (ForbiddenException | ElasticSearchError e) {
+                        log.log(Level.SEVERE, "Something bad happened while updating publication", e);
+                    }
+                } else {
+                    publicationService.createPublication(publication);
+                }
             }
 
             log.log(Level.INFO, String.format("page with url %s was successfully saved", page.getUrl()));
@@ -92,7 +124,7 @@ public final class ArticleComposer {
         } catch (final ValidationException e) {
             log.log(Level.SEVERE, "Fatal error occurred while saving publication", e);
             // finish execution immediately and fix error
-            throw new RuntimeException(e);
+            //throw new RuntimeException(e);
         }
     }
 
