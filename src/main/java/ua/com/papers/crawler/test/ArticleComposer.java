@@ -15,16 +15,14 @@ import ua.com.papers.crawler.util.PreHandle;
 import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.ElasticSearchError;
-import ua.com.papers.exceptions.service_error.ForbiddenException;
-import ua.com.papers.exceptions.service_error.ServiceErrorException;
-import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.exceptions.service_error.*;
 import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
+import ua.com.papers.storage.IStorageService;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -47,6 +45,7 @@ public final class ArticleComposer {
     IHandlerCallback callback;
     Collection<Object> subHandlers;
     List<PublicationView> publicationViews;
+    IStorageService storageService;
 
     @NonFinal
     private boolean isFailed;
@@ -55,8 +54,9 @@ public final class ArticleComposer {
 
     @Autowired
     public ArticleComposer(IAuthorService authorService, IPublisherService publisherService,
-                           IPublicationService publicationService) {
+                           IPublicationService publicationService, IStorageService storageService) {
         this.publicationService = publicationService;
+        this.storageService = storageService;
         this.publicationViews = new ArrayList<>();
         this.callback = createCallback();
         this.subHandlers = Arrays.asList(
@@ -106,15 +106,30 @@ public final class ArticleComposer {
                     // nothing to do
                 }
 
+                int id = 0;
                 if (fromDb != null) {
                     publication.setId(fromDb.getId());
                     try {
-                        publicationService.updatePublication(publication);
+                        id = publicationService.updatePublication(publication);
                     } catch (ForbiddenException | ElasticSearchError e) {
                         log.log(Level.SEVERE, "Something bad happened while updating publication", e);
                     }
                 } else {
-                    publicationService.createPublication(publication);
+                    id = publicationService.createPublication(publication);
+                }
+
+                if (id > 0 && publication.getFile_link() != null) {
+                    final int idCopy = id;
+                    final String url = publication.getFile_link();
+                    //new Thread(() -> {
+                        try {
+                            storageService.uploadPaper(idCopy, url);
+                        } catch (NoSuchEntityException e) {
+                            e.printStackTrace();
+                        } catch (StorageException e) {
+                            e.printStackTrace();
+                        }
+                    //}).start();
                 }
             }
 

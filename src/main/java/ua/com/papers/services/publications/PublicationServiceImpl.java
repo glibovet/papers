@@ -153,23 +153,40 @@ public class PublicationServiceImpl implements IPublicationService{
     private void merge(PublicationEntity entity, PublicationView view) throws NoSuchEntityException {
         if (view.getId()!=null) entity.setId(view.getId());
         else view.setId(entity.getId());
+
         if (view.getTitle()!=null&&!"".equals(view.getTitle())) entity.setTitle(view.getTitle());
         else view.setTitle(entity.getTitle());
+
         if (view.getAnnotation()!=null&&!"".equals(view.getAnnotation())) entity.setAnnotation(view.getAnnotation());
         else view.setAnnotation(entity.getAnnotation());
+
         if (view.getType()!=null) entity.setType(view.getType());
         else view.setType(entity.getType());
+
         if (view.getLink()!=null&&!"".equals(view.getLink())) entity.setLink(view.getLink());
         else view.setLink(entity.getLink());
+
+
+        if (view.getFile_link() != null && !view.getFile_link().equals(entity.getFileLink())) {
+            // should update original file name
+            int slash = view.getFile_link().lastIndexOf('/');
+            if (slash > -1) {
+                entity.setFileNameOriginal(view.getFile_link().substring(slash+1));
+            } else {
+                entity.setFileNameOriginal(view.getFile_link());
+            }
+        }
         if (view.getFile_link()!=null&&!"".equals(view.getFile_link())) entity.setFileLink(view.getFile_link());
         else view.setFile_link(entity.getFileLink());
+
         if (view.getPublisher_id() != null && view.getPublisher_id()!=0){
             entity.setPublisher(publisherService.getPublisherById(view.getPublisher_id()));
         }else if (entity.getPublisher()!=null)
             view.setPublisher_id(entity.getPublisher().getId());
+
         if (view.getStatus() != null)entity.setStatus(view.getStatus());
         else view.setStatus(entity.getStatus());
-            view.setPublisher_id(entity.getPublisher().getId());
+
         if(view.getAuthors_id() != null && !view.getAuthors_id().isEmpty()) {
             // FIXME: 2/19/2017 remove workaround
             Set<AuthorMasterEntity> entities;

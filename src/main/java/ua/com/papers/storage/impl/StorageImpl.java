@@ -30,7 +30,17 @@ public class StorageImpl implements IStorage {
     public void upload(byte[] file, String fileName, String folder) throws StorageException {
         InputStream inputStream = new ByteArrayInputStream(file);
         try {
-            client().files().uploadBuilder(fullPath(fileName, folder))
+            String path = fullPath(fileName, folder);
+            try {
+                Metadata metadata = client().files().getMetadata(path);
+                if (metadata != null && metadata.getName() != null) {
+                    client().files().delete(path);
+                }
+            } catch (GetMetadataErrorException e) {
+                // ignore
+            }
+
+            client().files().uploadBuilder(path)
                     .uploadAndFinish(inputStream);
         } catch (DbxException e) {
             throw new StorageException(e);

@@ -70,9 +70,7 @@ public class ElasticSearchApiController {
     @ResponseBody
     Response<List<PublicationDTO>> searchPublication(@RequestParam("q") String query,
                                                         @RequestParam(value = "offset",  required = false, defaultValue = "0") int offset){
-        List<PublicationDTO> publications = searchService.search(query, offset);
-        System.out.println(publications);
-        return responseFactory.get(publications);
+        return responseFactory.get(searchService.search(query, offset));
     }
 
 }
