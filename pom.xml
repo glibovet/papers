@@ -50,6 +50,18 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
         </profile>
+		<profile>
+            <id>prod</id>
+            <properties>
+                <jdbc.username>papers</jdbc.username>
+                <jdbc.password>7pzWNDtg7l7k</jdbc.password>
+                <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
+                <jdbc.database.name>papers</jdbc.database.name>
+                <jdbc.database.server>mysql30587-papaers-server.mircloud.host</jdbc.database.server>
+                <jdbc.url>jdbc:mysql://mysql30587-papaers-server.mircloud.host:3306/papers?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;connectionCollation=utf8_general_ci&amp;characterSetResults=UTF-8</jdbc.url>				
+				<jelastic.env>papaers-server</jelastic.env>
+            </properties>
+        </profile>		
     </profiles>
 
   <dependencies>
@@ -429,6 +441,18 @@
               </dependencies>
           </plugin>
           <plugin>
+                    <groupId>com.jelastic</groupId>
+                    <artifactId>jelastic-maven-plugin</artifactId>
+                    <version>1.8</version>
+                    <configuration>
+                        <email>${jelastic.login}</email>
+                        <password>${jelastic.pass}</password>
+						<context>papers</context>
+						<environment>papaers-server</environment>
+                        <api_hoster>app.mircloud.host</api_hoster>
+                    </configuration>
+                </plugin>		  
+          <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-dependency-plugin</artifactId>
               <version>2.3</version>
@@ -454,5 +478,17 @@
       </plugins>
 
   </build>
+  <pluginRepositories>
+	<pluginRepository>
+     <id>sonatype-oss-public</id>
+     <url>https://oss.sonatype.org/content/groups/public</url>
+     <releases>
+         <enabled>true</enabled>
+     </releases>
+     <snapshots>
+         <enabled>true</enabled>
+     </snapshots>
+ </pluginRepository>
+  </pluginRepositories>
 
 </project>
