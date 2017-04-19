@@ -118,20 +118,29 @@ public class SearchElasticImpl implements ISearchService {
             Map<String, HighlightField> highlightedFields = hit.getHighlightFields();
 
             publicationDTO.setId(publication.getId());
-            if (highlightedFields.containsKey("title"))
+            if (highlightedFields.containsKey("title")) {
                 publicationDTO.setTitle(highlightedFields.get("title").getFragments()[0].toString());
-            else publicationDTO.setTitle(fields.get("title").getValue().toString());
+            } else if (fields.containsKey("title")) {
+                publicationDTO.setTitle(fields.get("title").getValue().toString());
+            }
 
-            if (highlightedFields.containsKey("authors"))
+            if (highlightedFields.containsKey("authors")) {
                 publicationDTO.setAuthors(highlightedFields.get("authors").getFragments()[0].toString());
-            else publicationDTO.setAuthors(fields.get("authors").getValue().toString());
+            } else if (fields.containsKey("authors")) {
+                publicationDTO.setAuthors(fields.get("authors").getValue().toString());
+            }
 
-            if (highlightedFields.containsKey("annotation"))
+            if (highlightedFields.containsKey("annotation")) {
                 publicationDTO.setAnnotation(highlightedFields.get("annotation").getFragments()[0].toString());
-            else publicationDTO.setAnnotation(fields.get("annotation").getValue().toString());
+            } else if (fields.containsKey("annotation")) {
+                publicationDTO.setAnnotation(fields.get("annotation").getValue().toString());
+            }
 
-            if (highlightedFields.containsKey("body.content"))
-               publicationDTO.setBody(highlightedFields.get("body.content").getFragments()[0].toString());
+            if (highlightedFields.containsKey("body.content")) {
+                publicationDTO.setBody(highlightedFields.get("body.content").getFragments()[0].toString());
+            } else if (fields.containsKey("body.content")) {
+                publicationDTO.setBody(fields.get("body.content").getValue());
+            }
 
             if (publication.getPublisher() != null) {
                 publicationDTO.setPublisher(publication.getPublisher().getTitle());
@@ -147,7 +156,7 @@ public class SearchElasticImpl implements ISearchService {
             try {
                 Settings settings = Settings.settingsBuilder()
                         .put("cluster.name", elasticClasterName).build();
-                client = TransportClient.builder().settings(settings).build()
+                client = TransportClient.builder()/*.settings(settings)*/.build()
                         .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticHost), elasticPort));
             } catch (UnknownHostException e) {}
         }

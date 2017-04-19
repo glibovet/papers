@@ -96,8 +96,8 @@ public class ElasticSearchImpl implements IElasticSearch{
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchError {
-        if(!sessionUtils.isUserWithRole(RolesEnum.admin))
-            throw new ForbiddenException();
+        //if(!sessionUtils.isUserWithRole(RolesEnum.admin))
+        //    throw new ForbiddenException();
         if (client == null)
             initializeIndex();
         if (!indexExist()){
@@ -187,7 +187,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                             startObject("content").
                                 field("type","string").
                                 field("term_vector","with_positions_offsets").
-                                field("store","true").
+                                field("store","yes").
                             endObject().
                         endObject().
                     endObject().
@@ -201,8 +201,8 @@ public class ElasticSearchImpl implements IElasticSearch{
         if (client==null){
             try {
                 Settings settings = Settings.settingsBuilder()
-                        .put("cluster.name", elasticClasterName).build();
-                client = TransportClient.builder().settings(settings).build()
+                        .put("cluster.name", elasticClusterName).build();
+                client = TransportClient.builder()/*.settings(settings)*/.build()
                         .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticHost), elasticPort));
             } catch (UnknownHostException e) {}
         }
@@ -215,7 +215,7 @@ public class ElasticSearchImpl implements IElasticSearch{
     private Integer elasticPort;
 
     @Value("${elasticsearch.cluster_name}")
-    private String elasticClasterName;
+    private String elasticClusterName;
 
     @Value("${elasticsearch.index}")
     private String elasticIndex;
