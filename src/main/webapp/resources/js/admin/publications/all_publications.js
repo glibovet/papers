@@ -28,6 +28,14 @@
             indexPublication(publication, $http, Notification);
         };
 
+        $scope.recreateIndex = function() {
+            recreateIndex($scope, $http, Notification);
+        };
+
+        $scope.indexAll = function() {
+            indexAll($scope, $http, Notification);
+        };
+
         authorAutocompete($scope, $http, Notification);
     });
 
@@ -134,11 +142,11 @@
     }
 
     function indexPublication(publication, $http, Notification) {
-        Notification({message: 'start indexing publication: [' + publication.title + ']'}, 'info');
+        Notification({message: 'індексується публікація: [' + publication.title + ']'}, 'info');
         $http.post('/api/elastic/publication/' + publication.id + '/index', {}, {headers: HEADERS})
             .then(function(response){
                 if (response.data.result) {
-                    Notification({message: 'finish indexing publication: [' + publication.title + ']'}, 'success');
+                    Notification({message: 'публікація проіндексована: [' + publication.title + ']'}, 'success');
                     publication.in_index = true;
                 } else {
                     Notification({message: errorMessage(response.data.error)}, 'error');
@@ -180,5 +188,44 @@
 
             $scope.filters.authors_id = [id];
         };
+    }
+
+    function recreateIndex($scope, $http, Notification) {
+        if (confirm('Ви точно бажаєте видалити індекс?')) {
+            Notification({message: 'почато видаленя індекса'}, 'info');
+            $http.delete('/api/elastic/index', {headers: HEADERS})
+                .then(function (response) {
+                    if (response.data.error) {
+                        Notification({message: error(response.data.error)}, 'error');
+                    } else {
+                        Notification({message: 'індекс видалено і створений новий'}, 'success');
+                        if ($scope.publications) {
+                            $scope.publications.forEach(function(p){
+                                p.in_index = false;
+                            });
+                        }
+                    }
+                });
+        }
+    }
+
+    function indexAll($scope, $http, Notification) {
+        Notification({message: 'почата індексація всіх публікацій'}, 'info');
+        $http.post('/api/elastic/index', {}, {headers: HEADERS})
+            .then(function(response){
+                if (response.data.result) {
+                    Notification({message: 'закінчено індексування публікацій'}, 'success');
+                    if ($scope.publications) {
+                        $scope.publications.forEach(function(p){
+                            p.in_index = true;
+                        });
+                    }
+                } else {
+                    Notification({message: errorMessage(response.data.error)}, 'error');
+                }
+            }, function(xhr){
+                console.log(xhr);
+                Notification({message: messages_admin['admin.ajax.error']}, 'error');
+            })
     }
 })();

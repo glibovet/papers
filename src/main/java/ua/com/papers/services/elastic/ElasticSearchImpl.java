@@ -1,8 +1,6 @@
 package ua.com.papers.services.elastic;
 
-import com.google.gson.JsonObject;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -13,19 +11,11 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.jglue.fluentjson.JsonBuilderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-import ua.com.papers.convertors.Fields;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ElasticSearchError;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
@@ -41,9 +31,7 @@ import ua.com.papers.storage.IStorageService;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.Date;
 
 import static org.elasticsearch.client.Requests.createIndexRequest;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
@@ -67,8 +55,8 @@ public class ElasticSearchImpl implements IElasticSearch{
 
     @Override
     public Boolean createIndexIfNotExist() throws ForbiddenException, ElasticSearchError {
-        //if(!sessionUtils.isUserWithRole(RolesEnum.admin))
-        //    throw new ForbiddenException();
+        if(!sessionUtils.isUserWithRole(RolesEnum.admin))
+            throw new ForbiddenException();
         if (!indexExist()){
             return createIndex();
         }
@@ -83,21 +71,27 @@ public class ElasticSearchImpl implements IElasticSearch{
                 .execute().actionGet().isExists();
     }
 
-    public Boolean indexDelete() throws ForbiddenException {
-        //if(!sessionUtils.isUserWithRole(RolesEnum.admin))
-        //    throw new ForbiddenException();
+    public Boolean indexDelete() throws ForbiddenException, ElasticSearchError {
+        if(!sessionUtils.isUserWithRole(RolesEnum.admin))
+            throw new ForbiddenException();
         if (client == null)
             initializeIndex();
         DeleteIndexResponse createResponse = client.admin().indices().prepareDelete(elasticIndex).execute()
                 .actionGet();
+        if (!createIndexIfNotExist()) {
+            return false;
+        }
+
+        publicationService.removePublicationsFromIndex();
+
         return true;
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchError {
-        //if(!sessionUtils.isUserWithRole(RolesEnum.admin))
-        //    throw new ForbiddenException();
+        if(!sessionUtils.isUserWithRole(RolesEnum.admin))
+            throw new ForbiddenException();
         if (client == null)
             initializeIndex();
         if (!indexExist()){

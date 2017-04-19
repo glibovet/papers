@@ -57,6 +57,12 @@
 
                 <button type="submit" class="btn btn-success"><spring:message code="admin.search" /></button>
             </form>
+            <br />
+            <hr />
+            <br />
+            <button class="btn btn-danger" ng-click="recreateIndex()">Очистити індекс і створити новий</button>
+            <%--<br />
+            <button class="btn btn-success" ng-click="indexAll()">Проіндексувати всі публікації</button>--%>
         </div>
         <div class="col-md-9">
             <table class="table">
@@ -116,8 +122,8 @@
                     </td>
                     <td>
                         <a href="/admin/publications/{{publication.id}}/edit" class="btn btn-success"><spring:message code="admin.edit" /></a>
-                        <%--<br />
-                        <button class="btn btn-danger" ng-click="deletePublication(publication)"><spring:message code="admin.delete" /></button>--%>
+                        <br />
+                        <button class="btn btn-info" ng-click="indexPublication(publication)">Проіндексувати</button>
                     </td>
                 </tr>
                 </tbody>

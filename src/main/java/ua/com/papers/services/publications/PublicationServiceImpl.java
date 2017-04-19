@@ -144,6 +144,12 @@ public class PublicationServiceImpl implements IPublicationService{
         return criteriaRepository.count(criteria);
     }
 
+    @Override
+    @Transactional
+    public void removePublicationsFromIndex() {
+        publicationRepository.removePublicationsFromIndex();
+    }
+
     private void merge(PublicationEntity entity, PublicationView view) throws NoSuchEntityException {
         if (view.getId()!=null) entity.setId(view.getId());
         else view.setId(entity.getId());
