@@ -155,7 +155,9 @@ public class SearchElasticImpl implements ISearchService {
         if (client==null){
             try {
                 Settings settings = Settings.settingsBuilder()
-                        .put("cluster.name", elasticClasterName).build();
+                        .put("cluster.name", elasticClusterName)
+                        .put("node.name", "ukma")
+                        .build();
                 client = TransportClient.builder().settings(settings).build()
                         .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticHost), elasticPort));
             } catch (UnknownHostException e) {}
@@ -251,7 +253,7 @@ public class SearchElasticImpl implements ISearchService {
     private Integer elasticPort;
 
     @Value("${elasticsearch.cluster_name}")
-    private String elasticClasterName;
+    private String elasticClusterName;
 
     @Value("${elasticsearch.index}")
     private String elasticIndex;
