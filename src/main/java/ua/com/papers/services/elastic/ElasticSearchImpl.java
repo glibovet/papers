@@ -224,7 +224,8 @@ public class ElasticSearchImpl implements IElasticSearch{
             try {
                 Settings settings = Settings.settingsBuilder()
                         .put("cluster.name", elasticClusterName)
-                        .put("node.name", "ukma")
+                        .put("client.transport.sniff",true)
+                        //.put("node.name", "ukma")
                         .build();
                 client = TransportClient.builder().settings(settings).build()
                         .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticHost), elasticPort));
