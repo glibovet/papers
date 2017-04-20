@@ -45,10 +45,6 @@
                     <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
                 </jdbc.url>
             </properties>
-
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
         </profile>
 		<profile>
             <id>prod</id>
@@ -61,6 +57,10 @@
                 <jdbc.url>jdbc:mysql://mysql30587-papaers-server.mircloud.host:3306/papers?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;connectionCollation=utf8_general_ci&amp;characterSetResults=UTF-8</jdbc.url>				
 				<jelastic.env>papaers-server</jelastic.env>
             </properties>
+
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
         </profile>		
     </profiles>
 
