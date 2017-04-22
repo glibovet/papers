@@ -28,7 +28,7 @@
 
         $scope.publishers = [];
 
-        $http.get('/api/publishers/?' + restrict($scope) + '&limit=' + LIMIT + '&offset=' + offset + '&' + FIELDS)
+        $http.get('/api/publishers/?restrict=' + UrlUtil.encode($scope.filters) + '&limit=' + LIMIT + '&offset=' + offset + '&' + FIELDS)
             .then(function(response){
                 if (response.data.error) {
                     Notification({message: errorMessage(response.data.error)}, 'error');
@@ -39,7 +39,7 @@
     }
 
     function countPublishers($scope, $http){
-        $http.get('/api/publishers/count?' + restrict($scope))
+        $http.get('/api/publishers/count?restrict=' + UrlUtil.encode($scope.filters))
             .then(function(response){
                 var pages = angular.element('#pages');
                 var page = $scope.filters.page || 0;
@@ -56,17 +56,6 @@
 
                 pages.val(page);
             });
-    }
-
-    function restrict($scope){
-        var f = $scope.filters;
-        return 'restrict=' + JSON.stringify({query: valid(f.query)});
-    }
-
-    function valid(val){
-        if(!val)
-            return null;
-        return val;
     }
 
     function deletePublisher(publisher, $scope, $http, Notification){

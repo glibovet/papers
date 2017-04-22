@@ -24,5 +24,28 @@
         return {};
     };
 
+    /**
+     *
+     * @param obj {Object} - object to be converted to json and encoded
+     * @return {String} encoded string
+     */
+    exports.encode = function(obj) {
+        var clone = {};
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                var value = valid(obj[key]);
+                if (value) {
+                    clone[key] = value;
+                }
+            }
+        }
+        return encodeURI(JSON.stringify(clone));
+    };
+
+    function valid(val){
+        if(!val)
+            return null;
+        return val;
+    }
 
 })(window.UrlUtil = {});
