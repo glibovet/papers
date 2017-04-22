@@ -60,7 +60,9 @@
             <br />
             <hr />
             <br />
-            <button class="btn btn-danger" ng-click="recreateIndex()">Очистити індекс і створити новий</button>
+            <button class="btn btn-danger" ng-click="deleteIndex()">Видалити індекс</button>
+            <br />
+            <button class="btn btn-success" ng-click="createIndex()">Створити порожній індекс</button>
             <br />
             <button class="btn btn-success" ng-click="indexAll()">Проіндексувати всі публікації</button>
         </div>

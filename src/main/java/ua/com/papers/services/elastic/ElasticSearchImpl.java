@@ -11,6 +11,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -72,15 +73,16 @@ public class ElasticSearchImpl implements IElasticSearch{
                 .execute().actionGet().isExists();
     }
 
-    public Boolean indexDelete() throws ForbiddenException, ElasticSearchError {
+    public Boolean indexDelete() throws ForbiddenException, ElasticSearchError, NoSuchEntityException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
             initializeIndex();
-        DeleteIndexResponse createResponse = client.admin().indices().prepareDelete(elasticIndex).execute()
-                .actionGet();
-        if (!createIndexIfNotExist()) {
-            return false;
+        try {
+            DeleteIndexResponse createResponse = client.admin().indices().prepareDelete(elasticIndex).execute()
+                    .actionGet();
+        } catch (IndexNotFoundException e) {
+            throw new ElasticSearchError("індекс все ще не створений");
         }
 
         publicationService.removePublicationsFromIndex();

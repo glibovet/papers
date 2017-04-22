@@ -9,6 +9,18 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ServiceErrorException extends PapersException {
 
+
+    private String message;
+
+    public ServiceErrorException(String message) {
+        super(message);
+        this.message = message;
+    }
+
+    public ServiceErrorException() {
+        this("Internal Server Error");
+    }
+
     @Override
     public int getCode(){
         return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -16,6 +28,6 @@ public class ServiceErrorException extends PapersException {
 
     @Override
     public String formMessage() {
-        return "Internal Server Error";
+        return message;
     }
 }

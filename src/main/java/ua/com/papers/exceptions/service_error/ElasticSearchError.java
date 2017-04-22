@@ -8,6 +8,18 @@ import javax.servlet.http.HttpServletResponse;
  * Created by Andrii on 12.11.2016.
  */
 public class ElasticSearchError extends PapersException {
+
+    private String message;
+
+    public ElasticSearchError(String message) {
+        super(message);
+        this.message = message;
+    }
+
+    public ElasticSearchError() {
+        this("Elastic Search problems!");
+    }
+
     @Override
     public int getCode(){
         return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -15,6 +27,6 @@ public class ElasticSearchError extends PapersException {
 
     @Override
     public String formMessage() {
-        return "Elastic Search problems!";
+        return message;
     }
 }

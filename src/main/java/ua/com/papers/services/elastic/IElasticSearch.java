@@ -12,7 +12,7 @@ import ua.com.papers.exceptions.service_error.ValidationException;
 public interface IElasticSearch {
     Boolean createIndexIfNotExist() throws ForbiddenException, ElasticSearchError;
     Boolean indexExist() throws ElasticSearchError;
-    Boolean indexDelete() throws ElasticSearchError, ForbiddenException;
+    Boolean indexDelete() throws ElasticSearchError, ForbiddenException, NoSuchEntityException;
 
     Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchError;
 
