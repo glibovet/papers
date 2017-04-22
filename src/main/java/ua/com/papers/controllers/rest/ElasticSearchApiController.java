@@ -3,6 +3,7 @@ package ua.com.papers.controllers.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ua.com.papers.exceptions.PapersException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ElasticSearchError;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
@@ -55,7 +56,7 @@ public class ElasticSearchApiController {
             value = "/index",
             method = RequestMethod.DELETE
     )
-    public @ResponseBody Response<Boolean> deleteIndex() throws ForbiddenException, ElasticSearchError {
+    public @ResponseBody Response<Boolean> deleteIndex() throws PapersException {
         return responseFactory.get(elasticSearch.indexDelete());
     }
 

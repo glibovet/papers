@@ -28,8 +28,12 @@
             indexPublication(publication, $http, Notification);
         };
 
-        $scope.recreateIndex = function() {
-            recreateIndex($scope, $http, Notification);
+        $scope.createIndex = function() {
+            createIndex($http, Notification);
+        };
+
+        $scope.deleteIndex = function() {
+            deleteIndex($scope, $http, Notification);
         };
 
         $scope.indexAll = function() {
@@ -98,7 +102,7 @@
             $http.delete('/api/publication/'+publication.id, {headers: HEADERS})
                 .then(function(response){
                     if (response.data.error) {
-                        Notification({message: error(response.data.error)}, 'error');
+                        Notification({message: errorMessage(response.data.error)}, 'error');
                     } else {
                         Notification({message: messages_admin['admin.deleted']}, 'success');
                         var index = $scope.publications.indexOf(publication);
@@ -190,17 +194,29 @@
         };
     }
 
-    function recreateIndex($scope, $http, Notification) {
-        if (confirm('Ви точно бажаєте видалити індекс?')) {
-            Notification({message: 'почато видаленя індекса'}, 'info');
+    function createIndex($http, Notification) {
+        Notification({message: 'почато створення індекса'}, 'info');
+        $http.post('/api/elastic/index', {}, {headers: HEADERS})
+            .then(function (response) {
+                if (response.data.error) {
+                    Notification({message: errorMessage(response.data.error)}, 'error');
+                } else {
+                    Notification({message: 'створений новий індекс'}, 'success');
+                }
+            });
+    }
+
+    function deleteIndex($scope, $http, Notification) {
+        if (confirm('Ви точно бажаєте видалити індекс')) {
+            Notification({message: 'почато видалення індекса'}, 'info');
             $http.delete('/api/elastic/index', {headers: HEADERS})
                 .then(function (response) {
                     if (response.data.error) {
-                        Notification({message: error(response.data.error)}, 'error');
+                        Notification({message: errorMessage(response.data.error)}, 'error');
                     } else {
-                        Notification({message: 'індекс видалено і створений новий'}, 'success');
+                        Notification({message: 'індекс видалено'}, 'success');
                         if ($scope.publications) {
-                            $scope.publications.forEach(function(p){
+                            $scope.publications.forEach(function (p) {
                                 p.in_index = false;
                             });
                         }
