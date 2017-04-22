@@ -50,7 +50,7 @@
 
         $scope.publications = [];
 
-        $http.get('/api/publication/?' + restrict($scope) + '&limit=' + LIMIT + '&offset=' + offset + '&' + FIELDS)
+        $http.get('/api/publication/?restrict=' + UrlUtil.encode($scope.filters) + '&limit=' + LIMIT + '&offset=' + offset + '&' + FIELDS)
             .then(function(response){
                 if (response.data.error) {
                     Notification({message: errorMessage(response.data.error)}, 'error');
@@ -67,7 +67,7 @@
     }
 
     function countPublications($scope, $http){
-        $http.get('/api/publication/count?' + restrict($scope))
+        $http.get('/api/publication/count?restrict=' + UrlUtil.encode($scope.filters))
             .then(function(response){
                 var pages = angular.element('#pages');
                 var page = $scope.filters.page || 0;
@@ -84,17 +84,6 @@
 
                 pages.val(page);
             });
-    }
-
-    function restrict($scope){
-        var f = $scope.filters;
-        return 'restrict=' + JSON.stringify({query: valid(f.query), authors_id: valid(f.authors_id), type: valid(f.type), status: valid(f.status)});
-    }
-
-    function valid(val){
-        if(!val)
-            return null;
-        return val;
     }
 
     function deletePublication(publication, $scope, $http, Notification){
@@ -117,16 +106,11 @@
     function getAuthors(publication, $http) {
         var ids = publication.authors_id;
 
-        $http.get('/api/authors/master/?fields=id,last_name,initials&restrict=' + JSON.stringify({ids: ids}))
+        $http.get('/api/authors/master/?fields=id,last_name,initials&restrict=' + UrlUtil.encode({ids: ids}))
             .then(function(response){
                 if (response.data.result) {
                     publication.authors = response.data.result;
-                } else {
-                    Notification({message: errorMessage(response.data.error)}, 'error');
                 }
-            }, function(xhr){
-                console.log(xhr);
-                Notification({message: messages_admin['admin.ajax.error']}, 'error');
             });
     }
 
@@ -175,7 +159,7 @@
         $scope.authors_autocompete = [];
 
         $scope.authorType = function(val) {
-            $http.get('/api/authors/master/?fields=id,last_name,initials&restrict=' + JSON.stringify({query: val}))
+            $http.get('/api/authors/master/?fields=id,last_name,initials&restrict=' + UrlUtil.encode({query: val}))
                 .then(function(response){
                     if (response.data.result) {
                         $scope.authors_autocompete = [];

@@ -58,7 +58,7 @@
         var ids = $scope.publication.authors_id;
 
         if (ids && ids.length) {
-            $http.get('/api/authors/master/?fields=id,last_name,initials&restrict=' + JSON.stringify({ids: ids}))
+            $http.get('/api/authors/master/?fields=id,last_name,initials&restrict=' + UrlUtil.encode({ids: ids}))
                 .then(function(response){
                     if (response.data.result) {
                         $scope.authors = response.data.result;
@@ -76,7 +76,7 @@
         $scope.authors_autocompete = [];
 
         $scope.authorType = function(val) {
-            $http.get('/api/authors/master/?fields=id,last_name,initials&restrict=' + JSON.stringify({query: val}))
+            $http.get('/api/authors/master/?fields=id,last_name,initials&restrict=' + UrlUtil.encode({query: val}))
                 .then(function(response){
                     if (response.data.result) {
                         $scope.authors_autocompete = [];
@@ -138,7 +138,7 @@
         $scope.publishers_autocompete = [];
 
         $scope.publisherType = function(val) {
-            $http.get('/api/publishers/?fields=id,title&restrict=' + JSON.stringify({query: val}))
+            $http.get('/api/publishers/?fields=id,title&restrict=' + UrlUtil.encode({query: val}))
                 .then(function(response){
                     if (response.data.result) {
                         $scope.publishers_autocompete = [];
