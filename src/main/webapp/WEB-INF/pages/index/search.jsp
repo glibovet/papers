@@ -20,7 +20,7 @@
                     <form class="input-group" action="/search" method="get">
                         <input name="q" type="text" class="form-control" placeholder="Дослідження морських котиків" value="${query}">
                         <span class="input-group-btn">
-                            <button type="submit" class="btn btn-default" id="search" type="button">Шукати! <i class="fa fa-search" aria-hidden="true"></i></button>
+                            <button type="submit" class="btn btn-default" type="button">Шукати! <i class="fa fa-search" aria-hidden="true"></i></button>
                         </span>
                     </form>
                 </div>
@@ -46,10 +46,12 @@
                     <div class="col-sm-offset-1 col-sm-10">
                         <c:forEach var="publication" items="${publications}">
                             <div class="row text-left">
-                                <h1> ${publication.title} </h1>
-                                <p> ${publication.body} </p>
+                                <h3>${publication.title}</h3>
+                                <p>${publication.body}</p>
+                                <p>Автор(и): ${publication.authors}</p>
+                                <p>Видавництво: ${publication.publisher}</p>
                                 <span class="input-group-btn">
-                                    <a href="/api/storage/paper/${publication.id}" class="btn btn-default" type="button">Завантажити <i class="fa fa-download" aria-hidden="true"></i></a>
+                                    <a href="/api/storage/paper/${publication.id}" class="btn btn-default" type="button" target="_blank">Завантажити <i class="fa fa-download" aria-hidden="true"></i></a>
                                 </span>
 
                             </div>
