@@ -36,6 +36,7 @@ import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.utils.SessionUtils;
 import ua.com.papers.storage.IStorageService;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -339,6 +340,17 @@ public class ElasticSearchImpl implements IElasticSearch{
                 client = TransportClient.builder().settings(settings).build()
                         .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticHost), elasticPort));
             } catch (UnknownHostException e) {}
+        }
+    }
+
+    @PreDestroy
+    private void onDestroy() {
+        try {
+            if (client != null) {
+                client.close();
+            }
+        } catch (Exception e) {
+            // nothing to do
         }
     }
 
