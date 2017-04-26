@@ -7,9 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import ua.com.papers.pojo.dto.search.PublicationDTO;
-import ua.com.papers.services.search.ISearchService;
+import ua.com.papers.services.elastic.IElasticSearch;
 
-import java.security.Principal;
 import java.util.List;
 
 /**
@@ -19,15 +18,19 @@ import java.util.List;
 public class SearchController {
 
     @Autowired
-    private ISearchService searchService;
+    private IElasticSearch elasticSearch;
 
     @RequestMapping(value = {"/search"}, method = RequestMethod.GET)
-    public String indexPage(Model model, Principal principal, @RequestParam("q") String query,
-                            @RequestParam(value = "offset",  required = false, defaultValue = "0") int offset){
-        List<PublicationDTO> publications = searchService.search(query, offset);
+    public String indexPage(
+            @RequestParam("q") String query,
+            @RequestParam(value = "offset",  required = false, defaultValue = "0") int offset,
+            Model model
+    ){
+        List<PublicationDTO> publications = elasticSearch.search(query, offset);
         model.addAttribute("publications", publications);
         model.addAttribute("query", query);
-        if(offset != 0) model.addAttribute("offset", offset);
+        if(offset != 0)
+            model.addAttribute("offset", offset);
         return "index/search";
     }
 }

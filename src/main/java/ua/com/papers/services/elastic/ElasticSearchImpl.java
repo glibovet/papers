@@ -1,17 +1,23 @@
 package ua.com.papers.services.elastic;
 
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
-import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.Base64;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.IndexNotFoundException;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHitField;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.highlight.HighlightBuilder;
+import org.elasticsearch.search.highlight.HighlightField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,18 +28,21 @@ import ua.com.papers.exceptions.service_error.ElasticSearchError;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.dto.search.PublicationDTO;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
-import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.utils.SessionUtils;
 import ua.com.papers.storage.IStorageService;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.elasticsearch.client.Requests.createIndexRequest;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
@@ -55,6 +64,16 @@ public class ElasticSearchImpl implements IElasticSearch{
     @Autowired
     private IStorageService storageService;
 
+    public ElasticSearchImpl() {
+        this.DEFAULT_HIGHLIGHTER = new HighlightBuilder()
+                .field("title", 100, 1)
+                .field("authors", 50, 1)
+                .field("annotation", 100, 1)
+                .field("body.content", 500, 1)
+                .preTags("<em data-highlight><b>")
+                .postTags("</b></em>");
+    }
+
     @Override
     public Boolean createIndexIfNotExist() throws ForbiddenException, ElasticSearchError {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
@@ -67,19 +86,27 @@ public class ElasticSearchImpl implements IElasticSearch{
 
     public Boolean indexExist() throws ElasticSearchError {
         if (client == null)
-            initializeIndex();
-        return client.admin().indices()
+            initializeClient();
+        return client
+                .admin()
+                .indices()
                 .prepareExists(elasticIndex)
-                .execute().actionGet().isExists();
+                .execute()
+                .actionGet()
+                .isExists();
     }
 
     public Boolean indexDelete() throws ForbiddenException, ElasticSearchError, NoSuchEntityException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
-            initializeIndex();
+            initializeClient();
         try {
-            DeleteIndexResponse createResponse = client.admin().indices().prepareDelete(elasticIndex).execute()
+            client
+                    .admin()
+                    .indices()
+                    .prepareDelete(elasticIndex)
+                    .execute()
                     .actionGet();
         } catch (IndexNotFoundException e) {
             throw new ElasticSearchError("індекс все ще не створений");
@@ -96,7 +123,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
-            initializeIndex();
+            initializeClient();
         if (!indexExist()){
             return createIndex();
         }
@@ -111,7 +138,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
-            initializeIndex();
+            initializeClient();
         if (!indexExist()){
             return createIndex();
         }
@@ -120,7 +147,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         for (PublicationEntity entity : entities) {
             try {
                 indexPublication(entity);
-            } catch (ValidationException | NoSuchEntityException |ServiceErrorException e) {
+            } catch (ValidationException | NoSuchEntityException | ServiceErrorException e) {
                 // nothing to do
             }
         }
@@ -128,11 +155,87 @@ public class ElasticSearchImpl implements IElasticSearch{
         return true;
     }
 
+    @Override
+    @Transactional
+    public List<PublicationDTO> search(String query, int offset) {
+        if (client == null)
+            initializeClient();
+        SearchHits searchHits = query(query, offset);
+        return mapSearchHits(searchHits);
+    }
+
+    private SearchHits query(String query, int offset){
+        QueryBuilder qb = QueryBuilders.multiMatchQuery(query)
+                .field("title").boost(3)
+                .field("annotation").boost(2)
+                .field("authors").boost(2)
+                .field("body.content")
+                .fuzziness(Fuzziness.AUTO);
+
+        SearchRequestBuilder sb = client.prepareSearch()
+                .setQuery(qb)
+                .setFrom(offset)
+                .addFields("title", "authors", "annotation", "body.content");
+        sb.internalBuilder().highlight(DEFAULT_HIGHLIGHTER);
+
+        SearchResponse response = sb.execute().actionGet();
+
+        return response.getHits();
+    }
+
+    private List<PublicationDTO> mapSearchHits(SearchHits searchHits){
+        List<PublicationDTO> publicationDTOs = new ArrayList<>(10);
+
+        for (SearchHit hit : searchHits) {
+            PublicationEntity publication;
+            try {
+                publication = publicationService.getPublicationById(Integer.valueOf(hit.getId()));
+            } catch (NoSuchEntityException e) {
+                continue;
+            }
+
+            PublicationDTO publicationDTO = new PublicationDTO();
+            Map<String, SearchHitField> fields = hit.getFields();
+            Map<String, HighlightField> highlightedFields = hit.getHighlightFields();
+
+            publicationDTO.setId(publication.getId());
+            publicationDTO.setTitle(getFieldValue(
+                    fields, highlightedFields, "title"
+            ));
+            publicationDTO.setAuthors(getFieldValue(
+                    fields, highlightedFields, "authors"
+            ));
+            publicationDTO.setAnnotation(getFieldValue(
+                    fields, highlightedFields, "annotation"
+            ));
+            publicationDTO.setBody(getFieldValue(
+                    fields, highlightedFields, "body.content"
+            ));
+            if (publication.getPublisher() != null) {
+                publicationDTO.setPublisher(publication.getPublisher().getTitle());
+            }
+            publicationDTO.setType(publication.getType());
+
+            publicationDTOs.add(publicationDTO);
+        }
+        return publicationDTOs;
+    }
+
+    private String getFieldValue(Map<String, SearchHitField> fields, Map<String, HighlightField> highlightedFields, String fieldName) {
+        if (highlightedFields.containsKey(fieldName)) {
+            return highlightedFields.get(fieldName).getFragments()[0].toString();
+        } else if (fields.containsKey(fieldName)) {
+            return fields.get(fieldName).getValue();
+        }
+        return "";
+    }
+
     private boolean indexPublication(PublicationEntity publication) throws NoSuchEntityException, ServiceErrorException, ForbiddenException, ValidationException {
         XContentBuilder builder = buildPublicationJsonForIndexing(publication);
         if (builder == null)
             return false;
-        IndexResponse response = client.prepareIndex(elasticIndex, papersType, String.valueOf(publication.getId()))
+        client
+                .prepareIndex(elasticIndex, papersType, String.valueOf(publication.getId()))
                 .setSource(builder)
                 .execute()
                 .actionGet();
@@ -145,7 +248,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         if (publication == null)
             return null;
         byte[] publicationFile = storageService.getPaperAsByteArray(publication);
-        if (publicationFile == null||publicationFile.length==0)
+        if (publicationFile == null || publicationFile.length == 0)
             return null;
         XContentBuilder builder = null;
         String authors = "";
@@ -170,10 +273,16 @@ public class ElasticSearchImpl implements IElasticSearch{
 
     private Boolean createIndex() {
         if (client == null)
-            initializeIndex();
-        CreateIndexResponse createResponse = client.admin().indices().create(createIndexRequest(elasticIndex)).actionGet();
+            initializeClient();
+        client
+                .admin()
+                .indices()
+                .create(createIndexRequest(elasticIndex))
+                .actionGet();
         try {
-            PutMappingResponse putMappingResponse = client.admin().indices()
+            client
+                    .admin()
+                    .indices()
                     .preparePutMapping(elasticIndex)
                     .setType(papersType)
                     .setSource(buildMapping())
@@ -221,17 +330,27 @@ public class ElasticSearchImpl implements IElasticSearch{
         return builder;
     }
 
-    private void initializeIndex(){
-        if (client==null){
+    private void initializeClient(){
+        if (client == null){
             try {
                 Settings settings = Settings.settingsBuilder()
                         .put("cluster.name", elasticClusterName)
                         .put("client.transport.sniff",true)
-                        //.put("node.name", "ukma")
                         .build();
                 client = TransportClient.builder().settings(settings).build()
                         .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticHost), elasticPort));
             } catch (UnknownHostException e) {}
+        }
+    }
+
+    @PreDestroy
+    private void onDestroy() {
+        try {
+            if (client != null) {
+                client.close();
+            }
+        } catch (Exception e) {
+            // nothing to do
         }
     }
 
@@ -250,6 +369,5 @@ public class ElasticSearchImpl implements IElasticSearch{
     @Value("${elasticsearch.publication_type}")
     private String papersType;
 
-    @Value("${elasticsearch.port.http}")
-    private String elasticHttpPort;
+    private final HighlightBuilder DEFAULT_HIGHLIGHTER;
 }
