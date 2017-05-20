@@ -222,4 +222,10 @@
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
         <property name="maxUploadSize" value="50000000"/>
     </bean>
+
+    <bean id="md5PasswordEncoder" class="org.springframework.security.authentication.encoding.Md5PasswordEncoder"/>
+    <bean id="sendPulse" class="ua.com.papers.services.mailing.sendpulse.sendpulse.restapi.Sendpulse">
+        <constructor-arg name="_userId" value="${sendpulse.client_id}"/>
+        <constructor-arg name="_secret" value="${sendpulse.secure}"/>
+    </bean>
 </beans>
