@@ -1,6 +1,6 @@
 package ua.com.papers.crawler.core.domain;
 
-import com.google.common.base.Preconditions;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
@@ -15,6 +15,7 @@ import ua.com.papers.crawler.exception.PageProcessException;
 import ua.com.papers.crawler.settings.Conditions;
 import ua.com.papers.crawler.settings.SchedulerSetting;
 import ua.com.papers.crawler.util.PageUtils;
+import ua.com.papers.crawler.util.Preconditions;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -24,7 +25,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -95,32 +97,6 @@ public class Crawler implements ICrawler {
         Crawler.checkPreConditions(callback, handlers, urlsColl);
         stop();
         callback.onStart();
-
-        try {
-            // runs all analyzing job
-            runLoop(callback, handlers, urlsColl);
-        } finally {
-            // guaranties that callback's #stop
-            // method will be called even if exception
-            // occurs
-            callback.onStop();
-        }
-    }
-
-    @Override
-    public void stop() {
-
-        if(executor != null) {
-            try {
-                executor.shutdownNow();
-                executor.awaitTermination(0, TimeUnit.MILLISECONDS);
-            } catch (final InterruptedException e) {
-                log.log(Level.WARNING, "Stopped unexpectedly", e);
-            }
-        }
-    }
-
-    private void runLoop(Callback callback, Collection<Object> handlers, Collection<URL> urlsColl) {
         // processing urls queue
         val urls = new LinkedList<URL>(urlsColl);
         // accepted pages count
@@ -129,6 +105,8 @@ public class Crawler implements ICrawler {
         // hash set would take much time to recalculate hashes and copy data when growing;
         val crawledUrls = new TreeSet<URL>((o1, o2) -> o1.toExternalForm().compareTo(o2.toExternalForm()));
         val lock = new ReentrantReadWriteLock();
+        val localExecutor = Crawler.createThreadFactory(schedulerSetting.getProcessingThreads(), callback);
+        this.executor = localExecutor;
         // runs crawling in a loop
         @Value class Looper implements Runnable {
 
@@ -138,27 +116,44 @@ public class Crawler implements ICrawler {
             public void run() {
 
                 try {
-                    await();
-                } catch (final InterruptedException e) {
-                    log.log(Level.INFO, String.format("#Interrupted thread %s", Thread.currentThread()), e);
-                    return;
-                }
-
-                URL url;
-                while ((url = pollUrl()) != null) {
-
                     try {
-                        loop(url);
-                    } catch (final PageProcessException e) {
-                        log.log(Level.WARNING, String.format("Failed to extract page content for url %s", e.getUrl()), e);
-                        callback.onException(e.getUrl(), e);
+                        await();
                     } catch (final InterruptedException e) {
-                        log.log(Level.INFO, String.format("Interrupted thread %s", Thread.currentThread()), e);
-                        break;
+                        log.log(Level.INFO, String.format("#Interrupted thread %s", Thread.currentThread()), e);
+                        return;
+                    }
+                    URL url;
+                    while ((url = pollUrl()) != null) {
+
+                        try {
+                            loop(url);
+                        } catch (final PageProcessException e) {
+                            log.log(Level.WARNING, String.format("Failed to extract page content for url %s", e.getUrl()), e);
+                            callback.onException(e.getUrl(), e);
+                        } catch (final InterruptedException e) {
+                            log.log(Level.INFO, String.format("Interrupted thread %s", Thread.currentThread()), e);
+                            break;
+                        }
+                    }
+                } finally {
+                    log.log(Level.INFO, String.format("#Thread %s finished job", Thread.currentThread()));
+                    boolean stop;
+                    val activeThreads = localExecutor.getActiveCount();
+                    synchronized (urls) {
+                        // should stop looping because we don't have
+                        // urls to process, crawler always has at least
+                        // one thread to perform a job that's why thread
+                        // index should be 0
+                        assert urls.isEmpty() || activeThreads == 1;
+                        stop = urls.isEmpty() && (thIndex == 0 || activeThreads == 1);
+                    }
+                    if (stop) {
+                        Crawler.shutdown(localExecutor);
+                        callback.onStop();
                     }
                 }
-                log.log(Level.INFO, String.format("#Thread %s finished job", Thread.currentThread()));
             }
+
             // checks whether thread
             // can continue url processing
             private URL pollUrl() {
@@ -239,12 +234,40 @@ public class Crawler implements ICrawler {
             }
         }
 
-        executor = Executors.newFixedThreadPool(schedulerSetting.getProcessingThreads());
         for (int i = 0; i < schedulerSetting.getProcessingThreads(); ++i) {
-            executor.submit(new Looper(i));
+            executor.execute(new Looper(i));
         }
         // await termination
         executor.shutdown();
+    }
+
+    @Override
+    public void stop() {
+
+        if(executor != null) {
+            Crawler.shutdown(executor);
+        }
+    }
+
+    private static void shutdown(ExecutorService executor) {
+        try {
+            executor.shutdownNow();
+            executor.awaitTermination(0, TimeUnit.MILLISECONDS);
+        } catch (final InterruptedException e) {
+            log.log(Level.WARNING, "Stopped unexpectedly", e);
+        }
+    }
+
+    private static ThreadPoolExecutor createThreadFactory(int threads, Callback callback) {
+        return new ThreadPoolExecutor(threads, threads,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(),
+                r -> {
+                    val thread = new Thread(r);
+                    thread.setDaemon(false);
+                    thread.setUncaughtExceptionHandler((t, e) -> callback.onException(null, e));
+                    return thread;
+                });
     }
 
     /**

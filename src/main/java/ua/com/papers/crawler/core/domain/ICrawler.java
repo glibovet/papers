@@ -1,10 +1,10 @@
 package ua.com.papers.crawler.core.domain;
 
-import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
+
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.util.PageHandler;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Collection;
@@ -15,8 +15,6 @@ import java.util.Collection;
  * </p>
  * Created by Максим on 11/27/2016.
  */
-@Service
-@Validated
 public interface ICrawler {
 
     interface Callback {
@@ -66,7 +64,7 @@ public interface ICrawler {
          * @param url page's url which caused exception
          * @param th  failure cause
          */
-        default void onException(@NotNull URL url, @NotNull Throwable th) {
+        default void onException(@Nullable URL url, @NotNull Throwable th) {
         }
 
     }
