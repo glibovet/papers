@@ -7,7 +7,6 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import lombok.val;
-import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
 import ua.com.papers.crawler.util.*;
@@ -31,17 +30,17 @@ import java.util.logging.Level;
 /**
  * <p>
  * An example of publication handler. This class
- * handles page with id 3 specified in 'crawler-settings.xml'
+ * handles pages like http://journals.uran.ua/index.php/1991-0177/issue/view/4013
  * </p>
  * Created by Максим on 2/8/2017.
  */
 @Log
 @Value
 @Getter(AccessLevel.NONE)
-@PageHandler(id = 3)
+@PageHandler(id = 2)
 public class PublicationHandler {
 
-    static String PAGE_REGEX = "(\\[\\])|([Сс]\\.\\s+\\d+\\.?\\s*-?\\s*\\d+\\.?)";
+    private static final int GROUP_ID = 1;
 
     IHandlerCallback callback;
     IAuthorService authorService;
@@ -95,25 +94,7 @@ public class PublicationHandler {
         log.log(Level.INFO, String.format("#onPageEnd %s, url %s", getClass(), page.getUrl()));
     }
 
-    @Handler(id = 3, group = 1)
-    public void onHandleTitle(Element element) {
-        log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
-
-        element.select("strong").remove();
-        element.getElementsByTag("a").remove();
-
-        val text = element.text().replaceAll(PAGE_REGEX, "");
-
-        publicationView.setTitle(text);
-    }
-
-    @Handler(id = 4, converter = StringAdapter.class, group = 1)
-    public void onHandleAuthors(String authorsStr) {
-        log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authorsStr));
-        publicationView.setAuthorsId(getAuthorIdsByNames(authorsStr.trim().replaceAll("\\s*,\\s*", ",").split(",")));
-    }
-
-    @Handler(id = 5, converter = UrlAdapter.class, group = 1)
+    @Handler(id = 1, group = GROUP_ID, converter = UrlAdapter.class)
     public void onHandleUrl(URL url) {
         log.log(Level.INFO, String.format("#onHandleUrl %s, %s", getClass(), url));
 
@@ -124,7 +105,19 @@ public class PublicationHandler {
         }
     }
 
-    @PreHandle(group = 1)
+    @Handler(id = 2, group = GROUP_ID, converter = StringAdapter.class)
+    public void onHandleTitle(String title) {
+        log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
+        publicationView.setTitle(title);
+    }
+
+    @Handler(id = 3, group = GROUP_ID, converter = StringAdapter.class)
+    public void onHandleAuthors(String authors) {
+        log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authors));
+        publicationView.setAuthorsId(getAuthorIdsByNames(authors.trim().replaceAll("\\s*,\\s*", ",").split(",")));
+    }
+
+    @PreHandle(group = GROUP_ID)
     public void prePublication() {
         log.log(Level.INFO, String.format("#prePublication %s", getClass()));
         this.publicationView = new PublicationView();
@@ -132,7 +125,7 @@ public class PublicationHandler {
         this.publicationView.setType(PublicationTypeEnum.ARTICLE);
     }
 
-    @PostHandle(group = 1)
+    @PostHandle(group = GROUP_ID)
     public void postPublication() {
         log.log(Level.INFO, String.format("#postPublication %s", getClass()));
 
@@ -159,23 +152,34 @@ public class PublicationHandler {
             if (fullNameToId.get() == null
                     || (id = fullNameToId.get().get(fullName)) == null) {
                 // create new author
-                val credentialsArr = parseFullName(fullName);
+                val credentialsArr = fullName.split("\\s");// first, middle and last names
                 val authorView = new AuthorView();
 
                 log.log(Level.INFO, String.format("parsed %s as %s", fullName, Arrays.toString(credentialsArr)));
 
-                if (credentialsArr.length != 2) continue;
+                if (credentialsArr.length < 2) continue;
 
-                authorView.setLast_name(credentialsArr[0]);
-                authorView.setInitials(credentialsArr[1]);
+                final String initials, lastName;
+
+                if (credentialsArr.length == 2) {
+                    lastName = credentialsArr[1];
+                    initials = String.format("%S.", credentialsArr[0].charAt(0));
+                } else {
+                    lastName = credentialsArr[2];
+                    initials = String.format("%S. %S.", credentialsArr[0].charAt(0), credentialsArr[1].charAt(0));
+                }
+
+                log.log(Level.INFO, String.format("setting last name as %s, initials as %s", lastName, initials));
+                authorView.setLast_name(lastName);
+                authorView.setInitials(initials);
 
                 try {
                     //FIXME when I should take it??
                     // --------------------------------------
                     AuthorMasterView masterView = new AuthorMasterView();
 
-                    masterView.setLast_name(credentialsArr[0]);
-                    masterView.setInitials(credentialsArr[1]);
+                    masterView.setLast_name(lastName);
+                    masterView.setInitials(initials);
 
                     val masterId = authorService.createAuthorMaster(masterView);
                     // --------------------------------------

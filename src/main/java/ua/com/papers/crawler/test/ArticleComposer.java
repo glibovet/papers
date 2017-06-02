@@ -34,7 +34,7 @@ import java.util.logging.Level;
 @Log
 @Value
 @Getter(AccessLevel.NONE)
-@PageHandler(id = 3)
+@PageHandler(id = 2)
 @Service
 public final class ArticleComposer {
 

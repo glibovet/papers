@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * Created by Максим on 2/6/2017.
  */
 @Log
-@PageHandler(id = 3)
+@PageHandler(id = 2)
 @Value
 @Getter(AccessLevel.NONE)
 public class PublisherHandler {
@@ -98,20 +98,15 @@ public class PublisherHandler {
         }
     }
 
-    @Handler(id = 1, converter = StringAdapter.class)
-    public void onHandlePubHouseTitle(String title) {
+    @Handler(id = 4, converter = StringAdapter.class)
+    public void onHandlePubisherTitle(String title) {
         log.log(Level.INFO, String.format("#onHandlePubHouseTitle %s, %s", getClass(), title));
 
         if (TextUtils.isEmpty(title)) {
             log.log(Level.WARNING, String.format("failed to parse title, %s", getClass()));
         } else {
-            publisherView.setTitle(title.replaceAll("[\\[\\],]", ""));
+            publisherView.setTitle(title);
         }
-    }
-
-    @Handler(id = 2, converter = StringAdapter.class)
-    public void onHandlePubHouseCity(String city) {
-        //todo finish
     }
 
 }
