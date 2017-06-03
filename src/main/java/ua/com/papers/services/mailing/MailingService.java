@@ -90,7 +90,7 @@ public class MailingService implements IMailingService {
         final Future<String> task;
         service = Executors.newFixedThreadPool(1);
         String subject = messageSource.getMessage("email.subject." + type.toString(), null, locale);
-        task = service.submit(new SenderTask("info@scisearch.com.ua", toEmail, text, subject));
+        task = service.submit(new SenderTask("admin@scisearch.com.ua", toEmail, text, subject));
 
         return executeSendTask(service, task);
     }
