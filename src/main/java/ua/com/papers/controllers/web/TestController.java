@@ -9,7 +9,7 @@ import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
-import ua.com.papers.crawler.test.ArticleComposer;
+import ua.com.papers.crawler.test.MainComposer;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
@@ -35,16 +35,16 @@ public class TestController {
     private final IPublicationService service;
     private final IPublisherService publisherService;
     private final IAuthorService authorService;
-    private final ArticleComposer articleComposer;
+    private final MainComposer composer;
 
     ICrawlerManager crawler;
 
     @Autowired
-    public TestController(IPublicationService service, IPublisherService publisherService, IAuthorService authorService, ArticleComposer articleComposer, ICreator creator) {
+    public TestController(IPublicationService service, IPublisherService publisherService, IAuthorService authorService, MainComposer composer, ICreator creator) {
         this.service = service;
         this.publisherService = publisherService;
         this.authorService = authorService;
-        this.articleComposer = articleComposer;
+        this.composer = composer;
         this.crawler = creator.create();
     }
 
@@ -52,7 +52,7 @@ public class TestController {
     public String indexPage() {
 
         crawler.startCrawling(
-                articleComposer.asHandlers(),
+                composer.asHandlers(),
                 crawlCall()
         );
         return "index/index";
@@ -68,7 +68,7 @@ public class TestController {
     @RequestMapping(value = {"/reindex"}, method = RequestMethod.GET)
     public String reIndex() {
         crawler.startIndexing(
-                articleComposer.asHandlers(),
+                composer.asHandlers(),
                 indexCall()
         );
 

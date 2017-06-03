@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.crawler.test.uran;
 
 import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
@@ -9,6 +9,8 @@ import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
+import ua.com.papers.crawler.test.IHandlerCallback;
+import ua.com.papers.crawler.test.UrlAdapter;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -38,7 +40,7 @@ import java.util.logging.Level;
 @Value
 @Getter(AccessLevel.NONE)
 @PageHandler(id = 2)
-public class PublicationHandler {
+public class UranPublicationHandler {
 
     private static final int GROUP_ID = 1;
 
@@ -49,9 +51,20 @@ public class PublicationHandler {
     @NonFinal
     SoftReference<Map<String, Integer>> fullNameToId;
 
-    public PublicationHandler(IAuthorService authorService, IHandlerCallback callback) {
+    public UranPublicationHandler(IAuthorService authorService, IHandlerCallback callback, List<AuthorEntity> authorEntities) {
         this.authorService = Preconditions.checkNotNull(authorService);
         this.callback = Preconditions.checkNotNull(callback);
+
+        val cache = new HashMap<String, Integer>();
+        fullNameToId = new SoftReference<>(cache);
+
+        for (val entity : authorEntities) {
+
+            String key = entity.getLastName() + (TextUtils.isEmpty(entity.getInitials()) ? "" : entity.getInitials())
+                    .trim();
+
+            cache.put(key, entity.getId());
+        }
     }
 
     @PreHandle
@@ -64,7 +77,7 @@ public class PublicationHandler {
             val cache = new HashMap<String, Integer>();
             fullNameToId = new SoftReference<>(cache);
 
-            try {
+            /*try {
 
                 List<AuthorEntity> res = authorService.getAuthors(0, -1, null);
 
@@ -76,16 +89,16 @@ public class PublicationHandler {
                     cache.put(key, entity.getId());
                 }
 
-                /*fullNameToId = authorService.getAuthors(0, -1, null)
+                *//*fullNameToId = authorService.getAuthors(0, -1, null)
                         .stream()
                         .collect(Collectors.toMap(
                                 a -> (a.getLastName() + (TextUtils.isEmpty(a.getInitials()) ? "" : a.getInitials()))
                                         .trim(),// probably overdo but it guaranties valid key even
                                 // if it was incorrectly saved
-                                AuthorEntity::getId));*/
+                                AuthorEntity::getId));*//*
             } catch (final NoSuchEntityException e) {//FIXME if db is empty
                 log.log(Level.WARNING, "NoSuchEntityException, FIXME", e);
-            }
+            }*/
         }
     }
 

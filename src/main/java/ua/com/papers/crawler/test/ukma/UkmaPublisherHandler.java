@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.crawler.test.ukma;
 
 import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
@@ -8,6 +8,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
+import ua.com.papers.crawler.test.IHandlerCallback;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -28,10 +29,10 @@ import java.util.stream.Collectors;
  * Created by Максим on 2/6/2017.
  */
 @Log
-@PageHandler(id = 2)
+@PageHandler(id = 5)
 @Value
 @Getter(AccessLevel.NONE)
-public class PublisherHandler {
+public class UkmaPublisherHandler {
 
     IHandlerCallback callback;
     IPublisherService publisherService;
@@ -40,7 +41,7 @@ public class PublisherHandler {
     @NonFinal
     private Map<String, Integer> titleToId;
 
-    public PublisherHandler(IPublisherService publisherService, IHandlerCallback callback) {
+    public UkmaPublisherHandler(IPublisherService publisherService, IHandlerCallback callback) {
         this.publisherService = Preconditions.checkNotNull(publisherService);
         this.callback = Preconditions.checkNotNull(callback);
         this.publisherView = new PublisherView();
@@ -98,15 +99,20 @@ public class PublisherHandler {
         }
     }
 
-    @Handler(id = 4, converter = StringAdapter.class)
-    public void onHandlePubisherTitle(String title) {
+    @Handler(id = 5, converter = StringAdapter.class)
+    public void onHandlePubHouseTitle(String title) {
         log.log(Level.INFO, String.format("#onHandlePubHouseTitle %s, %s", getClass(), title));
 
         if (TextUtils.isEmpty(title)) {
             log.log(Level.WARNING, String.format("failed to parse title, %s", getClass()));
         } else {
-            publisherView.setTitle(title);
+            publisherView.setTitle(title.replaceAll("[\\[\\],]", ""));
         }
+    }
+
+    @Handler(id = 6, converter = StringAdapter.class)
+    public void onHandlePubHouseCity(String city) {
+        //todo finish
     }
 
 }

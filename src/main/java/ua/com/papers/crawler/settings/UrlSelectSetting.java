@@ -1,6 +1,5 @@
 package ua.com.papers.crawler.settings;
 
-import com.google.common.base.Preconditions;
 import lombok.Value;
 
 import javax.validation.constraints.NotNull;
@@ -18,8 +17,12 @@ public class UrlSelectSetting {
     String attrName;
 
     public UrlSelectSetting(@NotNull String cssSelector, @NotNull String attrName) {
-        this.cssSelector = Preconditions.checkNotNull(cssSelector);
-        this.attrName = Preconditions.checkNotNull(attrName);
+        Conditions.isNotNull(cssSelector);
+        Conditions.isNotNull(attrName);
+        Conditions.checkArgument(!cssSelector.isEmpty());
+        Conditions.checkArgument(!attrName.isEmpty());
+        this.cssSelector = cssSelector;
+        this.attrName = attrName;
     }
 
 }

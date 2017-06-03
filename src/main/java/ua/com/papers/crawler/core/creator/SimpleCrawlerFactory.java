@@ -40,7 +40,8 @@ public class SimpleCrawlerFactory extends AbstractCrawlerFactory {
     private static final Collection<? extends UrlSelectSetting> DEF_SELECT_SETTINGS;
 
     static {
-        DEF_SELECT_SETTINGS = Collections.singletonList(new UrlSelectSetting("a[href]", "href"));
+        DEF_SELECT_SETTINGS = Collections.emptyList();
+        //Collections.singletonList(new UrlSelectSetting("a[href]", "href"));
     }
 
     public SimpleCrawlerFactory() {
