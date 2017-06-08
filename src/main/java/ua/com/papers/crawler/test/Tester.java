@@ -54,7 +54,7 @@ public class Tester {
             }
 
             @Override
-            public void onException(@NotNull URL url, @NotNull Throwable th) {
+            public void onIndexException(@NotNull URL url, @NotNull Throwable th) {
 
             }
         };
@@ -85,7 +85,7 @@ public class Tester {
             }
 
             @Override
-            public void onException(@NotNull URL url, @NotNull Throwable th) {
+            public void onCrawlException(@NotNull URL url, @NotNull Throwable th) {
                 System.out.println("On exception " + th);
             }
 

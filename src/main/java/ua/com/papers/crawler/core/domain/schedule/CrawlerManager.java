@@ -64,8 +64,8 @@ public class CrawlerManager implements ICrawlerManager {
         }
 
         @Override
-        public void onException(@NotNull URL url, @NotNull Throwable th) {
-            original.onException(url, th);
+        public void onIndexException(@NotNull URL url, @NotNull Throwable th) {
+            original.onIndexException(url, th);
         }
     }
 
@@ -103,8 +103,8 @@ public class CrawlerManager implements ICrawlerManager {
         }
 
         @Override
-        public void onException(@NotNull URL url, @NotNull Throwable th) {
-            original.onException(url, th);
+        public void onCrawlException(@NotNull URL url, @NotNull Throwable th) {
+            original.onCrawlException(url, th);
         }
     }
 

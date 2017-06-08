@@ -55,7 +55,7 @@ public interface IPageIndexer {
          * @param url url which caused exception
          * @param th  occurred exception
          */
-        void onException(@NotNull URL url, @NotNull Throwable th);
+        void onIndexException(@NotNull URL url, @NotNull Throwable th);
 
         /**
          * Invoked right before indexer finishes job

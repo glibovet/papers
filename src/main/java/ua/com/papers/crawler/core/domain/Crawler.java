@@ -129,7 +129,7 @@ public class Crawler implements ICrawler {
                             loop(url);
                         } catch (final PageProcessException e) {
                             log.log(Level.WARNING, String.format("Failed to extract page content for url %s", e.getUrl()), e);
-                            callback.onException(e.getUrl(), e);
+                            callback.onCrawlException(e.getUrl(), e);
                         } catch (final InterruptedException e) {
                             log.log(Level.INFO, String.format("Interrupted thread %s", Thread.currentThread()), e);
                             break;
@@ -265,7 +265,7 @@ public class Crawler implements ICrawler {
                 r -> {
                     val thread = new Thread(r);
                     thread.setDaemon(false);
-                    thread.setUncaughtExceptionHandler((t, e) -> callback.onException(null, e));
+                    thread.setUncaughtExceptionHandler((t, e) -> callback.onCrawlException(null, e));
                     return thread;
                 });
     }
