@@ -30,7 +30,17 @@ public class StorageImpl implements IStorage {
     public void upload(byte[] file, String fileName, String folder) throws StorageException {
         InputStream inputStream = new ByteArrayInputStream(file);
         try {
-            client().files().uploadBuilder(fullPath(fileName, folder))
+            String path = fullPath(fileName, folder);
+            try {
+                Metadata metadata = client().files().getMetadata(path);
+                if (metadata != null && metadata.getName() != null) {
+                    client().files().delete(path);
+                }
+            } catch (GetMetadataErrorException e) {
+                // ignore
+            }
+
+            client().files().uploadBuilder(path)
                     .uploadAndFinish(inputStream);
         } catch (DbxException e) {
             throw new StorageException(e);
@@ -106,15 +116,23 @@ public class StorageImpl implements IStorage {
     }
 
     private String fullPath(String name, String folder){
-        if(folder == null || folder.isEmpty() || folder.compareTo("/") == 0){
-            if(name.charAt(0) == '/')
-                return name;
-            return '/' + name;
+        String path;
+
+        if (name.charAt(0) == '/') {
+            path = name;
         } else {
-            if(name.charAt(0) == '/')
-                return folder + name;
-            return folder + '/' + name;
+            path = '/' + name;
         }
+
+        if (folder != null && !folder.isEmpty() && folder.compareTo("/") != 0) {
+            if (folder.charAt(0) == '/') {
+                path = folder + path;
+            } else {
+                path = '/' + folder + path;
+            }
+        }
+
+        return path;
     }
 
     private DbxClientV2 client(){

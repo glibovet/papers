@@ -50,12 +50,24 @@ public class PublicationApiController {
             method = RequestMethod.GET
     )
     public @ResponseBody Response<List<Map<String, Object>>>
-    getUsers(
+    getPublications(
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict,
             @RequestParam(value = "fields", required = false, defaultValue = Fields.User.DEFAULT) Set<String> fields
     ) throws PapersException {
-        return responseFactory.get(publicationService.getPublicationsMap(offset, limit, fields));
+        return responseFactory.get(publicationService.getPublicationsMap(offset, limit, fields, restrict));
+    }
+
+    @RequestMapping(
+            value = "/count",
+            method = RequestMethod.GET
+    )
+    public @ResponseBody Response<Integer>
+    countPublications(
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict
+    ) throws PapersException {
+        return responseFactory.get(publicationService.countPublications(restrict));
     }
 
     @RequestMapping(
@@ -64,7 +76,7 @@ public class PublicationApiController {
     )
     public
     @ResponseBody Response<Integer>
-    createAuthor(
+    createPublication(
             @RequestBody PublicationView view
     ) throws PapersException {
         sessionUtils.userHasRole(RolesEnum.admin, RolesEnum.moderator);

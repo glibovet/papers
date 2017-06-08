@@ -14,6 +14,7 @@ import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
+import ua.com.papers.storage.IStorageService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +40,7 @@ public final class MainComposer {
     IAuthorService authorService;
     IPublisherService publisherService;
     IPublicationService publicationService;
+    IStorageService storageService;
     @NonFinal volatile Collection<Object> subHandlers;
 
     @NonFinal
@@ -48,10 +50,11 @@ public final class MainComposer {
 
     @Autowired
     public MainComposer(IAuthorService authorService, IPublisherService publisherService,
-                               IPublicationService publicationService) {
+                        IPublicationService publicationService, IStorageService storageService) {
         this.authorService = authorService;
         this.publisherService = publisherService;
         this.publicationService = publicationService;
+        this.storageService = storageService;
     }
 
     /**
@@ -75,8 +78,10 @@ public final class MainComposer {
                 log.log(Level.SEVERE, "Failed to get authors from db", e);
             }
 
-            local = new ArrayList<>(new UkmaArticleComposer(authorService, publisherService, publicationService).asHandlers(authorEntities));
-            local.addAll(new UranArticleComposer(authorService, publisherService, publicationService).asHandlers(authorEntities));
+            local = new ArrayList<>(new UkmaArticleComposer(authorService, publisherService, publicationService, storageService)
+                    .asHandlers(authorEntities));
+            local.addAll(new UranArticleComposer(authorService, publisherService, publicationService, storageService)
+                    .asHandlers(authorEntities));
             // references assignment is atomic, so
             // we don't need to use lock
             subHandlers = local;

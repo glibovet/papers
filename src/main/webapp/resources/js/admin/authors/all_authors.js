@@ -37,7 +37,7 @@ app.controller('all_authors_ctrl', function($scope, $http, Notification){
         var query = '/api/authors/master/?';
         var offset = LIMIT * $scope.filters.page || 0;
         query += 'limit='+LIMIT+'&offset='+offset+'&'+FIELDS;
-        query += '&' + restrict();
+        query += '&restrict=' + UrlUtil.encode($scope.filters);
 
         $scope.authors = [];
 
@@ -54,7 +54,7 @@ app.controller('all_authors_ctrl', function($scope, $http, Notification){
     }
 
     function countAuthors(){
-        var query = '/api/authors/master/count?'+restrict();
+        var query = '/api/authors/master/count?restrict='+UrlUtil.encode($scope.filters);
 
         $http.get(query)
             .then(function(response){
@@ -72,16 +72,5 @@ app.controller('all_authors_ctrl', function($scope, $http, Notification){
 
                 element.val(page);
             });
-    }
-
-    function restrict(){
-        var f = $scope.filters;
-        return 'restrict='+JSON.stringify({has_sub: valid(f.has_sub), query: valid(f.query)});
-    }
-
-    function valid(val){
-        if(!val)
-            return null;
-        return val;
     }
 });

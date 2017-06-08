@@ -33,7 +33,24 @@ import java.util.concurrent.ScheduledExecutorService;
 public final class XmlCreator extends AbstractClasspathXmlCreator {
 
     public XmlCreator(String xsdPath, String filepath, ICrawlerFactory factory) {
-        super(new File(filepath), new File(xsdPath), factory);
+        super(new File(getAbsolutePathForResource(filepath)),
+                new File(getAbsolutePathForResource(xsdPath)), factory);
+    }
+
+    /**
+     * get absolute path to file from relative
+     *
+     * @param relativePath - relative path to file stored in resources directory
+     * @return absolute file path
+     */
+    private static String getAbsolutePathForResource(String relativePath) {
+        ClassLoader loader = XmlCreator.class.getClassLoader();
+
+        URL resource = loader.getResource(relativePath);
+        if (resource == null) {
+            return "";
+        }
+        return resource.getFile();
     }
 
     @Override

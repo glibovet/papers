@@ -11,11 +11,12 @@ public class Fields {
         public static final String ANNOTATION = "annotation";
         public static final String TYPE = "type";
         public static final String LINK = "link";
-        public static final String PUBLISHER = "publisher";
-        public static final String IN_INDEX = "inindex";
+        public static final String FILE_LINK = "file_link";
+        public static final String PUBLISHER = "publisher_id";
+        public static final String IN_INDEX = "in_index";
         public static final String STATUS = "status";
-        public static final String LITERATURE_PARSED = "litparsed";
-        public static final String AUTHORS = "authors";
+        public static final String LITERATURE_PARSED = "literature_parsed";
+        public static final String AUTHORS = "authors_id";
 
         public static final String DEFAULT = ID + ',' + TITLE;
     }
@@ -68,6 +69,17 @@ public class Fields {
         public static final String CITY = "city";
         public static final String ADDRESS = "address";
         public static final String DEFAULT = ID + ',' + ADDRESS;
+    }
+
+    public static class PublicationOrder{
+        public static final String ID = "id";
+        public static final String EMAIL = "email";
+        public static final String REASON = "reason";
+        public static final String ANSWER = "answer";
+        public static final String STATUS = "status";
+        public static final String PUBLICATION_ID = "publication_id";
+        public static final String DATE = "date";
+        public static final String DEFAULT = ID + ',' + STATUS;
     }
 
 }

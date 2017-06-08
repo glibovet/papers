@@ -127,7 +127,7 @@ public class UranPublicationHandler {
     @Handler(id = 3, group = GROUP_ID, converter = StringAdapter.class)
     public void onHandleAuthors(String authors) {
         log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authors));
-        publicationView.setAuthorsId(getAuthorIdsByNames(authors.trim().replaceAll("\\s*,\\s*", ",").split(",")));
+        publicationView.setAuthors_id(getAuthorIdsByNames(authors.trim().replaceAll("\\s*,\\s*", ",").split(",")));
     }
 
     @PreHandle(group = GROUP_ID)
@@ -144,7 +144,7 @@ public class UranPublicationHandler {
 
         val isValid = !TextUtils.isEmpty(publicationView.getLink())
                 && !TextUtils.isEmpty(publicationView.getTitle())
-                && publicationView.getAuthorsId() != null && !publicationView.getAuthorsId().isEmpty();
+                && publicationView.getAuthors_id() != null && !publicationView.getAuthors_id().isEmpty();
 
         if (isValid) {
             callback.onPublicationReady(publicationView);

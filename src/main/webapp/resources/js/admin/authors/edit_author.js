@@ -108,7 +108,7 @@ app.controller('sub_authors', function($scope, $http, Notification){
         $scope.sub_authors = [];
 
         var master_id = root.author.id;
-        $http.get('/api/authors/?fields=id,last_name,initials,original&restrict='+JSON.stringify({master_ids: [master_id]}))
+        $http.get('/api/authors/?fields=id,last_name,initials,original&restrict='+UrlUtil.encode({master_ids: [master_id]}))
             .then(function(response){
                 var authors = response.data.result;
                 if(authors){

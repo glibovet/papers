@@ -39,6 +39,8 @@ public class PublicationConverter extends Converter<PublicationEntity> {
                 ids.add(author.getId());
             map.put(AUTHORS,ids);
         }
+        if (fields.contains(FILE_LINK))
+            map.put(FILE_LINK, object.getFileLink());
         return map;
     }
 }
