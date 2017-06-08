@@ -5,7 +5,7 @@ package ua.com.papers.pojo.enums;
  */
 public enum PublicationTypeEnum {
     MASTER_WORK,
-    KURSE_WORK,
+    COURSE_WORK,
     ARTICLE,
     THESIS
 }

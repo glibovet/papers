@@ -1,0 +1,82 @@
+package ua.com.papers.services.mailing;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.stereotype.Component;
+import ua.com.papers.pojo.entities.UserEntity;
+import ua.com.papers.pojo.enums.EmailTypes;
+import ua.com.papers.services.users.IUserService;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * Created by KutsykV on 24.01.2016.
+ */
+@Component
+public class EmailBuilder {
+
+    @Value("${mail.host}")
+    private String host;
+
+    public String getEmailContent(EmailTypes typeOfEmail, Map<String, String> data, Locale locale) {
+        try {
+            String content = readResourceText("email/" + locale.getLanguage() + "/email." + typeOfEmail.toString() + ".html");
+
+            if (typeOfEmail == EmailTypes.approve_publication_order) {
+                return formApprovePublicationOrder(data, content);
+            } else if (typeOfEmail == EmailTypes.reject_publication_order) {
+                return formRejectPublicationOrder(data, content);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    private String formRejectPublicationOrder(Map<String, String> data, String content) {
+        content.replaceAll("REJECT_REASON",data.get("REJECT_REASON"));
+        return content;
+    }
+
+    private String formApprovePublicationOrder(Map<String, String> data, String content) {
+        content.replaceAll("PUBLICATION_LINK",data.get("PUBLICATION_LINK"));
+        return content;
+    }
+
+    private String readResourceText(String resourceName) throws IOException {
+        FileReader fileReader = null;
+        BufferedReader reader = null;
+        try {
+            StringBuilder content = new StringBuilder();
+            Resource resource = new ClassPathResource(resourceName);
+            fileReader = new FileReader(resource.getFile());
+            reader = new BufferedReader(fileReader);
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+
+            return content.toString();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (Exception e) { }
+            }
+
+            if (fileReader != null) {
+                try {
+                    fileReader.close();
+                } catch (Exception e) { }
+            }
+        }
+    }
+
+}

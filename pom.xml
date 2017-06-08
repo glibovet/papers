@@ -10,7 +10,7 @@
   <url>http://maven.apache.org</url>
 
   <properties>
-        <java-version>1.7</java-version>
+        <java-version>1.8</java-version>
         <!-- Build Properties -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -24,7 +24,7 @@
         <jstl.version>1.2</jstl.version>
         <commons-lang.version>2.6</commons-lang.version>
       <spring.security.version>4.1.2.RELEASE</spring.security.version>
-      <es.version>2.3.4</es.version>
+      <es.version>2.4.4</es.version>
 
       <!-- JDBC Setting -->
       <hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect>
@@ -36,8 +36,8 @@
         <profile>
             <id>local</id>
             <properties>
-                <jdbc.username>name</jdbc.username>
-                <jdbc.password>pass</jdbc.password>
+                <jdbc.username>root</jdbc.username>
+                <jdbc.password>root</jdbc.password>
                 <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
                 <jdbc.database.name>papers</jdbc.database.name>
                 <jdbc.database.server>localhost</jdbc.database.server>
@@ -49,6 +49,18 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+        </profile>
+		<profile>
+            <id>prod</id>
+            <properties>
+                <jdbc.username>papers</jdbc.username>
+                <jdbc.password>7pzWNDtg7l7k</jdbc.password>
+                <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
+                <jdbc.database.name>papers</jdbc.database.name>
+                <jdbc.database.server>mysql30587-papaers-server.mircloud.host</jdbc.database.server>
+                <jdbc.url>jdbc:mysql://mysql30587-papaers-server.mircloud.host:3306/papers?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;connectionCollation=utf8_general_ci&amp;characterSetResults=UTF-8</jdbc.url>
+				<jelastic.env>papaers-server</jelastic.env>
+            </properties>
         </profile>
     </profiles>
 
@@ -273,13 +285,25 @@
 
       <!-- end jackson -->
 
-      <!-- dropbox -->
+      <!-- storage -->
       <dependency>
           <groupId>com.dropbox.core</groupId>
           <artifactId>dropbox-core-sdk</artifactId>
           <version>2.1.1</version>
       </dependency>
-      <!-- end dropbox -->
+
+      <dependency>
+          <groupId>commons-fileupload</groupId>
+          <artifactId>commons-fileupload</artifactId>
+          <version>1.2.1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+          <version>1.3.2</version>
+      </dependency>
+      <!-- end storage -->
 
       <!--Elastic-->
       <dependency>
@@ -295,6 +319,11 @@
       </dependency>
 
       <dependency>
+          <groupId>org.jglue.fluent-json</groupId>
+          <artifactId>fluent-json</artifactId>
+          <version>2.0.0</version>
+      </dependency>
+      <dependency>
           <groupId>org.jsoup</groupId>
           <artifactId>jsoup</artifactId>
           <version>1.10.1</version>
@@ -305,7 +334,23 @@
           <version>2.0.1</version>
       </dependency>
 
+      <dependency>
+          <groupId>org.json</groupId>
+          <artifactId>json</artifactId>
+          <version>20151123</version>
+      </dependency>
   </dependencies>
+
+    <dependencyManagement>
+        <!-- enforce dependency guava version 20.0 -->
+        <dependencies>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>20.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
   <build>
         <finalName>papers</finalName>
@@ -331,8 +376,8 @@
               <artifactId>maven-compiler-plugin</artifactId>
               <version>3.1</version>
               <configuration>
-                  <source>1.8</source>
-                  <target>1.8</target>
+                  <source>${java-version}</source>
+                  <target>${java-version}</target>
                   <encoding>UTF-8</encoding>
                   <compilerArgs>
                       <arg>-XDignore.symbol.file</arg>
@@ -401,7 +446,55 @@
                   </dependency>
               </dependencies>
           </plugin>
+          <plugin>
+                    <groupId>com.jelastic</groupId>
+                    <artifactId>jelastic-maven-plugin</artifactId>
+                    <version>1.8</version>
+                    <configuration>
+                        <email>${jelastic.login}</email>
+                        <password>${jelastic.pass}</password>
+						<context>papers</context>
+						<environment>papaers-server</environment>
+                        <api_hoster>app.mircloud.host</api_hoster>
+                    </configuration>
+                </plugin>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-dependency-plugin</artifactId>
+              <version>2.3</version>
+              <executions>
+                  <execution>
+                      <phase>package</phase>
+                      <goals>
+                          <goal>copy</goal>
+                      </goals>
+                      <configuration>
+                          <artifactItems>
+                              <artifactItem>
+                                  <groupId>com.github.jsimone</groupId>
+                                  <artifactId>webapp-runner</artifactId>
+                                  <version>8.5.5.2</version>
+                                  <destFileName>webapp-runner.jar</destFileName>
+                              </artifactItem>
+                          </artifactItems>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
       </plugins>
+
   </build>
+  <pluginRepositories>
+	<pluginRepository>
+     <id>sonatype-oss-public</id>
+     <url>https://oss.sonatype.org/content/groups/public</url>
+     <releases>
+         <enabled>true</enabled>
+     </releases>
+     <snapshots>
+         <enabled>true</enabled>
+     </snapshots>
+ </pluginRepository>
+  </pluginRepositories>
 
 </project>

@@ -11,15 +11,18 @@ import ua.com.papers.crawler.test.IHandlerCallback;
 import ua.com.papers.crawler.util.PageHandler;
 import ua.com.papers.crawler.util.PostHandle;
 import ua.com.papers.crawler.util.PreHandle;
+import ua.com.papers.criteria.impl.PublicationCriteria;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.ServiceErrorException;
-import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.exceptions.service_error.*;
 import ua.com.papers.pojo.entities.AuthorEntity;
+import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
+import ua.com.papers.storage.IStorageService;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -40,6 +43,7 @@ public final class UranArticleComposer {
     IAuthorService authorService;
     IPublisherService publisherService;
     IPublicationService publicationService;
+    IStorageService storageService;
     IHandlerCallback callback;
     List<PublicationView> publicationViews;
 
@@ -49,11 +53,12 @@ public final class UranArticleComposer {
     private PublisherView publisherView;
 
     public UranArticleComposer(IAuthorService authorService, IPublisherService publisherService,
-                               IPublicationService publicationService) {
+                               IPublicationService publicationService, IStorageService storageService) {
         this.authorService = authorService;
         this.publisherService = publisherService;
         this.publicationService = publicationService;
         this.publicationViews = new ArrayList<>();
+        this.storageService = storageService;
         this.callback = createCallback();
     }
 
@@ -78,10 +83,50 @@ public final class UranArticleComposer {
         for (val publication : publicationViews) {
 
             try {
+                    publication.setPublisher_id(publisherView.getId());
 
-                publication.setPublisherId(publisherView.getId());
-                publicationService.createPublication(publication);
+                    PublicationEntity fromDb = null;
+                    try {
+                        PublicationCriteria criteria = new PublicationCriteria("{}");
+                        criteria.setLink(publication.getLink());
+                        criteria.setTitle(publication.getTitle());
 
+                        List<PublicationEntity> searchResult = publicationService.getPublications(0, 2, criteria);
+
+                        if (searchResult.size() == 1) {
+                            fromDb = searchResult.get(0);
+                        } else if (searchResult.size() > 1) {
+                            log.log(Level.WARNING, "More then one publication for `unique_page` [%s] found", page.getUrl().getPath());
+                        }
+                    } catch (WrongRestrictionException | NoSuchEntityException e) {
+                        // nothing to do
+                    }
+
+                    int id = 0;
+                    if (fromDb != null) {
+                        publication.setId(fromDb.getId());
+                        try {
+                            id = publicationService.updatePublication(publication);
+                        } catch (ForbiddenException | ElasticSearchError e) {
+                            log.log(Level.SEVERE, "Something bad happened while updating publication", e);
+                        }
+                    } else {
+                        id = publicationService.createPublication(publication);
+                    }
+
+                    if (id > 0 && publication.getFile_link() != null) {
+                        final int idCopy = id;
+                        final String url = publication.getFile_link();
+                        //new Thread(() -> {
+                        try {
+                            storageService.uploadPaper(idCopy, url);
+                        } catch (NoSuchEntityException e) {
+                            e.printStackTrace();
+                        } catch (StorageException e) {
+                            e.printStackTrace();
+                        }
+                        //}).start();
+                    }
                 log.log(Level.INFO, String.format("page with url %s was successfully saved", page.getUrl()));
             } catch (final ServiceErrorException | NoSuchEntityException e) {
                 log.log(Level.WARNING, "Service error occurred while saving publication", e);
@@ -91,7 +136,7 @@ public final class UranArticleComposer {
                                 publication, publisherView),
                         e);
                 // finish execution immediately and fix error
-                throw new RuntimeException(e);
+               // throw new RuntimeException(e);
             }
         }
     }

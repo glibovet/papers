@@ -6,9 +6,7 @@
 <link rel="stylesheet" href="/resources/css/css/font-awesome.min.css">
 
 <script src="/resources/js/ejs.min.js"></script>
-<script src="/resources/js/ajax.js"></script>
 <script>
-    Ajax.setCSRF('${_csrf.headerName}', '${_csrf.token}');
     var HEADERS = {
         '${_csrf.headerName}': '${_csrf.token}',
         'Content-Type': 'application/json',

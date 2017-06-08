@@ -9,4 +9,6 @@ import ua.com.papers.pojo.entities.PublicationEntity;
 public interface IPublicationValidateService {
     void publicationValidForCreation(PublicationEntity entity) throws ValidationException;
     void publicationValidForUpdate(PublicationEntity entity) throws ValidationException;
+    boolean isPublicationAvailableForSearch(PublicationEntity entity);
+    boolean isPublicationAvailable(PublicationEntity entity);
 }

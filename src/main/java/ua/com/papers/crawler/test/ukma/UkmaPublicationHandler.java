@@ -78,29 +78,6 @@ public class UkmaPublicationHandler {
 
             val cache = new HashMap<String, Integer>();
             fullNameToId = new SoftReference<>(cache);
-
-            /*try {
-
-                List<AuthorEntity> res = authorService.getAuthors(0, -1, null);
-
-                for (val entity : res) {
-
-                    String key = entity.getLastName() + (TextUtils.isEmpty(entity.getInitials()) ? "" : entity.getInitials())
-                            .trim();
-
-                    cache.put(key, entity.getId());
-                }
-
-                *//*fullNameToId = authorService.getAuthors(0, -1, null)
-                        .stream()
-                        .collect(Collectors.toMap(
-                                a -> (a.getLastName() + (TextUtils.isEmpty(a.getInitials()) ? "" : a.getInitials()))
-                                        .trim(),// probably overdo but it guaranties valid key even
-                                // if it was incorrectly saved
-                                AuthorEntity::getId));*//*
-            } catch (final NoSuchEntityException e) {//FIXME if db is empty
-                log.log(Level.WARNING, "NoSuchEntityException, FIXME", e);
-            }*/
         }
     }
 
@@ -124,7 +101,7 @@ public class UkmaPublicationHandler {
     @Handler(id = 8, converter = StringAdapter.class, group = GROUP_ID)
     public void onHandleAuthors(String authorsStr) {
         log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authorsStr));
-        publicationView.setAuthorsId(getAuthorIdsByNames(authorsStr.trim().replaceAll("\\s*,\\s*", ",").split(",")));
+        publicationView.setAuthors_id(getAuthorIdsByNames(authorsStr.trim().replaceAll("\\s*,\\s*", ",").split(",")));
     }
 
     @Handler(id = 9, converter = UrlAdapter.class, group = GROUP_ID)
@@ -134,7 +111,7 @@ public class UkmaPublicationHandler {
         if (url == null) {
             log.log(Level.WARNING, "Failed to parse document url");
         } else {
-            publicationView.setLink(url.toExternalForm());
+            publicationView.setFile_link(url.toExternalForm());
         }
     }
 
@@ -147,12 +124,15 @@ public class UkmaPublicationHandler {
     }
 
     @PostHandle(group = GROUP_ID)
-    public void postPublication() {
+    public void postPublication(Page page) {
         log.log(Level.INFO, String.format("#postPublication %s", getClass()));
+
+        // save parsed page link
+        publicationView.setLink(page.getUrl().toExternalForm());
 
         val isValid = !TextUtils.isEmpty(publicationView.getLink())
                 && !TextUtils.isEmpty(publicationView.getTitle())
-                && publicationView.getAuthorsId() != null && !publicationView.getAuthorsId().isEmpty();
+                && publicationView.getAuthors_id() != null && !publicationView.getAuthors_id().isEmpty();
 
         if (isValid) {
             callback.onPublicationReady(publicationView);

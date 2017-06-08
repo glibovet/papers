@@ -111,8 +111,8 @@ public class TestController {
             view.setLink("www.example.com1");
             view.setStatus(PublicationStatusEnum.ACTIVE);
             view.setType(PublicationTypeEnum.ARTICLE);
-            view.setPublisherId(pubId);
-            view.setAuthorsId(Arrays.asList(authorId));
+            view.setPublisher_id(pubId);
+            view.setAuthors_id(Arrays.asList(authorId));
 
             service.createPublication(view);
         } catch (ServiceErrorException e) {
