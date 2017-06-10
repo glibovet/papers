@@ -17,7 +17,7 @@ public class PublicationOrderView {
     private String reason;
     private String answer;
     private PublicationOrderStatusEnum status;
-    private Integer publicationId;
+    private Integer publication_id;
 
     public Integer getId() {
         return id;
@@ -59,11 +59,11 @@ public class PublicationOrderView {
         this.status = status;
     }
 
-    public Integer getPublicationId() {
-        return publicationId;
+    public Integer getPublication_id() {
+        return publication_id;
     }
 
-    public void setPublicationId(Integer publicationId) {
-        this.publicationId = publicationId;
+    public void setPublication_id(Integer publication_id) {
+        this.publication_id = publication_id;
     }
 }

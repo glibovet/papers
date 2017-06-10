@@ -25,6 +25,7 @@ public interface IPublicationOrderService {
     int create(PublicationOrderView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 
     int answer(PublicationOrderView view) throws ServiceErrorException, NoSuchEntityException, ValidationException, AuthRequiredException;
+    int update(PublicationOrderView view) throws ServiceErrorException, NoSuchEntityException, ValidationException, AuthRequiredException;
 
     Integer count(String restrict) throws WrongRestrictionException;
 }

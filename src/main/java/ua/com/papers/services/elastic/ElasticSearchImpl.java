@@ -215,6 +215,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                 publicationDTO.setPublisher(publication.getPublisher().getTitle());
             }
             publicationDTO.setType(publication.getType());
+            publicationDTO.setLink(publication.getLink());
 
             publicationDTOs.add(publicationDTO);
         }

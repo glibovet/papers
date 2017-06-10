@@ -55,6 +55,9 @@ public class StorageServiceImpl implements IStorageService {
 
             IOUtils.copy(input, output);
         } catch (IOException e) {
+            try {
+                  papersContainer.delete();
+            } catch (Exception e1) { }
             throw new StorageException(e);
         } finally {
             close(input);

@@ -25,8 +25,12 @@ public class PublicationConverter extends Converter<PublicationEntity> {
             map.put(TYPE,object.getType());
         if (fields.contains(LINK))
             map.put(LINK, object.getLink());
-        if (fields.contains(PUBLISHER))
-            map.put(PUBLISHER,object.getPublisher().getId());
+        if (fields.contains(PUBLISHER)) {
+            if (object.getPublisher() != null)
+                map.put(PUBLISHER, object.getPublisher().getId());
+            else
+                map.put(PUBLISHER, null);
+        }
         if (fields.contains(IN_INDEX))
             map.put(IN_INDEX,object.isInIndex());
         if (fields.contains(STATUS))
