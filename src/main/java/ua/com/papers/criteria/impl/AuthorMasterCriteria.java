@@ -1,7 +1,5 @@
 package ua.com.papers.criteria.impl;
 
-import com.google.gson.Gson;
-import org.springframework.security.core.Authentication;
 import ua.com.papers.criteria.Criteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.pojo.entities.AuthorEntity;

@@ -1,6 +1,7 @@
 package ua.com.papers.services.mailing;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,8 @@ public class MailingService implements IMailingService {
     private EmailBuilder emailBuilder;
     @Autowired
     private Sendpulse sendpulse;
+    @Value("${prod_server}")
+    private boolean prodServer;
 
 
     public String smtpListEmails(int limit, int offset, String from, String to, String sender, String recipient) {
@@ -74,6 +77,13 @@ public class MailingService implements IMailingService {
     @Transactional
     public boolean sendEmailToUser(EmailTypes typeOfEmail, String userEmail, Map<String, String> data, Locale locale) throws NoSuchEntityException {
         String content = emailBuilder.getEmailContent(typeOfEmail, data, locale);
+
+        if (data != null) {
+            for (String key : data.keySet()) {
+                content = content.replace(key, data.get(key));
+            }
+        }
+
         return send(typeOfEmail, userEmail, content, locale);
     }
 
@@ -86,13 +96,22 @@ public class MailingService implements IMailingService {
     }
 
     private boolean send(EmailTypes type, String toEmail, String text, Locale locale) {
-        final ExecutorService service;
-        final Future<String> task;
-        service = Executors.newFixedThreadPool(1);
-        String subject = messageSource.getMessage("email.subject." + type.toString(), null, locale);
-        task = service.submit(new SenderTask("admin@scisearch.com.ua", toEmail, text, subject));
+        if (prodServer) {
+            final ExecutorService service;
+            final Future<String> task;
+            service = Executors.newFixedThreadPool(1);
+            String subject = messageSource.getMessage("email.subject." + type.toString(), null, locale);
+            task = service.submit(new SenderTask("admin@scisearch.com.ua", toEmail, text, subject));
 
-        return executeSendTask(service, task);
+            System.out.println(text);
+
+            return executeSendTask(service, task);
+        } else {
+            System.out.println(toEmail);
+            System.out.println(text);
+
+            return true;
+        }
     }
 
     private boolean executeSendTask(final ExecutorService service, final Future<String> task) {

@@ -1,24 +1,14 @@
 package ua.com.papers.controllers.web;
 
-import com.dropbox.core.util.IOUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import ua.com.papers.exceptions.service_error.StorageException;
-import ua.com.papers.pojo.storage.FileData;
-import ua.com.papers.pojo.storage.FileItem;
-import ua.com.papers.storage.IStorage;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
+import ua.com.papers.services.authors.IAuthorService;
+import ua.com.papers.services.publications.IPublicationService;
 
 /**
  * Created by Andrii on 27.07.2016.
@@ -27,10 +17,31 @@ import java.util.List;
 public class IndexController {
 
     @Autowired
-    private IStorage storage;
+    private IPublicationService publicationService;
+
+    @Autowired
+    private IAuthorService authorService;
 
     @RequestMapping(value = {"/", "/index"}, method = RequestMethod.GET)
-    public String indexPage(Model model, Principal principal){
+    public String indexPage(Model model){
+        int publications = 0;
+        int authors = 0;
+
+        try {
+            publications = publicationService.countPublications(PUBLICATION_RESTRICT);
+        } catch (WrongRestrictionException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            authors = authorService.countAuthors(null);
+        } catch (WrongRestrictionException e) {
+            e.printStackTrace();
+        }
+
+        model.addAttribute("publication_count", publications);
+        model.addAttribute("authors_count", authors);
+
         return "index/index";
     }
 
@@ -39,4 +50,7 @@ public class IndexController {
     public String signUp(){
         return "auth/sign_up";
     }
+
+
+    private String PUBLICATION_RESTRICT = "{\"in_index\": true, \"status\": \"ACTIVE\"}";
 }

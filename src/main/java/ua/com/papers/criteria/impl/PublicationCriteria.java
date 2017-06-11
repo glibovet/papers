@@ -27,6 +27,7 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
     private List<Integer> publishers_id;
     private PublicationStatusEnum status;
     private PublicationTypeEnum type;
+    private Boolean in_index;
 
     public PublicationCriteria(String restriction) throws WrongRestrictionException {
         this(0, 0, restriction);
@@ -112,6 +113,14 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         this.title = title;
     }
 
+    public Boolean getIn_index() {
+        return in_index;
+    }
+
+    public void setIn_index(Boolean in_index) {
+        this.in_index = in_index;
+    }
+
     @Override
     public Query createQuery(EntityManager em) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -180,6 +189,11 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         if (this.type != null) {
             Expression<PublicationTypeEnum> expression = root.get("type");
             query.where(cb.equal(expression, this.type));
+        }
+
+        if (this.in_index != null) {
+            Expression<String> expression = root.get("inIndex");
+            query.where(cb.equal(expression, this.in_index));
         }
 
         if (this.authors_id != null && !this.authors_id.isEmpty()) {

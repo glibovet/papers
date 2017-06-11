@@ -119,7 +119,7 @@ public class PublicationOrderServiceImpl implements IPublicationOrderService{
         if(entity == null){
             throw new ServiceErrorException();
         }
-        /*Map<String,String> data = new HashMap<>();
+        Map<String,String> data = new HashMap<>();
         if (entity.getStatus()== PublicationOrderStatusEnum.APPLIED){
             data.put("PUBLICATION_ID",entity.getPublication().getId().toString());
             malingService.sendEmailToUser(EmailTypes.approve_publication_order,entity.getEmail(), data, Locale.ENGLISH);
@@ -127,7 +127,7 @@ public class PublicationOrderServiceImpl implements IPublicationOrderService{
 
             data.put("REJECT_REASON",entity.getReason());
             malingService.sendEmailToUser(EmailTypes.reject_publication_order,entity.getEmail(), data, Locale.ENGLISH);
-        }*/
+        }
         return entity.getId();
     }
 
