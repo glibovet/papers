@@ -20,7 +20,7 @@ public interface IStorageService {
     byte[] getPaperAsByteArray(Integer paperId) throws NoSuchEntityException, ServiceErrorException, ForbiddenException;
     byte[] getPaperAsByteArray(PublicationEntity entity) throws NoSuchEntityException, ServiceErrorException, ForbiddenException;
 
-    void getPaper(int id, HttpServletResponse response) throws NoSuchEntityException, ForbiddenException, ServiceErrorException;
+    void getPaper(int id, String token, HttpServletResponse response) throws NoSuchEntityException, ForbiddenException, ServiceErrorException;
 
     boolean paperHasFile(int id) throws NoSuchEntityException, ForbiddenException, ServiceErrorException;
 }

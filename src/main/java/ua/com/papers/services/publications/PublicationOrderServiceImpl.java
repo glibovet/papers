@@ -22,6 +22,8 @@ import ua.com.papers.pojo.enums.PublicationOrderStatusEnum;
 import ua.com.papers.pojo.view.PublicationOrderView;
 import ua.com.papers.services.mailing.IMailingService;
 import ua.com.papers.services.utils.SessionUtils;
+import ua.com.papers.utils.SecureToken;
+import ua.com.papers.utils.TokenUtil;
 
 import java.util.*;
 
@@ -44,6 +46,8 @@ public class PublicationOrderServiceImpl implements IPublicationOrderService{
     private IPublicationService publicationService;
     @Autowired
     private IMailingService malingService;
+    @Autowired
+    private TokenUtil tokenUtil;
 
     @Override
     public Map<String, Object> getPublicationOrderMapById(int id, Set<String> fields) throws NoSuchEntityException {
@@ -119,9 +123,17 @@ public class PublicationOrderServiceImpl implements IPublicationOrderService{
         if(entity == null){
             throw new ServiceErrorException();
         }
+
         Map<String,String> data = new HashMap<>();
         if (entity.getStatus()== PublicationOrderStatusEnum.APPLIED){
             data.put("PUBLICATION_ID",entity.getPublication().getId().toString());
+
+            SecureToken token = new SecureToken();
+            token.add("PUBLICATION_ID", view.getId());
+            token.add("DATE", new Date().getTime());
+
+            data.put("TOKEN", tokenUtil.generateSecure(token));
+
             malingService.sendEmailToUser(EmailTypes.approve_publication_order,entity.getEmail(), data, Locale.ENGLISH);
         }else if (entity.getStatus()== PublicationOrderStatusEnum.REJECTED){
 

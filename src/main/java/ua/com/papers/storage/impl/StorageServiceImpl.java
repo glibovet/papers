@@ -17,6 +17,8 @@ import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publications.IPublicationValidateService;
 import ua.com.papers.storage.IStorage;
 import ua.com.papers.storage.IStorageService;
+import ua.com.papers.utils.SecureToken;
+import ua.com.papers.utils.TokenUtil;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -36,6 +38,8 @@ public class StorageServiceImpl implements IStorageService {
     private IStorage storage;
     @Autowired
     private IPublicationValidateService publicationValidateService;
+    @Autowired
+    private TokenUtil tokenUtil;
 
     @Override
     public boolean uploadPaper(int id, String url) throws NoSuchEntityException, StorageException {
@@ -139,9 +143,14 @@ public class StorageServiceImpl implements IStorageService {
 
     @Override
     @Transactional
-    public void getPaper(int id, HttpServletResponse response) throws NoSuchEntityException, ForbiddenException, ServiceErrorException {
+    public void getPaper(int id, String token, HttpServletResponse response) throws NoSuchEntityException, ForbiddenException, ServiceErrorException {
+        SecureToken secureToken = null;
+        if (token != null) {
+            secureToken = tokenUtil.parseSecure(token);
+        }
+
         PublicationEntity publication = publicationService.getPublicationById(id);
-        if (!publicationValidateService.isPublicationAvailable(publication))
+        if (!publicationValidateService.isPublicationAvailable(publication, secureToken))
             throw new ForbiddenException();
 
         try {
