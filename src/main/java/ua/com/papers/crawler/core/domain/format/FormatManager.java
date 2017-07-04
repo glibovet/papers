@@ -139,7 +139,7 @@ public class FormatManager implements IFormatManager {
                 new HashMap<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>() {
                     {
                         // register default converters
-                        put(Handler.DummyAdapter.class, Handler.DummyAdapter.instance);
+                        put(Handler.SkipAdapter.class, Handler.SkipAdapter.instance);
                         put(StringAdapter.class, StringAdapter.instance);
                     }
                 }

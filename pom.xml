@@ -58,10 +58,10 @@
                 <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
                 <jdbc.database.name>papers</jdbc.database.name>
                 <jdbc.database.server>mysql30587-papaers-server.mircloud.host</jdbc.database.server>
-                <jdbc.url>jdbc:mysql://mysql30587-papaers-server.mircloud.host:3306/papers?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;connectionCollation=utf8_general_ci&amp;characterSetResults=UTF-8</jdbc.url>				
+                <jdbc.url>jdbc:mysql://mysql30587-papaers-server.mircloud.host:3306/papers?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;connectionCollation=utf8_general_ci&amp;characterSetResults=UTF-8</jdbc.url>
 				<jelastic.env>papaers-server</jelastic.env>
             </properties>
-        </profile>		
+        </profile>
     </profiles>
 
   <dependencies>
@@ -463,7 +463,7 @@
 						<environment>papaers-server</environment>
                         <api_hoster>app.mircloud.host</api_hoster>
                     </configuration>
-                </plugin>		  
+                </plugin>
           <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-dependency-plugin</artifactId>

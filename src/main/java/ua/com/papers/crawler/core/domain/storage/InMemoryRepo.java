@@ -23,7 +23,7 @@ public final class InMemoryRepo implements IPageIndexRepository {
     private final Map<URL, Index> cache;
     private final ReentrantReadWriteLock lock;
 
-    private static InMemoryRepo instance;
+    private static volatile InMemoryRepo instance;
 
     public static InMemoryRepo getInstance() {
         // double check idiom

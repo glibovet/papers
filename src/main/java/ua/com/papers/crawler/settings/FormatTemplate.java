@@ -1,6 +1,5 @@
 package ua.com.papers.crawler.settings;
 
-import com.google.common.base.Preconditions;
 import lombok.Value;
 
 import javax.validation.constraints.NotNull;
@@ -19,8 +18,10 @@ public class FormatTemplate {
     int id;
 
     public FormatTemplate(int id, @NotNull String cssSelector) {
+        Conditions.isNotNull(cssSelector, "css selector expected");
+        Conditions.checkArgument(!cssSelector.isEmpty(), "css selector expected");
         this.id = id;
-        this.cssSelector = Preconditions.checkNotNull(cssSelector, "css selector expected");
+        this.cssSelector = cssSelector;
     }
 
 }

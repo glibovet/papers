@@ -29,11 +29,7 @@ public class UrlExtractor implements IUrlExtractor {
     Map<PageID, Collection<? extends UrlSelectSetting>> idToSetting;
 
     public UrlExtractor(@NotNull Map<PageID, Collection<? extends UrlSelectSetting>> idToSetting) {
-
-        if (Preconditions.checkNotNull(idToSetting, "id to settings == null").isEmpty())
-            throw new IllegalArgumentException("url select settings wasn't specified!");
-
-        this.idToSetting = Collections.unmodifiableMap(idToSetting);
+        this.idToSetting = Collections.unmodifiableMap(Preconditions.checkNotNull(idToSetting, "id to settings == null"));
     }
 
     @Override

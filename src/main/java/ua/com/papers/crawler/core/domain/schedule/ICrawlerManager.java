@@ -3,7 +3,6 @@ package ua.com.papers.crawler.core.domain.schedule;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 
@@ -15,11 +14,6 @@ import java.util.Collection;
  * Created by Максим on 12/28/2016.
  */
 public interface ICrawlerManager {
-
-    interface ErrorCallback {
-
-        void onException(@NotNull Throwable th);
-    }
 
     /**
      * Starts crawling. Each invocation of this method will create a new crawler and start job in a separate
@@ -43,24 +37,26 @@ public interface ICrawlerManager {
      */
     void startIndexing(@NotNull Collection<Object> handlers, @NotNull IPageIndexer.Callback indexCallback);
 
+    /**
+     * @return true if crawling process is currently running
+     */
     boolean isCrawling();
 
+    /**
+     * @return true if indexing process is currently running
+     */
     boolean isIndexing();
 
     /**
      * Releases resources hold by crawler and stops
      * it
      */
-    void stop();
+    void stopCrawling();
 
     /**
-     * Releases resources hold by crawler and stops
+     * Releases resources hold by indexer and stops
      * it
-     *
-     * @param timeout  millis to wait at most before finishing
-     * @param callback optional callback to handle exception
-     *                 which may occur during stop
      */
-    void stop(long timeout, @Nullable ErrorCallback callback);
+    void stopIndexing();
 
 }

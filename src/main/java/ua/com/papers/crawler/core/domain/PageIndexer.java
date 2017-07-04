@@ -1,7 +1,10 @@
 package ua.com.papers.crawler.core.domain;
 
 import com.google.common.base.Preconditions;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import lombok.val;
 import org.joda.time.DateTimeZone;
@@ -9,6 +12,8 @@ import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
 import ua.com.papers.crawler.core.domain.storage.IPageIndexRepository;
+import ua.com.papers.crawler.settings.Conditions;
+import ua.com.papers.crawler.settings.SchedulerSetting;
 import ua.com.papers.crawler.util.PageUtils;
 
 import javax.validation.constraints.NotNull;
@@ -18,6 +23,9 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /**
@@ -26,8 +34,9 @@ import java.util.logging.Level;
  * </p>
  * Created by Максим on 12/29/2016.
  */
-@Value
 @Log
+@Value
+@Getter(value = AccessLevel.NONE)
 public class PageIndexer implements IPageIndexer {
 
     private static final int PAGE_PARSE_TIMEOUT = 5_000;
@@ -38,11 +47,15 @@ public class PageIndexer implements IPageIndexer {
     IPageIndexRepository repository;
     IAnalyzeManager analyzeManager;
     IFormatManagerFactory formatManagerFactory;
+    SchedulerSetting setting;
+    @NonFinal ExecutorService executor;
 
-    public PageIndexer(@NotNull IPageIndexRepository repository, IFormatManagerFactory formatManagerFactory, IAnalyzeManager analyzeManager) {
-        this.repository = Preconditions.checkNotNull(repository);
-        this.formatManagerFactory = Preconditions.checkNotNull(formatManagerFactory);
-        this.analyzeManager = Preconditions.checkNotNull(analyzeManager);
+    public PageIndexer(@NotNull IPageIndexRepository repository, @NotNull IFormatManagerFactory formatManagerFactory,
+                       @NotNull IAnalyzeManager analyzeManager, @NotNull SchedulerSetting setting) {
+        this.repository = Conditions.isNotNull(repository);
+        this.formatManagerFactory = Conditions.isNotNull(formatManagerFactory);
+        this.analyzeManager = Conditions.isNotNull(analyzeManager);
+        this.setting = Conditions.isNotNull(setting);
     }
 
     @Override
@@ -62,40 +75,80 @@ public class PageIndexer implements IPageIndexer {
     @Override
     public void index(@NotNull Callback callback, @NotNull Collection<Object> handlers) {
         PageIndexer.checkPreConditions(callback, handlers);
+        stop();
         // iterator implementation, for example, can be
         // just an ArrayList iterator for a relatively small repositories
         // or it can be database cursor
         val iterator = repository.getIndexedPages();
         val formatManager = formatManagerFactory.create(handlers);
-
+        val lock = new Object();
         callback.onStart();
 
-        while (iterator.hasNext()) {
+        class Looper implements Runnable {
 
-            val index = iterator.next();
+            @Override
+            public void run() {
 
-            try {
+                IPageIndexRepository.Index index;
 
-                val page = PageUtils.parsePage(index.getUrl(), PAGE_PARSE_TIMEOUT);
-                val indexRes = analyzeManager.analyze(page);
+                while (!Thread.currentThread().isInterrupted() && (index = next()) != null) {
+                    log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
 
-                if (indexRes.isEmpty()) {
-                    // page doesn't conform analyze
-                    // settings anymore
-                    callback.onLost(page);
-                } else if (PageIndexer.hasChanges(page, index)) {
-                    callback.onUpdated(page);
-                    // invoke page handlers
-                    indexRes.forEach(result -> formatManager.processPage(result.getPageID(), page));
-                } else {
-                    callback.onIndexed(page);
+                    try {
+
+                        val page = PageUtils.parsePage(index.getUrl(), PAGE_PARSE_TIMEOUT);
+                        val indexRes = analyzeManager.analyze(page);
+
+                        if (indexRes.isEmpty()) {
+                            // page doesn't conform analyze
+                            // settings anymore
+                            callback.onLost(page);
+                        } else if (PageIndexer.hasChanges(page, index)) {
+                            callback.onUpdated(page);
+                            synchronized (lock) {
+                                indexRes.forEach(result -> formatManager.processPage(result.getPageID(), page));
+                            }
+                        } else {
+                            callback.onIndexed(page);
+                        }
+
+                        Thread.sleep(setting.getIndexDelay());
+                    } catch (final IOException e) {
+                        log.log(Level.WARNING, String.format("Failed to index %s", index));
+                    } catch (final InterruptedException e) {
+                        log.log(Level.INFO, String.format("#Interrupted thread %s", Thread.currentThread()), e);
+                        break;
+                    }
                 }
-            } catch (final IOException e) {
-                log.log(Level.WARNING, String.format("Failed to index %s", index));
+                log.log(Level.INFO, String.format("#Thread %s finished job", Thread.currentThread()));
+            }
+
+            private IPageIndexRepository.Index next() {
+                synchronized (lock) {
+                    return iterator.hasNext() ? iterator.next() : null;
+                }
             }
         }
+        executor = Executors.newFixedThreadPool(setting.getIndexThreads());
 
+        for (int i = 0; i < setting.getIndexThreads(); ++i) {
+            executor.execute(new Looper());
+        }
+        executor.shutdown();
         callback.onStop();
+    }
+
+    @Override
+    public void stop() {
+
+        if (executor != null) {
+            try {
+                executor.shutdownNow();
+                executor.awaitTermination(0, TimeUnit.MILLISECONDS);
+            } catch (final InterruptedException e) {
+                log.log(Level.WARNING, "Stopped unexpectedly", e);
+            }
+        }
     }
 
     /**

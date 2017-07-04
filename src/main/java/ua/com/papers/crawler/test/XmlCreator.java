@@ -88,14 +88,16 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
      */
     private SchedulerSetting parseSchedulerSettings(Element root) {
 
-        val threadsEl = (Element) root.getElementsByTagName("threads").item(0);
-        val startupEl = (Element) root.getElementsByTagName("startup-delay").item(0);
-        val indexEl = (Element) root.getElementsByTagName("index-delay").item(0);
+        val processingThreadsEl = (Element) root.getElementsByTagName("processing-threads").item(0);
+        val indexThreadsEl = (Element) root.getElementsByTagName("index-threads").item(0);
+        val indexDelayEl = (Element) root.getElementsByTagName("index-delay").item(0);
+        val processingDelayEl = (Element) root.getElementsByTagName("processing-delay").item(0);
 
         return SchedulerSetting.builder()
-                .threads(XmlHelper.parseInt(threadsEl, 1))
-                .startupDelay(XmlHelper.parseLong(startupEl))
-                .indexDelay(XmlHelper.parseLong(indexEl))
+                .processingThreads(XmlHelper.parseInt(processingThreadsEl, 1))
+                .indexThreads(XmlHelper.parseInt(indexThreadsEl, 1))
+                .processingDelay(XmlHelper.parseLong(processingDelayEl))
+                .indexDelay(XmlHelper.parseLong(indexDelayEl))
                 .build();
     }
 

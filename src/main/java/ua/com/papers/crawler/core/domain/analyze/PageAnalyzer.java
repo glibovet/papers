@@ -12,6 +12,9 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
+ * <p>
+ * Default implementation of {@linkplain IPageAnalyzer}
+ * </p>
  * Created by Максим on 12/1/2016.
  */
 @Value

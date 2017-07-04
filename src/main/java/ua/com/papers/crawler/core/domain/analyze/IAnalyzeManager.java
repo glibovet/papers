@@ -3,9 +3,12 @@ package ua.com.papers.crawler.core.domain.analyze;
 import ua.com.papers.crawler.core.domain.bo.Page;
 
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
+import java.util.Set;
 
 /**
+ * <p>
+ * Class which allows to analyze web-pages
+ * </p>
  * Created by Максим on 12/18/2016.
  */
 public interface IAnalyzeManager {
@@ -18,6 +21,6 @@ public interface IAnalyzeManager {
      * in another case
      */
     @NotNull
-    Collection<Result> analyze(@NotNull Page page);
+    Set<Result> analyze(@NotNull Page page);
 
 }

@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.crawler.test.ukma;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -6,15 +6,17 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.test.IHandlerCallback;
 import ua.com.papers.crawler.util.PageHandler;
 import ua.com.papers.crawler.util.PostHandle;
 import ua.com.papers.crawler.util.PreHandle;
 import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
+import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.exceptions.service_error.*;
 import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.PublicationView;
@@ -37,13 +39,13 @@ import java.util.logging.Level;
 @Log
 @Value
 @Getter(AccessLevel.NONE)
-@PageHandler(id = 3)
-@Service
-public final class ArticleComposer {
+@PageHandler(id = 5)
+public final class UkmaArticleComposer {
 
+    IAuthorService authorService;
+    IPublisherService publisherService;
     IPublicationService publicationService;
     IHandlerCallback callback;
-    Collection<Object> subHandlers;
     List<PublicationView> publicationViews;
     IStorageService storageService;
 
@@ -52,18 +54,14 @@ public final class ArticleComposer {
     @NonFinal
     private PublisherView publisherView;
 
-    @Autowired
-    public ArticleComposer(IAuthorService authorService, IPublisherService publisherService,
-                           IPublicationService publicationService, IStorageService storageService) {
+    public UkmaArticleComposer(IAuthorService authorService, IPublisherService publisherService,
+                               IPublicationService publicationService, IStorageService storageService) {
+        this.authorService = authorService;
+        this.publisherService = publisherService;
         this.publicationService = publicationService;
         this.storageService = storageService;
         this.publicationViews = new ArrayList<>();
         this.callback = createCallback();
-        this.subHandlers = Arrays.asList(
-                new PublicationHandler(authorService, callback),
-                new PublisherHandler(publisherService, callback),
-                this
-        );
     }
 
     @PreHandle
@@ -84,9 +82,9 @@ public final class ArticleComposer {
             return;
         }
 
-        try {
+        for (val publication : publicationViews) {
 
-            for (val publication : publicationViews) {
+            try {
                 publication.setPublisher_id(publisherView.getId());
 
                 PublicationEntity fromDb = null;
@@ -122,29 +120,33 @@ public final class ArticleComposer {
                     final int idCopy = id;
                     final String url = publication.getFile_link();
                     //new Thread(() -> {
-                        try {
-                            storageService.uploadPaper(idCopy, url);
-                        } catch (NoSuchEntityException e) {
-                            e.printStackTrace();
-                        } catch (StorageException e) {
-                            e.printStackTrace();
-                        }
+                    try {
+                        storageService.uploadPaper(idCopy, url);
+                    } catch (NoSuchEntityException e) {
+                        e.printStackTrace();
+                    } catch (StorageException e) {
+                        e.printStackTrace();
+                    }
                     //}).start();
                 }
-            }
 
-            log.log(Level.INFO, String.format("page with url %s was successfully saved", page.getUrl()));
-        } catch (final ServiceErrorException | NoSuchEntityException e) {
-            log.log(Level.WARNING, "Service error occurred while saving publication", e);
-        } catch (final ValidationException e) {
-            log.log(Level.SEVERE, "Fatal error occurred while saving publication", e);
-            // finish execution immediately and fix error
-            //throw new RuntimeException(e);
+                log.log(Level.INFO, String.format("page with url %s was successfully saved", page.getUrl()));
+            } catch (final ServiceErrorException | NoSuchEntityException e) {
+                log.log(Level.WARNING, "Service error occurred while saving publication", e);
+            } catch (final ValidationException e) {
+                log.log(Level.SEVERE, "Fatal error occurred while saving publication", e);
+                // finish execution immediately and fix error
+                //throw new RuntimeException(e);
+            }
         }
     }
 
-    public Collection<Object> asHandlers() {
-        return subHandlers;
+    public Collection<Object> asHandlers(List<AuthorEntity> authorEntities) {
+        return Arrays.asList(
+                new UkmaPublicationHandler(authorService, callback, authorEntities),
+                new UkmaPublisherHandler(publisherService, callback),
+                this
+        );
     }
 
     private IHandlerCallback createCallback() {
@@ -164,12 +166,12 @@ public final class ArticleComposer {
 
             @Override
             public void onPublisherReady(@NotNull PublisherView publisherView) {
-                ArticleComposer.this.publisherView = publisherView;
+                UkmaArticleComposer.this.publisherView = publisherView;
             }
 
             @Override
             public void onPublicationReady(@NotNull PublicationView publicationView) {
-                ArticleComposer.this.publicationViews.add(publicationView);
+                UkmaArticleComposer.this.publicationViews.add(publicationView);
             }
         };
     }
