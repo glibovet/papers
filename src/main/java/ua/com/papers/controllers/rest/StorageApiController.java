@@ -48,10 +48,11 @@ public class StorageApiController {
     void
     getPaperFile(
             @PathVariable("id") int id,
+            @RequestParam(value = "token", required = false) String token,
             HttpServletResponse response
     ) throws PapersException, IOException {
         response.setStatus(HttpServletResponse.SC_OK);
-        storageService.getPaper(id, response);
+        storageService.getPaper(id, token, response);
     }
 
     @RequestMapping(value = "/paper/{id}/has_file", method = RequestMethod.GET)

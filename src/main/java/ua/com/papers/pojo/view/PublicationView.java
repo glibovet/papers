@@ -1,5 +1,6 @@
 package ua.com.papers.pojo.view;
 
+import lombok.ToString;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
 
@@ -9,6 +10,7 @@ import java.util.List;
 /**
  * Created by Andrii on 27.09.2016.
  */
+@ToString
 public class PublicationView {
 
     private Integer id;
@@ -102,4 +104,6 @@ public class PublicationView {
     public void setFile_link(String file_link) {
         this.file_link = file_link;
     }
+
+
 }

@@ -71,4 +71,15 @@ public class Fields {
         public static final String DEFAULT = ID + ',' + ADDRESS;
     }
 
+    public static class PublicationOrder{
+        public static final String ID = "id";
+        public static final String EMAIL = "email";
+        public static final String REASON = "reason";
+        public static final String ANSWER = "answer";
+        public static final String STATUS = "status";
+        public static final String PUBLICATION_ID = "publication_id";
+        public static final String DATE = "date";
+        public static final String DEFAULT = ID + ',' + STATUS;
+    }
+
 }

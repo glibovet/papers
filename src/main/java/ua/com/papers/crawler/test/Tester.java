@@ -52,6 +52,11 @@ public class Tester {
             public void onLost(@NotNull Page page) {
                 System.out.println("On lost " + page.getUrl());
             }
+
+            @Override
+            public void onIndexException(@NotNull URL url, @NotNull Throwable th) {
+
+            }
         };
     }
 
@@ -80,7 +85,7 @@ public class Tester {
             }
 
             @Override
-            public void onException(@NotNull URL url, @NotNull Throwable th) {
+            public void onCrawlException(@NotNull URL url, @NotNull Throwable th) {
                 System.out.println("On exception " + th);
             }
 

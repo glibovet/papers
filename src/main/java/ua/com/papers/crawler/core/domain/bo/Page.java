@@ -32,7 +32,7 @@ public class Page {
 
     @NonFinal
     @Getter(AccessLevel.NONE)
-    private Document document;
+    private volatile Document document;
     // sync lock
     private final Object lock = new Object();
 

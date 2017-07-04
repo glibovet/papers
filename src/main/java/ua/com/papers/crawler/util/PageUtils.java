@@ -16,6 +16,8 @@ import java.net.URL;
  */
 public final class PageUtils {
 
+    private static final int PARSE_PAGE_TIMEOUT = 5_000;
+
     private PageUtils() {
         throw new RuntimeException("shouldn't be invoked");
     }
@@ -28,6 +30,10 @@ public final class PageUtils {
         return contentType.startsWith("text/") ||
                 contentType.equalsIgnoreCase("application/xml") ||
                 contentType.equalsIgnoreCase("application/xhtml+xml");
+    }
+
+    public static Page parsePage(@NotNull URL url) throws IOException {
+        return parsePage(url, PARSE_PAGE_TIMEOUT);
     }
 
     public static Page parsePage(@NotNull URL url, int timeout) throws IOException {

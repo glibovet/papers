@@ -1,7 +1,6 @@
 package ua.com.papers.crawler.core.domain;
 
-import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
+
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.util.PageHandler;
 
@@ -16,8 +15,6 @@ import java.util.Collection;
  * </p>
  * Created by Максим on 11/27/2016.
  */
-@Service
-@Validated
 public interface ICrawler {
 
     interface Callback {
@@ -67,7 +64,7 @@ public interface ICrawler {
          * @param url page's url which caused exception
          * @param th  failure cause
          */
-        default void onException(@NotNull URL url, @NotNull Throwable th) {
+        default void onCrawlException(@Nullable URL url, @NotNull Throwable th) {
         }
 
     }
@@ -80,7 +77,7 @@ public interface ICrawler {
      * @param callback callback to monitor progress status
      * @param urls     start urls to process
      */
-    void start(@Nullable Callback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urls);
+    void start(@NotNull Callback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urls);
 
     /**
      * Stops crawler. <i>Note, that invocation of this method doesn't guarantee that crawler

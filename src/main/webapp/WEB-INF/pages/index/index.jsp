@@ -23,9 +23,18 @@
                         </span>
                     </form>
                 </p>
+                <br />
+                <p>
+                    Проіндексовано публікацій: ${publication_count}
+                </p>
+                <p>
+                    В системі знаходиться ${authors_count} унікальних авторів
+                </p>
             </div>
         </div>
     </div>
 </div>
+
+<jsp:include page="../common/footer.jsp" />
 </body>
 </html>

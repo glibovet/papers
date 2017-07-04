@@ -28,9 +28,8 @@ public class AnalyzeTemplate {
      * @throws IllegalArgumentException if weight is less than zero
      */
     public AnalyzeTemplate(@NotNull String cssSelector, int weight) {
-
-        if (cssSelector == null)
-            throw new NullPointerException("css selector == null!");
+        Conditions.isNotNull(cssSelector, "css selector == null!");
+        Conditions.checkArgument(!cssSelector.isEmpty(), "css selector expected");
 
         if (weight < 0)
             throw new IllegalArgumentException(

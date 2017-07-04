@@ -23,11 +23,11 @@ public @interface Handler {
      * Just returns element as it was passed without
      * modifications
      */
-    class DummyAdapter implements IPartAdapter<Element> {
+    class SkipAdapter implements IPartAdapter<Element> {
 
-        public static final DummyAdapter instance = new DummyAdapter();
+        public static final SkipAdapter instance = new SkipAdapter();
 
-        private DummyAdapter() {
+        private SkipAdapter() {
         }
 
         @Override
@@ -39,17 +39,20 @@ public @interface Handler {
     int PAGE = 0;
 
     /**
-     * @return page part id
+     * @return page content part id
      */
     int id();
 
+    /**
+     * @return content group id
+     */
     int group() default PAGE;
 
     /**
      * @return converter to apply when transforming page content part
-     * into method argument. By default page part will be returned
+     * into method argument. By default page content part will be returned
      */
     @NotNull
-    Class<? extends IPartAdapter<?>> converter() default DummyAdapter.class;
+    Class<? extends IPartAdapter<?>> converter() default SkipAdapter.class;
 
 }
