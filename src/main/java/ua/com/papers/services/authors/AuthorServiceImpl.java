@@ -211,6 +211,31 @@ public class AuthorServiceImpl implements IAuthorService {
         mastersRepository.delete(entity);
     }
 
+    @Override
+    @Transactional(propagation= Propagation.REQUIRED)
+    public AuthorMasterEntity findByNameMaster(String lastName, String initials) {
+        AuthorMasterCriteria cr = new AuthorMasterCriteria(0, 2);
+        cr.setLastName(lastName);
+        cr.setInitials(initials);
+        Criteria<AuthorMasterEntity> criteria = cr;
+        List<AuthorMasterEntity> list = criteriaRepository.find(criteria);
+        if (list.size()>0)
+            return list.get(0);
+        return null;
+    }
+
+    @Override
+    @Transactional(propagation= Propagation.REQUIRED)
+    public AuthorEntity findByOriginal(String original) {
+        AuthorCriteria cr = new AuthorCriteria();
+        cr.setOriginal(original);
+        Criteria<AuthorEntity> criteria = cr;
+        List<AuthorEntity> list = criteriaRepository.find(criteria);
+        if (list.size()>0)
+            return list.get(0);
+        return null;
+    }
+
     @Transactional(propagation=Propagation.REQUIRED)
     private void merge(AuthorMasterEntity entity, AuthorMasterView view) throws NoSuchEntityException {
         if (view.getId()!=null) entity.setId(view.getId());

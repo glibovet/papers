@@ -16,6 +16,8 @@ import java.util.List;
 public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
 
     private String query;
+    private String lastName;
+    private String initials;
 
     private List<Integer> ids;
 
@@ -25,6 +27,10 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
 
     public AuthorMasterCriteria(String restriction) throws WrongRestrictionException {
         this(0, 0, restriction);
+    }
+
+    public AuthorMasterCriteria(int offset, int limit){
+        super(offset, limit, AuthorMasterEntity.class);
     }
 
     public AuthorMasterCriteria(int offset, int limit, String restriction) throws WrongRestrictionException {
@@ -81,6 +87,16 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
             query.where(cb.or(lastName, initials));
         }
 
+        if (this.lastName !=null){
+            Expression<String> expression = root.get("lastName");
+            Predicate predicate = cb.equal(expression, this.lastName);
+            query.where(predicate);
+        }
+        if (this.initials !=null){
+            Expression<String> expression = root.get("initials");
+            Predicate predicate = cb.equal(expression, this.initials);
+            query.where(predicate);
+        }
         if (this.sub_ids != null && !this.sub_ids.isEmpty()) {
             Join<AuthorMasterEntity, AuthorEntity> subAuthors = root.join("authors");
             query.where(subAuthors.get("id").in(this.sub_ids));
@@ -96,5 +112,21 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
             }
             query.where(predicate);
         }
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getInitials() {
+        return initials;
+    }
+
+    public void setInitials(String initials) {
+        this.initials = initials;
     }
 }

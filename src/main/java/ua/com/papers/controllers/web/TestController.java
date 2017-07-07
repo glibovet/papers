@@ -10,6 +10,7 @@ import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.test.MainComposer;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
@@ -76,7 +77,7 @@ public class TestController {
     }
 
     @RequestMapping(value = {"/crawl1"}, method = RequestMethod.GET)
-    public String indexPage1(){
+    public String indexPage1() throws WrongRestrictionException {
         try {
 
           //  AuthorMasterView masterView = new AuthorMasterView();

@@ -16,13 +16,17 @@ import java.util.List;
 public class AuthorCriteria extends Criteria<AuthorEntity> {
 
     private String query;
-
+    private String original;
     private List<Integer> ids;
 
     private List<Integer> master_ids;
 
     public AuthorCriteria(String restriction) throws WrongRestrictionException {
         this(0, 0, restriction);
+    }
+
+    public AuthorCriteria() {
+        super(0, 0, AuthorEntity.class);
     }
 
     public AuthorCriteria(int offset, int limit, String restriction) throws WrongRestrictionException {
@@ -34,6 +38,14 @@ public class AuthorCriteria extends Criteria<AuthorEntity> {
             this.ids = parsed.ids;
             this.master_ids = parsed.master_ids;
         }
+    }
+
+    public String getOriginal() {
+        return original;
+    }
+
+    public void setOriginal(String original) {
+        this.original = original;
     }
 
     public String getQuery() {
@@ -91,7 +103,11 @@ public class AuthorCriteria extends Criteria<AuthorEntity> {
             Expression<Integer> expression = root.get("id");
             query.where(expression.in(this.ids));
         }
-
+        if (this.original!=null&&!"".equals(this.original)){
+            Expression<String> expression = root.get("original");
+            Predicate pr = cb.equal(expression, this.original);
+            query.where(pr);
+        }
         if (this.query != null && !this.query.isEmpty()) {
             String likeQuery = '%'+this.query+'%';
 

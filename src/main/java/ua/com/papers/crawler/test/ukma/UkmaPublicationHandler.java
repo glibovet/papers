@@ -17,6 +17,7 @@ import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.pojo.entities.AuthorEntity;
+import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
 import ua.com.papers.pojo.view.AuthorMasterView;
@@ -150,41 +151,44 @@ public class UkmaPublicationHandler {
         for (final String fullName : fullNames) {
             log.log(Level.INFO, String.format("full name %s", fullName));
 
-            if (fullNameToId.get() == null
+            if (fullNameToId.get() == null||fullNameToId.get().size()==0
                     || (id = fullNameToId.get().get(fullName)) == null) {
                 // create new author
-                val credentialsArr = parseFullName(fullName);
-                val authorView = new AuthorView();
-
-                log.log(Level.INFO, String.format("parsed %s as %s", fullName, Arrays.toString(credentialsArr)));
-
-                if (credentialsArr.length != 2) continue;
-
-                authorView.setLast_name(credentialsArr[0]);
-                authorView.setInitials(credentialsArr[1]);
-
                 try {
-                    //FIXME when I should take it??
-                    // --------------------------------------
+                    String nameTemp = fullName.replace("(","");
+                    nameTemp = fullName.replace(")","");
+                    String[] credentialsArr = nameTemp.split("\\s");// first, middle and last names
+                    AuthorView authorView = new AuthorView();
+                    if (credentialsArr.length < 2) continue;
+                    final String initials, lastName;
+                    if (credentialsArr.length == 2) {
+                        lastName = credentialsArr[0];
+                        initials = String.format("%S.", credentialsArr[1].charAt(0));
+                    } else {
+                        lastName = credentialsArr[0];
+                        initials = String.format("%S. %S.", credentialsArr[1].charAt(0), credentialsArr[2].charAt(0));
+                    }
+                    authorView.setLast_name(lastName);
+                    authorView.setInitials(initials);
                     AuthorMasterView masterView = new AuthorMasterView();
-
-                    masterView.setLast_name(credentialsArr[0]);
-                    masterView.setInitials(credentialsArr[1]);
-
-                    val masterId = authorService.createAuthorMaster(masterView);
-                    // --------------------------------------
-                    // create author and grab his id
-                    authorView.setMaster_id(masterId);
-                    authorView.setOriginal("original");// what?
-                    id = authorService.createAuthor(authorView);
-
+                    masterView.setLast_name(lastName);
+                    masterView.setInitials(initials);
+                    AuthorMasterEntity master = authorService.findByNameMaster(lastName,initials);
+                    AuthorEntity author = authorService.findByOriginal(authorView.getOriginal());
+                    if (master ==null&&author ==null) {
+                        id = authorService.createAuthorMaster(masterView);
+                        authorView.setMaster_id(id);
+                        authorView.setOriginal(fullName);
+                        int authorId = authorService.createAuthor(authorView);
+                    }else
+                        id =  master.getId();
                     if (fullNameToId.get() != null) {
                         fullNameToId.get().put(fullName, id);
                     }
                 } catch (final ServiceErrorException | NoSuchEntityException e) {
-                    log.log(Level.WARNING, "Service error occurred while saving publication", e);
+                    log.log(Level.WARNING, "Service error occurred while saving publication UKMA", e);
                 } catch (final Exception e) {
-                    log.log(Level.SEVERE, "Fatal error occurred while saving publication", e);
+                    log.log(Level.SEVERE, "Fatal error occurred while saving publication UKMA", e);
                 }
             }
             if (id != null) {

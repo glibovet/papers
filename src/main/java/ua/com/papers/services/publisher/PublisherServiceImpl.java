@@ -73,7 +73,7 @@ public class PublisherServiceImpl implements IPublisherService{
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public int createPublisher(PublisherView view) throws ValidationException, ServiceErrorException, NoSuchEntityException {
+    public int createPublisher(PublisherView view) throws ValidationException, ServiceErrorException, NoSuchEntityException, WrongRestrictionException {
         PublisherEntity entity = new PublisherEntity();
         merge(entity,view);
         publisherValidateService.publisherValidForCreate(entity);
@@ -128,5 +128,17 @@ public class PublisherServiceImpl implements IPublisherService{
     public void deletePublisher(int id) throws NoSuchEntityException {
         PublisherEntity entity = getPublisherById(id);
         publisherRepository.delete(entity);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public PublisherEntity findPublisherByTitle(String title) throws WrongRestrictionException {
+        PublisherCriteria pc = new PublisherCriteria("{}");
+        pc.setTitle(title);
+        Criteria<PublisherEntity> criteria = pc;
+        List<PublisherEntity> list = criteriaRepository.find(criteria);
+        if(list != null && list.size()>0)
+            return list.get(0);
+        return null;
     }
 }

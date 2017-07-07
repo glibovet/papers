@@ -36,5 +36,7 @@ public interface IPublicationService {
 
     void removePublicationsFromIndex();
 
+    void savePublicationFromRobot(PublicationView publication) throws NoSuchEntityException, ValidationException, ServiceErrorException, ElasticSearchError, ForbiddenException, WrongRestrictionException;
+
     List<PublicationEntity> getAllPublications();
 }
