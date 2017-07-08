@@ -78,12 +78,6 @@ public class MailingService implements IMailingService {
     public boolean sendEmailToUser(EmailTypes typeOfEmail, String userEmail, Map<String, String> data, Locale locale) throws NoSuchEntityException {
         String content = emailBuilder.getEmailContent(typeOfEmail, data, locale);
 
-        if (data != null) {
-            for (String key : data.keySet()) {
-                content = content.replace(key, data.get(key));
-            }
-        }
-
         return send(typeOfEmail, userEmail, content, locale);
     }
 

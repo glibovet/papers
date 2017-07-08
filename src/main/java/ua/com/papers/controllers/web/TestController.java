@@ -1,6 +1,7 @@
 package ua.com.papers.controllers.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -10,22 +11,31 @@ import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.test.MainComposer;
+import ua.com.papers.criteria.Criteria;
+import ua.com.papers.criteria.impl.UserCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.UserEntity;
+import ua.com.papers.pojo.enums.EmailTypes;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
+import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.view.AuthorView;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
+import ua.com.papers.services.mailing.IMailingService;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
+import ua.com.papers.services.users.IUserService;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Максим on 2/2/2017.
@@ -37,16 +47,23 @@ public class TestController {
     private final IPublisherService publisherService;
     private final IAuthorService authorService;
     private final MainComposer composer;
+    private final IMailingService mailingService;
+    private final IUserService userService;
 
     ICrawlerManager crawler;
 
     @Autowired
-    public TestController(IPublicationService service, IPublisherService publisherService, IAuthorService authorService, MainComposer composer, ICreator creator) {
+    public TestController(
+            IPublicationService service, IPublisherService publisherService,
+            IAuthorService authorService, MainComposer composer, ICreator creator,
+            IMailingService mailingService, IUserService userService) {
         this.service = service;
         this.publisherService = publisherService;
         this.authorService = authorService;
         this.composer = composer;
         this.crawler = creator.create();
+        this.mailingService = mailingService;
+        this.userService = userService;
     }
 
     @RequestMapping(value = {"/crawl"}, method = RequestMethod.GET)
@@ -54,7 +71,32 @@ public class TestController {
 
         crawler.startCrawling(
                 composer.asHandlers(),
-                ICrawler.DEFAULT_CALLBACK
+                new ICrawler.Callback() {
+                    @Override
+                    public void onPageAccepted(Page page) {
+
+                    }
+
+                    @Override
+                    public void onStop() {
+                        try {
+                            UserCriteria criteria = new UserCriteria(null);
+                            criteria.setRoles(Arrays.asList(RolesEnum.admin, RolesEnum.moderator));
+                            criteria.setActive(true);
+
+                            List<UserEntity> users = userService.getUsers(criteria);
+
+                            for (UserEntity user : users) {
+                                mailingService.sendEmailToUser(
+                                        EmailTypes.crawling_finish,
+                                        user.getEmail(),
+                                        null,
+                                        new Locale("uk")
+                                );
+                            }
+                        } catch (WrongRestrictionException | NoSuchEntityException e) { }
+                    }
+                }
         );
         return "redirect:/";
     }
