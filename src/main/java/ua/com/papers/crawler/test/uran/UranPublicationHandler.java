@@ -169,10 +169,10 @@ public class UranPublicationHandler {
                 try {
                     String nameTemp = fullName;
                     if (nameTemp.contains("(")&&nameTemp.contains(")")){
-                        nameTemp = nameTemp.substring(nameTemp.indexOf("("),nameTemp.indexOf(")"+1));
+                        nameTemp = nameTemp.substring(nameTemp.indexOf("("),nameTemp.indexOf(")")+1);
                     }
                     if (nameTemp.contains("[")&&nameTemp.contains("]")){
-                        nameTemp = nameTemp.substring(nameTemp.indexOf("["),nameTemp.indexOf("]"+1));
+                        nameTemp = nameTemp.substring(nameTemp.indexOf("["),nameTemp.indexOf("]")+1);
                     }
                     String[] credentialsArr = nameTemp.split("\\s");// first, middle and last names
                     AuthorView authorView = new AuthorView();
