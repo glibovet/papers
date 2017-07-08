@@ -218,8 +218,8 @@ public class Crawler implements ICrawler {
                                 try {
                                     lock.writeLock().lock();
                                     extracted.stream()
-                                            .filter(u -> /*log N < N*/ !crawledUrls.contains(u) && !urls.contains(u))
-                                            .forEach(urls::add);
+                                            .filter(u -> /*log N < N*/ !crawledUrls.contains(u) && !urls.contains(u));
+                                            //.forEach(urls::add);
                                 } finally {
                                     lock.writeLock().unlock();
                                 }

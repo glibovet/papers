@@ -73,25 +73,37 @@ public class TestController {
                 composer.asHandlers(),
                 new ICrawler.Callback() {
                     @Override
+                    public void onStart() {
+                        try {
+                            List<UserEntity> admins = admins();
+
+                            for (UserEntity admin : admins) {
+                                mailingService.sendEmailToUser(
+                                        EmailTypes.crawling_start,
+                                        admin.getEmail(),
+                                        null,
+                                        new Locale("uk")
+                                );
+                            }
+                        } catch (WrongRestrictionException | NoSuchEntityException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
                     public void onPageAccepted(Page page) {
 
                     }
 
                     @Override
                     public void onStop() {
-                        System.out.println("FINISH CRAWLING");
-
                         try {
-                            UserCriteria criteria = new UserCriteria(null);
-                            criteria.setRoles(Arrays.asList(RolesEnum.admin, RolesEnum.moderator));
-                            criteria.setActive(true);
+                            List<UserEntity> admins = admins();
 
-                            List<UserEntity> users = userService.getUsers(criteria);
-
-                            for (UserEntity user : users) {
+                            for (UserEntity admin : admins) {
                                 mailingService.sendEmailToUser(
                                         EmailTypes.crawling_finish,
-                                        user.getEmail(),
+                                        admin.getEmail(),
                                         null,
                                         new Locale("uk")
                                 );
@@ -174,4 +186,12 @@ public class TestController {
         return "index/index";
     }
 
+
+    private List<UserEntity> admins() throws NoSuchEntityException, WrongRestrictionException {
+        UserCriteria criteria = new UserCriteria(null);
+        criteria.setRoles(Arrays.asList(RolesEnum.admin, RolesEnum.moderator));
+        criteria.setActive(true);
+
+        return userService.getUsers(criteria);
+    }
 }

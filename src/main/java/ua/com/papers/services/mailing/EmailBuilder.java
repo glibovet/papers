@@ -30,7 +30,7 @@ public class EmailBuilder {
                 return formApprovePublicationOrder(data, content);
             } else if (typeOfEmail == EmailTypes.reject_publication_order) {
                 return formRejectPublicationOrder(data, content);
-            } else if (typeOfEmail == EmailTypes.crawling_finish) {
+            } else if (typeOfEmail == EmailTypes.crawling_start || typeOfEmail == EmailTypes.crawling_finish) {
                 return content;
             }
         } catch (Exception e) {

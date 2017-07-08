@@ -155,8 +155,9 @@ public class UkmaPublicationHandler {
                     || (id = fullNameToId.get().get(fullName)) == null) {
                 // create new author
                 try {
-                    String nameTemp = fullName.replace("(","");
-                    nameTemp = fullName.replace(")","");
+                    String nameTemp = fullName
+                            .replace("(","")
+                            .replace(")","");
                     String[] credentialsArr = nameTemp.split("\\s");// first, middle and last names
                     AuthorView authorView = new AuthorView();
                     if (credentialsArr.length < 2) continue;
