@@ -135,7 +135,7 @@ public class ElasticSearchImpl implements IElasticSearch{
 
     @Override
     @Transactional
-    public boolean indexAll() throws ForbiddenException, ElasticSearchException, PublicationWithoutFileException {
+    public boolean indexAll() throws ForbiddenException, ElasticSearchException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
@@ -147,8 +147,10 @@ public class ElasticSearchImpl implements IElasticSearch{
         List<PublicationEntity> entities = publicationService.getAllPublications();
         for (PublicationEntity entity : entities) {
             try {
-                indexPublication(entity);
-            } catch (ValidationException | NoSuchEntityException | ServiceErrorException e) {
+                if (!entity.isInIndex() && entity.getFileLink() != null) {
+                    indexPublication(entity);
+                }
+            } catch (ValidationException | NoSuchEntityException | ServiceErrorException | PublicationWithoutFileException e) {
                 // nothing to do
             }
         }
