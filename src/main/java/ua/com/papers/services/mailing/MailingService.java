@@ -114,6 +114,7 @@ public class MailingService implements IMailingService {
             str = task.get(); // this raises ExecutionException if thread dies
             if (str.contains("\"result\":true"))
                 return true;
+            System.out.println("CAN NOT SEND EMAIL");
         } catch (final InterruptedException ex) {
             ex.printStackTrace();
         } catch (final ExecutionException ex) {

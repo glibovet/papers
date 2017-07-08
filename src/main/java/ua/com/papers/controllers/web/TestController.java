@@ -79,6 +79,8 @@ public class TestController {
 
                     @Override
                     public void onStop() {
+                        System.out.println("FINISH CRAWLING");
+
                         try {
                             UserCriteria criteria = new UserCriteria(null);
                             criteria.setRoles(Arrays.asList(RolesEnum.admin, RolesEnum.moderator));
@@ -94,7 +96,9 @@ public class TestController {
                                         new Locale("uk")
                                 );
                             }
-                        } catch (WrongRestrictionException | NoSuchEntityException e) { }
+                        } catch (WrongRestrictionException | NoSuchEntityException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
         );
