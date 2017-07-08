@@ -54,26 +54,27 @@ public class TestController {
 
         crawler.startCrawling(
                 composer.asHandlers(),
-                crawlCall()
+                ICrawler.DEFAULT_CALLBACK
         );
-        return "index/index";
+        return "redirect:/";
     }
 
     @RequestMapping(value = {"/stop"}, method = RequestMethod.GET)
     public String stopIndexPage() {
         crawler.stopCrawling();
         crawler.stopIndexing();
-        return "index/index";
+
+        return "redirect:/";
     }
 
     @RequestMapping(value = {"/reindex"}, method = RequestMethod.GET)
     public String reIndex() {
         crawler.startIndexing(
                 composer.asHandlers(),
-                indexCall()
+                IPageIndexer.DEFAULT_CALLBACK
         );
 
-        return "index/index";
+        return "redirect:/";
     }
 
     @RequestMapping(value = {"/crawl1"}, method = RequestMethod.GET)
@@ -125,77 +126,6 @@ public class TestController {
         }
         System.out.println("On created");
         return "index/index";
-    }
-
-    private static ICrawler.Callback crawlCall() {
-
-        return new ICrawler.Callback() {
-
-            @Override
-            public void onStart() {
-                System.out.println("On start");
-            }
-
-            @Override
-            public void onUrlEntered(@NotNull URL url) {
-                System.out.println("On url entered " + url);
-            }
-
-            @Override
-            public void onPageRejected(@NotNull Page page) {
-                System.out.println("On page rejected " + page.getUrl());
-            }
-
-            @Override
-            public void onStop() {
-                System.out.println("On stop");
-            }
-
-            @Override
-            public void onCrawlException(@NotNull URL url, @NotNull Throwable th) {
-                System.out.println("On exception " + th);
-            }
-
-            @Override
-            public void onPageAccepted(@NotNull Page page) {
-                System.out.println("Page accepted " + page.getUrl());
-            }
-        };
-    }
-
-    private static IPageIndexer.Callback indexCall() {
-        return new IPageIndexer.Callback() {
-
-            @Override
-            public void onStart() {
-                System.out.println("On start / index");
-            }
-
-            @Override
-            public void onStop() {
-                System.out.println("On stop / index");
-            }
-
-            @Override
-            public void onIndexed(@NotNull Page page) {
-                System.out.println("On indexed " + page.getUrl());
-            }
-
-            @Override
-            public void onUpdated(@NotNull Page page) {
-                System.out.println("On updated " + page.getUrl());
-            }
-
-            @Override
-            public void onLost(@NotNull Page page) {
-                System.out.println("On lost " + page.getUrl());
-            }
-
-            @Override
-            public void onIndexException(@NotNull URL url, @NotNull Throwable th) {
-
-            }
-        };
     }
 
 }
