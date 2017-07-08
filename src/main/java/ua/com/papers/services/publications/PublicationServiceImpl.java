@@ -2,8 +2,6 @@ package ua.com.papers.services.publications;
 
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
@@ -27,8 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 /**
  * Created by Andrii on 26.09.2016.
@@ -116,7 +112,7 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Override
     @Transactional
-    public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchError {
+    public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchException {
         if (view.getId()==null||view.getId()==0)
             throw new ServiceErrorException();
         PublicationEntity entity = getPublicationById(view.getId());
@@ -156,7 +152,7 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Override
     @Transactional
-    public void savePublicationFromRobot(PublicationView publication) throws ValidationException, ServiceErrorException, ElasticSearchError, ForbiddenException, WrongRestrictionException, NoSuchEntityException {
+    public void savePublicationFromRobot(PublicationView publication) throws ValidationException, ServiceErrorException, ElasticSearchException, ForbiddenException, WrongRestrictionException, NoSuchEntityException {
 
         PublicationEntity fromDb = null;
         PublicationCriteria criteria = new PublicationCriteria("{}");

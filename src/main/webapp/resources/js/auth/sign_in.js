@@ -1,4 +1,4 @@
-(function(exports){
+(function(){
 
     var sing_in_popup_template = new EJS({url: '/resources/template/auth/sign_in_popup.ejs'});
 
@@ -8,7 +8,7 @@
         $('#logout').click(function(){
             Ajax.post({
                 url: '/api/users/logout',
-                success: function(response){
+                success: function(){
                     location.reload(true);
                 }
             })
@@ -16,9 +16,7 @@
     });
 
     function renderSignInPopup(){
-        var popup = $(sing_in_popup_template.render({
-
-        }));
+        var popup = $(sing_in_popup_template.render({}));
 
         popup.find('.close').click(function(){
             popup.remove();
@@ -38,14 +36,14 @@
                 success: function(response){
                     if(response.result){
                         location.reload(true);
-                    } else if(response.error){
-                        alert(response.error.message);
+                    } else if(response.error && response.error.code === 404){
+                        showErrorMessage('incorrect email or password');
                     } else {
-                        alert('service error');
+                        showErrorMessage('service error');
                     }
                 },
                 error: function(xhr){
-                    alert('service error');
+                    showErrorMessage('service error');
                     console.log(xhr);
                 }
             })

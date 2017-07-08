@@ -24,7 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.ElasticSearchError;
+import ua.com.papers.exceptions.not_found.PublicationWithoutFileException;
+import ua.com.papers.exceptions.service_error.ElasticSearchException;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
@@ -75,7 +76,7 @@ public class ElasticSearchImpl implements IElasticSearch{
     }
 
     @Override
-    public Boolean createIndexIfNotExist() throws ForbiddenException, ElasticSearchError {
+    public Boolean createIndexIfNotExist() throws ForbiddenException, ElasticSearchException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (!indexExist()){
@@ -84,7 +85,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         return true;
     }
 
-    public Boolean indexExist() throws ElasticSearchError {
+    public Boolean indexExist() throws ElasticSearchException {
         if (client == null)
             initializeClient();
         return client
@@ -96,7 +97,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                 .isExists();
     }
 
-    public Boolean indexDelete() throws ForbiddenException, ElasticSearchError, NoSuchEntityException {
+    public Boolean indexDelete() throws ForbiddenException, ElasticSearchException, NoSuchEntityException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
@@ -109,7 +110,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                     .execute()
                     .actionGet();
         } catch (IndexNotFoundException e) {
-            throw new ElasticSearchError("індекс все ще не створений");
+            throw new ElasticSearchException("індекс все ще не створений");
         }
 
         publicationService.removePublicationsFromIndex();
@@ -119,7 +120,7 @@ public class ElasticSearchImpl implements IElasticSearch{
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchError {
+    public Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchException, PublicationWithoutFileException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
@@ -134,7 +135,7 @@ public class ElasticSearchImpl implements IElasticSearch{
 
     @Override
     @Transactional
-    public boolean indexAll() throws ForbiddenException, ElasticSearchError {
+    public boolean indexAll() throws ForbiddenException, ElasticSearchException, PublicationWithoutFileException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
@@ -231,7 +232,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         return "";
     }
 
-    private boolean indexPublication(PublicationEntity publication) throws NoSuchEntityException, ServiceErrorException, ForbiddenException, ValidationException {
+    private boolean indexPublication(PublicationEntity publication) throws NoSuchEntityException, ServiceErrorException, ForbiddenException, ValidationException, PublicationWithoutFileException {
         XContentBuilder builder = buildPublicationJsonForIndexing(publication);
         if (builder == null)
             return false;
@@ -245,12 +246,13 @@ public class ElasticSearchImpl implements IElasticSearch{
         return true;
     }
 
-    private XContentBuilder buildPublicationJsonForIndexing(PublicationEntity publication) throws NoSuchEntityException, ForbiddenException, ServiceErrorException {
+    private XContentBuilder buildPublicationJsonForIndexing(PublicationEntity publication) throws NoSuchEntityException, ForbiddenException, ServiceErrorException, PublicationWithoutFileException {
         if (publication == null)
             return null;
         byte[] publicationFile = storageService.getPaperAsByteArray(publication);
-        if (publicationFile == null || publicationFile.length == 0)
-            return null;
+        if (publicationFile == null || publicationFile.length == 0) {
+            throw new PublicationWithoutFileException();
+        }
         XContentBuilder builder = null;
         String authors = "";
         if (publication.getAuthors()!=null){

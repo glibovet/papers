@@ -11,12 +11,10 @@ import ua.com.papers.crawler.test.IHandlerCallback;
 import ua.com.papers.crawler.util.PageHandler;
 import ua.com.papers.crawler.util.PostHandle;
 import ua.com.papers.crawler.util.PreHandle;
-import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.*;
 import ua.com.papers.pojo.entities.AuthorEntity;
-import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
@@ -94,8 +92,8 @@ public final class UranArticleComposer {
                 publicationService.savePublicationFromRobot(publication);
 
             } catch (WrongRestrictionException | NoSuchEntityException e) {}
-            catch (ElasticSearchError elasticSearchError) {
-                log.log(Level.SEVERE, "Fatal error occurred while saving publication Uran. Problem with Elastic", elasticSearchError);
+            catch (ElasticSearchException elasticSearchException) {
+                log.log(Level.SEVERE, "Fatal error occurred while saving publication Uran. Problem with Elastic", elasticSearchException);
             } catch (ForbiddenException e) {
                 log.log(Level.WARNING, "Service error occurred while saving publication Uran", e);
             } catch (ValidationException e) {
