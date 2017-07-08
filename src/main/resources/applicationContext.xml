@@ -90,7 +90,7 @@
         <property name="packagesToScan" value="ua.com.papers.pojo.entities, ua.com.papers.crawler.test.repo"/>
         <property name="jpaVendorAdapter">
             <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
-                <property name="generateDdl" value="true" />
+                <property name="generateDdl" value="false" />
                 <property name="showSql" value="false"/>
                 <property name="databasePlatform" value="org.hibernate.dialect.MySQLDialect"/>
                 <property name="database" value="MYSQL"/>
@@ -101,7 +101,7 @@
                 hibernate.cache.use_second_level_cache = true
                 hibernate.cache.region.factory_class = org.hibernate.cache.ehcache.EhCacheRegionFactory
                 hibernate.cache.use_query_cache = true
-                hibernate.generate_statistics = true
+                hibernate.generate_statistics = false
             </value>
         </property>
     </bean>

@@ -8,6 +8,7 @@ import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,9 +73,11 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
     }
 
     private void query(CriteriaQuery query, Root<AuthorMasterEntity> root, CriteriaBuilder cb){
+        List<Predicate> conditions = new ArrayList<Predicate>();
         if (this.ids != null && !this.ids.isEmpty()) {
             Expression<Integer> expression = root.get("id");
-            query.where(expression.in(this.ids));
+            conditions.add(expression.in(this.ids));
+            //query.where(expression.in(this.ids));
         }
 
         if (this.query != null && !this.query.isEmpty()) {
@@ -84,22 +87,26 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
 
             expression = root.get("initials");
             Predicate initials = cb.like(expression, likeQuery);
-            query.where(cb.or(lastName, initials));
+            conditions.add(cb.or(lastName, initials));
+            //query.where(cb.or(lastName, initials));
         }
 
         if (this.lastName !=null){
             Expression<String> expression = root.get("lastName");
             Predicate predicate = cb.equal(expression, this.lastName);
-            query.where(predicate);
+            conditions.add(predicate);
+            //query.where(predicate);
         }
         if (this.initials !=null){
             Expression<String> expression = root.get("initials");
             Predicate predicate = cb.equal(expression, this.initials);
-            query.where(predicate);
+            conditions.add(predicate);
+            //query.where(predicate);
         }
         if (this.sub_ids != null && !this.sub_ids.isEmpty()) {
             Join<AuthorMasterEntity, AuthorEntity> subAuthors = root.join("authors");
-            query.where(subAuthors.get("id").in(this.sub_ids));
+            conditions.add(subAuthors.get("id").in(this.sub_ids));
+            //query.where(subAuthors.get("id").in(this.sub_ids));
         }
 
         if (this.has_sub != null) {
@@ -110,8 +117,11 @@ public class AuthorMasterCriteria extends Criteria<AuthorMasterEntity> {
             } else {
                 predicate = cb.equal(cb.size(expression), 0);
             }
-            query.where(predicate);
+            conditions.add(predicate);
+            //query.where(predicate);
         }
+        Predicate[] predicates = conditions.toArray(new Predicate[conditions.size()]);
+        query.where(cb.and(predicates));
     }
 
     public String getLastName() {

@@ -8,6 +8,7 @@ import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -99,14 +100,17 @@ public class AuthorCriteria extends Criteria<AuthorEntity> {
     }
 
     private void query(CriteriaQuery query, Root<AuthorEntity> root, CriteriaBuilder cb){
+        List<Predicate> conditions = new ArrayList<Predicate>();
         if (this.ids != null && !this.ids.isEmpty()) {
             Expression<Integer> expression = root.get("id");
-            query.where(expression.in(this.ids));
+            conditions.add(expression.in(this.ids));
+            //query.where(expression.in(this.ids));
         }
         if (this.original!=null&&!"".equals(this.original)){
             Expression<String> expression = root.get("original");
             Predicate pr = cb.equal(expression, this.original);
-            query.where(pr);
+            conditions.add(pr);
+            //query.where(pr);
         }
         if (this.query != null && !this.query.isEmpty()) {
             String likeQuery = '%'+this.query+'%';
@@ -119,13 +123,16 @@ public class AuthorCriteria extends Criteria<AuthorEntity> {
 
             expression = root.get("original");
             Predicate original = cb.like(expression, likeQuery);
-
-            query.where(cb.or(lastName, initials, original));
+            conditions.add(cb.or(lastName, initials, original));
+            //query.where(cb.or(lastName, initials, original));
         }
 
         if (this.master_ids != null && !this.master_ids.isEmpty()) {
             Join<AuthorEntity, AuthorMasterEntity> master = root.join("master");
-            query.where(master.get("id").in(this.master_ids));
+            conditions.add(master.get("id").in(this.master_ids));
+            //query.where(master.get("id").in(this.master_ids));
         }
+        Predicate[] predicates = conditions.toArray(new Predicate[conditions.size()]);
+        query.where(cb.and(predicates));
     }
 }

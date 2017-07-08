@@ -173,12 +173,12 @@ public class UkmaPublicationHandler {
                     AuthorMasterView masterView = new AuthorMasterView();
                     masterView.setLast_name(lastName);
                     masterView.setInitials(initials);
+                    authorView.setOriginal(fullName);
                     AuthorMasterEntity master = authorService.findByNameMaster(lastName,initials);
                     AuthorEntity author = authorService.findByOriginal(authorView.getOriginal());
                     if (master ==null&&author ==null) {
                         id = authorService.createAuthorMaster(masterView);
                         authorView.setMaster_id(id);
-                        authorView.setOriginal(fullName);
                         int authorId = authorService.createAuthor(authorView);
                     }else
                         id =  master.getId();
