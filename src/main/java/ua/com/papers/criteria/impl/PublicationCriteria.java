@@ -47,6 +47,7 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
             this.type = parsed.type;
             this.link = parsed.link;
             this.title = parsed.title;
+            this.in_index = parsed.in_index;
         }
     }
 
