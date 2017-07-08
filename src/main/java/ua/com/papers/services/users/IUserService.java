@@ -1,5 +1,6 @@
 package ua.com.papers.services.users;
 
+import ua.com.papers.criteria.impl.UserCriteria;
 import ua.com.papers.exceptions.bad_request.WrongPasswordException;
 import ua.com.papers.exceptions.conflict.EmailExistsException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
@@ -22,6 +23,8 @@ public interface IUserService {
     Map<String, Object> getUserByIdMap(int userId, Set<String> fields) throws NoSuchEntityException;
 
     List<UserEntity> getUsers(int offset, int limit) throws NoSuchEntityException;
+
+    List<UserEntity> getUsers(UserCriteria criteria) throws NoSuchEntityException;
 
     List<Map<String, Object>> getUsersMap(int offset, int limit, Set<String> fields) throws NoSuchEntityException;
 

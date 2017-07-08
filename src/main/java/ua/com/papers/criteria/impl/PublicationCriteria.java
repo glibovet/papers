@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,6 +47,7 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
             this.type = parsed.type;
             this.link = parsed.link;
             this.title = parsed.title;
+            this.in_index = parsed.in_index;
         }
     }
 
@@ -148,9 +150,11 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
     }
 
     private void query(CriteriaQuery query, Root<PublicationEntity> root, CriteriaBuilder cb){
+        List<Predicate> conditions = new ArrayList<Predicate>();
         if (this.ids != null && !this.ids.isEmpty()) {
             Expression<Integer> exception = root.get("id");
-            query.where(exception.in(this.ids));
+            conditions.add(exception.in(this.ids));
+            //query.where(exception.in(this.ids));
         }
 
         if (this.query != null && !this.query.isEmpty()) {
@@ -167,43 +171,52 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
 
             expression = root.get("fileNameOriginal");
             Predicate p4 = cb.like(expression, likeQuery);
-
-            query.where(cb.or(p1, p2, p3, p4));
+            conditions.add(cb.or(p1, p2, p3, p4));
+            //query.where(cb.or(p1, p2, p3, p4));
         }
 
         if (this.link != null && !this.link.isEmpty()) {
             Expression<String> expression = root.get("link");
-            query.where(cb.equal(expression, link));
+            conditions.add(cb.equal(expression, link));
+            //query.where(cb.equal(expression, link));
         }
 
         if (this.title != null && !this.title.isEmpty()) {
             Expression<String> expression = root.get("title");
-            query.where(cb.equal(expression, this.title));
+            conditions.add(cb.equal(expression, this.title));
+            //query.where(cb.equal(expression, this.title));
         }
 
         if (this.status != null) {
             Expression<PublicationStatusEnum> expression = root.get("status");
-            query.where(cb.equal(expression, this.status));
+            conditions.add(cb.equal(expression, this.status));
+            //query.where(cb.equal(expression, this.status));
         }
 
         if (this.type != null) {
             Expression<PublicationTypeEnum> expression = root.get("type");
-            query.where(cb.equal(expression, this.type));
+            conditions.add(cb.equal(expression, this.type));
+            //query.where(cb.equal(expression, this.type));
         }
 
         if (this.in_index != null) {
             Expression<String> expression = root.get("inIndex");
-            query.where(cb.equal(expression, this.in_index));
+            conditions.add(cb.equal(expression, this.in_index));
+            //query.where(cb.equal(expression, this.in_index));
         }
 
         if (this.authors_id != null && !this.authors_id.isEmpty()) {
             Join<PublicationEntity, AuthorMasterEntity> authors = root.join("authors");
-            query.where(authors.get("id").in(this.authors_id));
+            conditions.add(authors.get("id").in(this.authors_id));
+            //query.where(authors.get("id").in(this.authors_id));
         }
 
         if (this.publishers_id != null && !this.publishers_id.isEmpty()) {
             Join<PublicationEntity, PublisherEntity> publisher = root.join("publisher");
-            query.where(publisher.get("id").in(this.publishers_id));
+            conditions.add(publisher.get("id").in(this.publishers_id));
+            //query.where(publisher.get("id").in(this.publishers_id));
         }
+        Predicate[] predicates = conditions.toArray(new Predicate[conditions.size()]);
+        query.where(cb.and(predicates));
     }
 }

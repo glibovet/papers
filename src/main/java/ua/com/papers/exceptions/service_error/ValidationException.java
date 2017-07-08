@@ -15,7 +15,7 @@ public class ValidationException extends PapersException {
 
     public <T> ValidationException(String className, Set<ConstraintViolation<T>> violations){
         super(String.format(DEFAULT_MESSAGE, className));
-        this.codes = new HashSet<String>();
+        this.codes = new HashSet<>();
         if(violations != null) {
             for (ConstraintViolation<T> t : violations) {
                 codes.add(t.getMessage());
@@ -25,14 +25,20 @@ public class ValidationException extends PapersException {
 
     public ValidationException(String className, String code){
         super(String.format(DEFAULT_MESSAGE, className));
-        this.codes = new HashSet<String>();
+        this.codes = new HashSet<>();
         this.codes.add(code);
     }
 
-    public List<String> formListErrors(MessageSource messageSource, String locale){
+    @Override
+    public String formMessage(MessageSource messageSource, Locale locale) {
+        return messageSource.getMessage("errors.ValidationException", null, locale);
+    }
+
+    @Override
+    public List<String> formListErrors(MessageSource messageSource, Locale locale) {
         List<String> result = new ArrayList<String>();
         for(String code : codes){
-            result.add(messageSource.getMessage(code, null, new Locale(locale)));
+            result.add(messageSource.getMessage(code, null, locale));
         }
 
         return result;

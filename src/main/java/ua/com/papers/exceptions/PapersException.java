@@ -4,11 +4,12 @@ import org.springframework.context.MessageSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by oleh_kurpiak on 07.09.2016.
  */
-public class PapersException extends Exception {
+public abstract class PapersException extends Exception {
 
     private int code;
 
@@ -21,7 +22,7 @@ public class PapersException extends Exception {
     }
 
     public int getCode() {
-        return code;
+        return this.code;
     }
 
     public void setCode(int code) {
@@ -29,18 +30,18 @@ public class PapersException extends Exception {
     }
 
     /**
-     * override this method to create custom messages for users
+     * override this method to create custom message for users
+     *
      * @return converted message
      */
-    public String formMessage(){
-        return getMessage();
-    }
+    public abstract String formMessage(MessageSource messageSource, Locale locale);
 
     /**
      * override this method to create a list of errors for user
+     *
+     * return null to show that exception has no list of errors
+     *
      * @return list of errors
      */
-    public List<String> formListErrors(MessageSource messageSource, String locale){
-        return null;
-    }
+    public abstract List<String> formListErrors(MessageSource messageSource, Locale locale);
 }

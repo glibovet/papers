@@ -43,4 +43,7 @@ public interface IAuthorService {
 
     void deleteAuthor(int id) throws NoSuchEntityException;
     void deleteMasterAuthor(int id) throws NoSuchEntityException;
+
+    AuthorMasterEntity findByNameMaster(String lastName,String initials);
+    AuthorEntity findByOriginal(String original);
 }

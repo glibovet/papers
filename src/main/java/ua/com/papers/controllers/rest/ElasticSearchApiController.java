@@ -4,11 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ua.com.papers.exceptions.PapersException;
-import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.ElasticSearchError;
+import ua.com.papers.exceptions.service_error.ElasticSearchException;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
-import ua.com.papers.exceptions.service_error.ServiceErrorException;
-import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.dto.search.PublicationDTO;
 import ua.com.papers.pojo.response.Response;
 import ua.com.papers.pojo.response.ResponseFactory;
@@ -30,12 +27,12 @@ public class ElasticSearchApiController {
     private IElasticSearch elasticSearch;
 
     @RequestMapping(value = "/index", method = RequestMethod.POST)
-    public @ResponseBody Response<Boolean> createIndex() throws ForbiddenException, ElasticSearchError {
+    public @ResponseBody Response<Boolean> createIndex() throws PapersException {
         return responseFactory.get(elasticSearch.createIndexIfNotExist());
     }
 
     @RequestMapping(value = "/index_all", method = RequestMethod.POST)
-    public @ResponseBody Response<Boolean> indexAll() throws ForbiddenException, ElasticSearchError {
+    public @ResponseBody Response<Boolean> indexAll() throws PapersException {
         return responseFactory.get(elasticSearch.indexAll());
     }
 

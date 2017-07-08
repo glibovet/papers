@@ -2,8 +2,6 @@ package ua.com.papers.services.publications;
 
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
@@ -11,10 +9,7 @@ import ua.com.papers.criteria.Criteria;
 import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.ElasticSearchError;
-import ua.com.papers.exceptions.service_error.ForbiddenException;
-import ua.com.papers.exceptions.service_error.ServiceErrorException;
-import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.exceptions.service_error.*;
 import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.PublicationRepository;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
@@ -23,12 +18,13 @@ import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.elastic.IElasticSearch;
 import ua.com.papers.services.publisher.IPublisherService;
+import ua.com.papers.storage.IStorageService;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created by Andrii on 26.09.2016.
@@ -56,6 +52,9 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Autowired
     private ICriteriaRepository criteriaRepository;
+
+    @Autowired
+    private IStorageService storageService;
 
     @Override
     @Transactional
@@ -113,7 +112,7 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Override
     @Transactional
-    public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchError {
+    public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchException {
         if (view.getId()==null||view.getId()==0)
             throw new ServiceErrorException();
         PublicationEntity entity = getPublicationById(view.getId());
@@ -149,6 +148,34 @@ public class PublicationServiceImpl implements IPublicationService{
     @Transactional
     public void removePublicationsFromIndex() {
         publicationRepository.removePublicationsFromIndex();
+    }
+
+    @Override
+    @Transactional
+    public void savePublicationFromRobot(PublicationView publication) throws ValidationException, ServiceErrorException, ElasticSearchException, ForbiddenException, WrongRestrictionException, NoSuchEntityException {
+
+        PublicationEntity fromDb = null;
+        PublicationCriteria criteria = new PublicationCriteria("{}");
+        criteria.setLink(publication.getLink());
+        criteria.setTitle(publication.getTitle());
+        List<PublicationEntity> searchResult = null;
+        int id=0;
+        try {
+            searchResult = getPublications(0, 2, criteria);
+        } catch (NoSuchEntityException e) {
+            id = createPublication(publication);
+        }
+        if (searchResult!=null&&searchResult.size() >= 1) {
+            fromDb = searchResult.get(0);
+            if (fromDb.isInIndex())
+                return;
+            id = fromDb.getId();
+        }
+        if (id > 0 && publication.getFile_link() != null) {
+            String url = publication.getFile_link();
+            storageService.uploadPaper(id, url);
+            //elasticSearch.indexPublication(id);
+        }
     }
 
     @Override

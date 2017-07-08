@@ -83,10 +83,13 @@ public class UkmaPublisherHandler {
             if (id == null) {
 
                 try {
-                    id = publisherService.createPublisher(publisherView);
+                    PublisherEntity entity = publisherService.findPublisherByTitle(publisherView.getTitle());
+                    if (entity==null)
+                        id = publisherService.createPublisher(publisherView);
+                    else id = entity.getId();
                     titleToId.put(publisherView.getTitle(), id);
                 } catch (final Exception e) {
-                    log.log(Level.WARNING, String.format("failed to create publisher, title %s, page %s",
+                    log.log(Level.WARNING, String.format("failed to create publisher Ukma, title %s, page %s",
                             publisherView.getTitle(), page.getUrl()), e);
                     callback.onHandleFailure(e);
                     return;

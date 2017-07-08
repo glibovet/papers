@@ -16,6 +16,7 @@ import java.util.List;
 public class PublisherCriteria extends Criteria<PublisherEntity> {
 
     private String query;
+    private String title;
     private List<Integer> ids;
     private List<Integer> address_ids;
 
@@ -32,6 +33,14 @@ public class PublisherCriteria extends Criteria<PublisherEntity> {
             this.ids = parsed.ids;
             this.address_ids = parsed.address_ids;
         }
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     @Override
@@ -65,7 +74,11 @@ public class PublisherCriteria extends Criteria<PublisherEntity> {
             Expression<Integer> exception = root.get("id");
             query.where(exception.in(this.ids));
         }
-
+        if (this.title!=null&&!"".equals(this.title)){
+            Expression<String> expression = root.get("title");
+            Predicate pr = cb.equal(expression, this.title);
+            query.where(pr);
+        }
         if (this.query != null && !this.query.isEmpty()) {
             String likeQuery = '%' + this.query + '%';
 

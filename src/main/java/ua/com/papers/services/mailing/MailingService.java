@@ -78,12 +78,6 @@ public class MailingService implements IMailingService {
     public boolean sendEmailToUser(EmailTypes typeOfEmail, String userEmail, Map<String, String> data, Locale locale) throws NoSuchEntityException {
         String content = emailBuilder.getEmailContent(typeOfEmail, data, locale);
 
-        if (data != null) {
-            for (String key : data.keySet()) {
-                content = content.replace(key, data.get(key));
-            }
-        }
-
         return send(typeOfEmail, userEmail, content, locale);
     }
 
@@ -101,7 +95,7 @@ public class MailingService implements IMailingService {
             final Future<String> task;
             service = Executors.newFixedThreadPool(1);
             String subject = messageSource.getMessage("email.subject." + type.toString(), null, locale);
-            task = service.submit(new SenderTask("admin@scisearch.com.ua", toEmail, text, subject));
+            task = service.submit(new SenderTask("info.scisearch@gmail.com", toEmail, text, subject));
 
             System.out.println(text);
 

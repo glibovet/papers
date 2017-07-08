@@ -11,6 +11,7 @@ import ua.com.papers.pojo.response.Error;
 import ua.com.papers.pojo.response.Response;
 
 import java.util.List;
+import java.util.Locale;
 
 @ControllerAdvice
 public class ControllersExceptionHandler {
@@ -21,10 +22,11 @@ public class ControllersExceptionHandler {
     @ExceptionHandler(PapersException.class)
     public @ResponseBody
     Response handler(PapersException e){
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        List<String> errors = e.formListErrors(messageSource, locale);
+        Locale locale = LocaleContextHolder.getLocale();
 
-        Error error = error = new Error(e.getCode(), e.formMessage(), errors);
+        List<String> errors = e.formListErrors(messageSource, locale);
+        Error error = new Error(e.getCode(), e.formMessage(messageSource, locale), errors);
+
         Response response = new Response();
         response.setError(error);
 
