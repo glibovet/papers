@@ -228,4 +228,28 @@
         <constructor-arg name="_userId" value="${sendpulse.client_id}"/>
         <constructor-arg name="_secret" value="${sendpulse.secure}"/>
     </bean>
+
+    <bean id="crawlJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="scheduleCrawling" />
+        <property name="targetMethod" value="crawl" />
+    </bean>
+
+    <bean id="crawlCronJob" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="crawlJobDetail" />
+        <!-- every five days in the month at 2 a.m. crawler will start working -->
+        <property name="cronExpression" value="0 0 2 1/5 * ?" />
+    </bean>
+
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="jobDetails">
+            <list>
+                <ref bean="crawlJobDetail"/>
+            </list>
+        </property>
+        <property name="triggers">
+            <list>
+                <ref bean="crawlCronJob"/>
+            </list>
+        </property>
+    </bean>
 </beans>

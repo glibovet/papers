@@ -40,7 +40,8 @@ public interface ICrawler {
          *
          * @param page page which is considered to be acceptable
          */
-        void onPageAccepted(@NotNull Page page);
+        default void onPageAccepted(@NotNull Page page) {
+        }
 
         /**
          * Called each time crawler considers page
