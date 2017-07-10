@@ -255,22 +255,26 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
+    @Transactional(propagation= Propagation.REQUIRED)
     public List<Map<String, Object>> searchAuthors(Set<String> fields, String restrict) throws WrongRestrictionException, NoSuchEntityException {
         Criteria<AuthorEntity> criteria = new AuthorSearchCriteria(restrict);
 
         List<AuthorEntity> list = criteriaRepository.find(criteria);
         if(list == null || list.isEmpty())
-            throw new NoSuchEntityException("authors", String.format("[offset: %d, limit: %d, restriction: %s]", restrict));
+            throw new NoSuchEntityException("authors", String.format("restriction: %s]", restrict));
         Set<AuthorMasterEntity> authorMasters = new HashSet<>();
         for (AuthorEntity ae:list)
             if (ae.getMaster()!=null)
                 authorMasters.add(ae.getMaster());
+
+        /*
         List<AuthorDTO> dtoList = new LinkedList<>();
         for (AuthorMasterEntity author:authorMasters){
             AuthorDTO dto = new AuthorDTO();
             dto.setId(author.getId());
             dto.setName(author.getLastName());
             dto.setInitials(author.getInitials());
+            Set<PublicationEntity> asd = author.getPublications();
             PublicationCriteria cr = new PublicationCriteria();
             cr.setAuthorId(author.getId());
             List<PublicationEntity> publications = publicationService.getPublications(0,0,cr);
@@ -282,6 +286,12 @@ public class AuthorServiceImpl implements IAuthorService {
             dtoList.add(dto);
         }
         return authorSearchConverter.convert(dtoList,fields);
+        */
+
+        if (authorMasters.isEmpty())
+            throw new NoSuchEntityException("authors", String.format("[restriction: %s]", restrict));
+
+        return authorMasterEntityConverter.convert(authorMasters, fields);
     }
 
     @Transactional(propagation=Propagation.REQUIRED)

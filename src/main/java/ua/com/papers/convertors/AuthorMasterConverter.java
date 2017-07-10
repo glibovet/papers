@@ -3,9 +3,12 @@ package ua.com.papers.convertors;
 import org.springframework.stereotype.Component;
 import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
+import ua.com.papers.pojo.entities.PublicationEntity;
 
 import java.util.*;
 
+import static ua.com.papers.convertors.Fields.AuthorDTO.PUBLICATIONS_COUNT;
+import static ua.com.papers.convertors.Fields.AuthorDTO.PUBLICATIONS_ID_LIST;
 import static ua.com.papers.convertors.Fields.AuthorMaster.*;
 
 /**
@@ -27,6 +30,25 @@ public class AuthorMasterConverter extends Converter<AuthorMasterEntity> {
             for (AuthorEntity author:object.getAuthors())
                 ids.add(author.getId());
             map.put(AUTHORS,ids);
+        }
+
+        if(fields.contains(PUBLICATIONS_COUNT)) {
+            if (object.getPublications() != null) {
+                map.put(PUBLICATIONS_COUNT, object.getPublications().size());
+            } else {
+                map.put(PUBLICATIONS_COUNT, 0);
+            }
+        }
+        if (fields.contains(PUBLICATIONS_ID_LIST)) {
+            if (object.getPublications() != null) {
+                List<Integer> ids = new ArrayList<>();
+                for (PublicationEntity entity : object.getPublications()) {
+                    ids.add(entity.getId());
+                }
+                map.put(PUBLICATIONS_ID_LIST, ids);
+            } else {
+                map.put(PUBLICATIONS_ID_LIST, null);
+            }
         }
         return map;
     }
