@@ -1,18 +1,14 @@
 package ua.com.papers.services.authors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
-import ua.com.papers.convertors.Fields;
 import ua.com.papers.criteria.Criteria;
 import ua.com.papers.criteria.impl.AuthorCriteria;
 import ua.com.papers.criteria.impl.AuthorMasterCriteria;
 import ua.com.papers.criteria.impl.AuthorSearchCriteria;
-import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
@@ -20,10 +16,8 @@ import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.AuthorMastersRepository;
 import ua.com.papers.persistence.dao.repositories.AuthorsRepository;
-import ua.com.papers.pojo.dto.search.AuthorDTO;
 import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
-import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.AuthorMasterView;
 import ua.com.papers.pojo.view.AuthorView;
 import ua.com.papers.services.publications.IPublicationService;
@@ -48,11 +42,6 @@ public class AuthorServiceImpl implements IAuthorService {
     private IAuthorValidateService authorValidateService;
     @Autowired
     private ICriteriaRepository criteriaRepository;
-    @Autowired
-    private Converter<AuthorDTO> authorSearchConverter;
-
-    @Autowired
-    private IPublicationService publicationService;
 
     @Override
     @Transactional(propagation= Propagation.REQUIRED)
@@ -232,10 +221,9 @@ public class AuthorServiceImpl implements IAuthorService {
     @Override
     @Transactional(propagation= Propagation.REQUIRED)
     public AuthorMasterEntity findByNameMaster(String lastName, String initials) {
-        AuthorMasterCriteria cr = new AuthorMasterCriteria(0, 2);
-        cr.setLastName(lastName);
-        cr.setInitials(initials);
-        Criteria<AuthorMasterEntity> criteria = cr;
+        AuthorMasterCriteria criteria = new AuthorMasterCriteria(0, 2);
+        criteria.setLastName(lastName);
+        criteria.setInitials(initials);
         List<AuthorMasterEntity> list = criteriaRepository.find(criteria);
         if (list.size()>0)
             return list.get(0);
@@ -245,9 +233,8 @@ public class AuthorServiceImpl implements IAuthorService {
     @Override
     @Transactional(propagation= Propagation.REQUIRED)
     public AuthorEntity findByOriginal(String original) {
-        AuthorCriteria cr = new AuthorCriteria();
-        cr.setOriginal(original);
-        Criteria<AuthorEntity> criteria = cr;
+        AuthorCriteria criteria = new AuthorCriteria();
+        criteria.setOriginal(original);
         List<AuthorEntity> list = criteriaRepository.find(criteria);
         if (list.size()>0)
             return list.get(0);
@@ -259,34 +246,14 @@ public class AuthorServiceImpl implements IAuthorService {
     public List<Map<String, Object>> searchAuthors(Set<String> fields, String restrict) throws WrongRestrictionException, NoSuchEntityException {
         Criteria<AuthorEntity> criteria = new AuthorSearchCriteria(restrict);
 
-        List<AuthorEntity> list = criteriaRepository.find(criteria);
-        if(list == null || list.isEmpty())
+        List<AuthorEntity> authors = criteriaRepository.find(criteria);
+        if(authors == null || authors.isEmpty())
             throw new NoSuchEntityException("authors", String.format("restriction: %s]", restrict));
-        Set<AuthorMasterEntity> authorMasters = new HashSet<>();
-        for (AuthorEntity ae:list)
-            if (ae.getMaster()!=null)
-                authorMasters.add(ae.getMaster());
 
-        /*
-        List<AuthorDTO> dtoList = new LinkedList<>();
-        for (AuthorMasterEntity author:authorMasters){
-            AuthorDTO dto = new AuthorDTO();
-            dto.setId(author.getId());
-            dto.setName(author.getLastName());
-            dto.setInitials(author.getInitials());
-            Set<PublicationEntity> asd = author.getPublications();
-            PublicationCriteria cr = new PublicationCriteria();
-            cr.setAuthorId(author.getId());
-            List<PublicationEntity> publications = publicationService.getPublications(0,0,cr);
-            Set<Integer> ids = new HashSet<>();
-            for (PublicationEntity pe:publications)
-                ids.add(pe.getId());
-            dto.setPublicationIds(ids);
-            dto.setPublicationCount(ids.size());
-            dtoList.add(dto);
-        }
-        return authorSearchConverter.convert(dtoList,fields);
-        */
+        Set<AuthorMasterEntity> authorMasters = new HashSet<>();
+        for (AuthorEntity author : authors)
+            if (author.getMaster() != null)
+                authorMasters.add(author.getMaster());
 
         if (authorMasters.isEmpty())
             throw new NoSuchEntityException("authors", String.format("[restriction: %s]", restrict));
