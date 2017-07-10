@@ -7,9 +7,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.convertors.Fields;
 import ua.com.papers.criteria.Criteria;
 import ua.com.papers.criteria.impl.AuthorCriteria;
 import ua.com.papers.criteria.impl.AuthorMasterCriteria;
+import ua.com.papers.criteria.impl.AuthorSearchCriteria;
+import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
@@ -17,15 +20,15 @@ import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.AuthorMastersRepository;
 import ua.com.papers.persistence.dao.repositories.AuthorsRepository;
+import ua.com.papers.pojo.dto.search.AuthorDTO;
 import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
+import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.AuthorMasterView;
 import ua.com.papers.pojo.view.AuthorView;
+import ua.com.papers.services.publications.IPublicationService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Andrii on 28.09.2016.
@@ -45,6 +48,11 @@ public class AuthorServiceImpl implements IAuthorService {
     private IAuthorValidateService authorValidateService;
     @Autowired
     private ICriteriaRepository criteriaRepository;
+    @Autowired
+    private Converter<AuthorDTO> authorSearchConverter;
+
+    @Autowired
+    private IPublicationService publicationService;
 
     @Override
     @Transactional(propagation= Propagation.REQUIRED)
@@ -169,6 +177,16 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
+    public int updateAuthor(AuthorEntity author) throws ServiceErrorException, NoSuchEntityException, ValidationException {
+        authorValidateService.authorValidForUpdate(author);
+        author = authorsRepository.saveAndFlush(author);
+        if(author == null){
+            throw new ServiceErrorException();
+        }
+        return author.getId();
+    }
+
+    @Override
     @Transactional(propagation=Propagation.REQUIRED)
     public int updateAuthorMaster(AuthorMasterView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
         if (view.getId()==null||view.getId()==0)
@@ -234,6 +252,36 @@ public class AuthorServiceImpl implements IAuthorService {
         if (list.size()>0)
             return list.get(0);
         return null;
+    }
+
+    @Override
+    public List<Map<String, Object>> searchAuthors(Set<String> fields, String restrict) throws WrongRestrictionException, NoSuchEntityException {
+        Criteria<AuthorEntity> criteria = new AuthorSearchCriteria(restrict);
+
+        List<AuthorEntity> list = criteriaRepository.find(criteria);
+        if(list == null || list.isEmpty())
+            throw new NoSuchEntityException("authors", String.format("[offset: %d, limit: %d, restriction: %s]", restrict));
+        Set<AuthorMasterEntity> authorMasters = new HashSet<>();
+        for (AuthorEntity ae:list)
+            if (ae.getMaster()!=null)
+                authorMasters.add(ae.getMaster());
+        List<AuthorDTO> dtoList = new LinkedList<>();
+        for (AuthorMasterEntity author:authorMasters){
+            AuthorDTO dto = new AuthorDTO();
+            dto.setId(author.getId());
+            dto.setName(author.getLastName());
+            dto.setInitials(author.getInitials());
+            PublicationCriteria cr = new PublicationCriteria();
+            cr.setAuthorId(author.getId());
+            List<PublicationEntity> publications = publicationService.getPublications(0,0,cr);
+            Set<Integer> ids = new HashSet<>();
+            for (PublicationEntity pe:publications)
+                ids.add(pe.getId());
+            dto.setPublicationIds(ids);
+            dto.setPublicationCount(ids.size());
+            dtoList.add(dto);
+        }
+        return authorSearchConverter.convert(dtoList,fields);
     }
 
     @Transactional(propagation=Propagation.REQUIRED)

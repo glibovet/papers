@@ -193,4 +193,13 @@ public class AuthorApiController {
 
         response.setStatus(HttpServletResponse.SC_OK);
     }
+
+    @RequestMapping(value = "/find", method = RequestMethod.GET)
+    public @ResponseBody Response<List<Map<String, Object>>>
+    getAuthorsBySearchRequest(
+            @RequestParam(value = "fields", required = false, defaultValue = Fields.AuthorDTO.DEFAULT) Set<String> fields,
+            @RequestParam(value = "restrict", required = false, defaultValue = "") String restrict
+    ) throws PapersException {
+        return responseFactory.get(authorService.searchAuthors(fields, restrict));
+    }
 }

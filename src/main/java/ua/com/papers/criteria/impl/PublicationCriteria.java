@@ -25,10 +25,15 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
     private String title;
     private List<Integer> ids;
     private List<Integer> authors_id;
+    private Integer authorId;
     private List<Integer> publishers_id;
     private PublicationStatusEnum status;
     private PublicationTypeEnum type;
     private Boolean in_index;
+
+    public PublicationCriteria(){
+        super(0, 0, PublicationEntity.class);
+    }
 
     public PublicationCriteria(String restriction) throws WrongRestrictionException {
         this(0, 0, restriction);
@@ -49,6 +54,14 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
             this.title = parsed.title;
             this.in_index = parsed.in_index;
         }
+    }
+
+    public Integer getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(Integer authorId) {
+        this.authorId = authorId;
     }
 
     public String getQuery() {
@@ -215,6 +228,10 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
             Join<PublicationEntity, PublisherEntity> publisher = root.join("publisher");
             conditions.add(publisher.get("id").in(this.publishers_id));
             //query.where(publisher.get("id").in(this.publishers_id));
+        }
+        if (this.authorId!=null){
+            Join<PublicationEntity, AuthorMasterEntity> authors = root.join("authors");
+            conditions.add(authors.get("id").in(this.authorId));
         }
         Predicate[] predicates = conditions.toArray(new Predicate[conditions.size()]);
         query.where(cb.and(predicates));
