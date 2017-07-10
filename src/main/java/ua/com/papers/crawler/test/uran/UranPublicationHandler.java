@@ -187,19 +187,28 @@ public class UranPublicationHandler {
                     }
                     authorView.setLast_name(lastName);
                     authorView.setInitials(initials);
-                    authorView.setOriginal(fullName);
                     AuthorMasterView masterView = new AuthorMasterView();
                     masterView.setLast_name(lastName);
                     masterView.setInitials(initials);
+                    authorView.setOriginal(fullName);
                     AuthorMasterEntity master = authorService.findByNameMaster(lastName,initials);
                     AuthorEntity author = authorService.findByOriginal(authorView.getOriginal());
-                    if (master ==null&&author ==null) {
+                    if (author == null&& master!=null){
+                        authorView.setMaster_id(master.getId());
+                        authorService.createAuthor(authorView);
+                    }else if (author!=null&&author.getMaster()!=null&&master==null){
+                        master = author.getMaster();
+                    }else if (author!=null&&author.getMaster()==null&&master==null){
+                        id = authorService.createAuthorMaster(masterView);
+                        master = authorService.getAuthorMasterById(id);
+                        author.setMaster(master);
+                        authorService.updateAuthor(author);
+                    }else if (author==null&&master==null){
                         id = authorService.createAuthorMaster(masterView);
                         authorView.setMaster_id(id);
-
-                        int authorId = authorService.createAuthor(authorView);
-                    }else
-                        id =  master.getId();
+                        authorService.createAuthor(authorView);
+                    }
+                    id =  master.getId();
                     if (fullNameToId.get() != null) {
                         fullNameToId.get().put(fullName, id);
                     }
