@@ -83,10 +83,10 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Override
     @Transactional
-    public List<PublicationEntity> getPublications(int offset, int limit, PublicationCriteria criteria) throws NoSuchEntityException {
+    public List<PublicationEntity> getPublications(PublicationCriteria criteria) throws NoSuchEntityException {
         List<PublicationEntity> list = criteriaRepository.find(criteria);
         if(list == null || list.isEmpty())
-            throw new NoSuchEntityException("publication", String.format("[offset: %d, limit: %d]", offset, limit));
+            throw new NoSuchEntityException("publication", String.format("[offset: %d, limit: %d]", criteria.getOffset(), criteria.getLimit()));
         return list;
     }
 
@@ -94,6 +94,11 @@ public class PublicationServiceImpl implements IPublicationService{
     @Transactional
     public List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException {
         return publicationConverter.convert(getPublications(offset, limit, restrict), fields);
+    }
+
+    @Override
+    public List<Map<String, Object>> getPublicationsMap(Set<String> fields, PublicationCriteria criteria) throws NoSuchEntityException {
+        return publicationConverter.convert(getPublications(criteria), fields);
     }
 
     @Override
@@ -158,10 +163,12 @@ public class PublicationServiceImpl implements IPublicationService{
         PublicationCriteria criteria = new PublicationCriteria("{}");
         criteria.setLink(publication.getLink());
         criteria.setTitle(publication.getTitle());
+        criteria.setOffset(0);
+        criteria.setLimit(2);
         List<PublicationEntity> searchResult = null;
         int id=0;
         try {
-            searchResult = getPublications(0, 2, criteria);
+            searchResult = getPublications(criteria);
         } catch (NoSuchEntityException e) {
             id = createPublication(publication);
         }
@@ -174,7 +181,6 @@ public class PublicationServiceImpl implements IPublicationService{
         if (id > 0 && publication.getFile_link() != null) {
             String url = publication.getFile_link();
             storageService.uploadPaper(id, url);
-            //elasticSearch.indexPublication(id);
         }
     }
 

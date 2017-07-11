@@ -256,10 +256,10 @@ public class ElasticSearchImpl implements IElasticSearch{
             throw new PublicationWithoutFileException();
         }
         XContentBuilder builder = null;
-        String authors = "";
+        StringBuilder authors = new StringBuilder();
         if (publication.getAuthors()!=null){
             for (AuthorMasterEntity author:publication.getAuthors()){
-                authors+=author.getLastName()+" "+author.getInitials()+" ";
+                authors.append(author.getLastName()).append(" ").append(author.getInitials()).append(" ");
             }
         }
         try {
@@ -268,7 +268,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                     .field("id", publication.getId())
                     .field("title", publication.getTitle())
                     .field("annotation", publication.getAnnotation())
-                    .field("authors",authors)
+                    .field("authors", authors.toString())
                     .field("body", Base64.encodeBytes(publicationFile));
             builder.endObject();
         } catch (IOException e) {

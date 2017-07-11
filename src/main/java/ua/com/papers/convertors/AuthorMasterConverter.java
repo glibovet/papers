@@ -7,8 +7,6 @@ import ua.com.papers.pojo.entities.PublicationEntity;
 
 import java.util.*;
 
-import static ua.com.papers.convertors.Fields.AuthorDTO.PUBLICATIONS_COUNT;
-import static ua.com.papers.convertors.Fields.AuthorDTO.PUBLICATIONS_ID_LIST;
 import static ua.com.papers.convertors.Fields.AuthorMaster.*;
 
 /**

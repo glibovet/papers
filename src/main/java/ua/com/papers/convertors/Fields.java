@@ -84,14 +84,4 @@ public class Fields {
         public static final String DEFAULT = ID + ',' + STATUS;
     }
 
-    public static class AuthorDTO{
-        public static final String ID = "id";
-        public static final String NAME = "name";
-        public static final String INITIALS = "initials";
-        public static final String PUBLICATIONS_COUNT = "publications_count";
-        public static final String PUBLICATIONS_ID_LIST = "publications_id";
-
-        public static final String DEFAULT = ID + ',' + NAME + ',' + INITIALS + ',' + PUBLICATIONS_COUNT + ',' + PUBLICATIONS_ID_LIST;
-    }
-
 }
