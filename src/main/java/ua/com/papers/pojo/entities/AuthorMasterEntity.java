@@ -31,6 +31,13 @@ public class AuthorMasterEntity implements Serializable{
     @OneToMany(mappedBy="master", fetch=FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<AuthorEntity> authors;
 
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name="author_to_publication",
+            joinColumns=@JoinColumn(name="author_master_id", referencedColumnName="ID"),
+            inverseJoinColumns=@JoinColumn(name="publication_id", referencedColumnName="ID"))
+    private Set<PublicationEntity> publications;
+
     public Integer getId() {
         return id;
     }
@@ -61,6 +68,14 @@ public class AuthorMasterEntity implements Serializable{
 
     public void setAuthors(Set<AuthorEntity> authors) {
         this.authors = authors;
+    }
+
+    public Set<PublicationEntity> getPublications() {
+        return publications;
+    }
+
+    public void setPublications(Set<PublicationEntity> publications) {
+        this.publications = publications;
     }
 
     @Override
@@ -98,7 +113,7 @@ public class AuthorMasterEntity implements Serializable{
         if(author == null)
             return;
         if (this.authors==null)
-            authors = new HashSet<AuthorEntity>();
+            authors = new HashSet<>();
         authors.add(author);
     }
 }

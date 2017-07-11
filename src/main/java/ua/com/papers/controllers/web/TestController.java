@@ -29,6 +29,7 @@ import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.mailing.IMailingService;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
+import ua.com.papers.services.schedule.ScheduleCrawling;
 import ua.com.papers.services.users.IUserService;
 
 import javax.validation.constraints.NotNull;
@@ -47,73 +48,30 @@ public class TestController {
     private final IPublisherService publisherService;
     private final IAuthorService authorService;
     private final MainComposer composer;
-    private final IMailingService mailingService;
     private final IUserService userService;
 
     ICrawlerManager crawler;
 
     @Autowired
+    private ScheduleCrawling scheduleCrawling;
+
+    @Autowired
     public TestController(
             IPublicationService service, IPublisherService publisherService,
-            IAuthorService authorService, MainComposer composer, ICreator creator,
-            IMailingService mailingService, IUserService userService) {
+            IAuthorService authorService, MainComposer composer,
+            ICreator creator, IUserService userService) {
         this.service = service;
         this.publisherService = publisherService;
         this.authorService = authorService;
         this.composer = composer;
         this.crawler = creator.create();
-        this.mailingService = mailingService;
         this.userService = userService;
     }
 
     @RequestMapping(value = {"/crawl"}, method = RequestMethod.GET)
     public String indexPage() {
+        scheduleCrawling.crawl();
 
-        crawler.startCrawling(
-                composer.asHandlers(),
-                new ICrawler.Callback() {
-                    @Override
-                    public void onStart() {
-                        try {
-                            List<UserEntity> admins = admins();
-
-                            for (UserEntity admin : admins) {
-                                mailingService.sendEmailToUser(
-                                        EmailTypes.crawling_start,
-                                        admin.getEmail(),
-                                        null,
-                                        new Locale("uk")
-                                );
-                            }
-                        } catch (WrongRestrictionException | NoSuchEntityException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onPageAccepted(Page page) {
-
-                    }
-
-                    @Override
-                    public void onStop() {
-                        try {
-                            List<UserEntity> admins = admins();
-
-                            for (UserEntity admin : admins) {
-                                mailingService.sendEmailToUser(
-                                        EmailTypes.crawling_finish,
-                                        admin.getEmail(),
-                                        null,
-                                        new Locale("uk")
-                                );
-                            }
-                        } catch (WrongRestrictionException | NoSuchEntityException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-        );
         return "redirect:/";
     }
 
@@ -184,14 +142,5 @@ public class TestController {
         }
         System.out.println("On created");
         return "index/index";
-    }
-
-
-    private List<UserEntity> admins() throws NoSuchEntityException, WrongRestrictionException {
-        UserCriteria criteria = new UserCriteria(null);
-        criteria.setRoles(Arrays.asList(RolesEnum.admin, RolesEnum.moderator));
-        criteria.setActive(true);
-
-        return userService.getUsers(criteria);
     }
 }

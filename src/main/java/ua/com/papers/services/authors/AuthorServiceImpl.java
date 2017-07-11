@@ -1,8 +1,6 @@
 package ua.com.papers.services.authors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +8,7 @@ import ua.com.papers.convertors.Converter;
 import ua.com.papers.criteria.Criteria;
 import ua.com.papers.criteria.impl.AuthorCriteria;
 import ua.com.papers.criteria.impl.AuthorMasterCriteria;
+import ua.com.papers.criteria.impl.AuthorSearchCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
@@ -21,11 +20,9 @@ import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.view.AuthorMasterView;
 import ua.com.papers.pojo.view.AuthorView;
+import ua.com.papers.services.publications.IPublicationService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Andrii on 28.09.2016.
@@ -169,6 +166,16 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
+    public int updateAuthor(AuthorEntity author) throws ServiceErrorException, NoSuchEntityException, ValidationException {
+        authorValidateService.authorValidForUpdate(author);
+        author = authorsRepository.saveAndFlush(author);
+        if(author == null){
+            throw new ServiceErrorException();
+        }
+        return author.getId();
+    }
+
+    @Override
     @Transactional(propagation=Propagation.REQUIRED)
     public int updateAuthorMaster(AuthorMasterView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
         if (view.getId()==null||view.getId()==0)
@@ -214,10 +221,9 @@ public class AuthorServiceImpl implements IAuthorService {
     @Override
     @Transactional(propagation= Propagation.REQUIRED)
     public AuthorMasterEntity findByNameMaster(String lastName, String initials) {
-        AuthorMasterCriteria cr = new AuthorMasterCriteria(0, 2);
-        cr.setLastName(lastName);
-        cr.setInitials(initials);
-        Criteria<AuthorMasterEntity> criteria = cr;
+        AuthorMasterCriteria criteria = new AuthorMasterCriteria(0, 2);
+        criteria.setLastName(lastName);
+        criteria.setInitials(initials);
         List<AuthorMasterEntity> list = criteriaRepository.find(criteria);
         if (list.size()>0)
             return list.get(0);
@@ -227,13 +233,32 @@ public class AuthorServiceImpl implements IAuthorService {
     @Override
     @Transactional(propagation= Propagation.REQUIRED)
     public AuthorEntity findByOriginal(String original) {
-        AuthorCriteria cr = new AuthorCriteria();
-        cr.setOriginal(original);
-        Criteria<AuthorEntity> criteria = cr;
+        AuthorCriteria criteria = new AuthorCriteria();
+        criteria.setOriginal(original);
         List<AuthorEntity> list = criteriaRepository.find(criteria);
         if (list.size()>0)
             return list.get(0);
         return null;
+    }
+
+    @Override
+    @Transactional(propagation= Propagation.REQUIRED)
+    public List<Map<String, Object>> searchAuthors(Set<String> fields, String restrict) throws WrongRestrictionException, NoSuchEntityException {
+        Criteria<AuthorEntity> criteria = new AuthorSearchCriteria(restrict);
+
+        List<AuthorEntity> authors = criteriaRepository.find(criteria);
+        if(authors == null || authors.isEmpty())
+            throw new NoSuchEntityException("authors", String.format("restriction: %s]", restrict));
+
+        Set<AuthorMasterEntity> authorMasters = new HashSet<>();
+        for (AuthorEntity author : authors)
+            if (author.getMaster() != null)
+                authorMasters.add(author.getMaster());
+
+        if (authorMasters.isEmpty())
+            throw new NoSuchEntityException("authors", String.format("[restriction: %s]", restrict));
+
+        return authorMasterEntityConverter.convert(authorMasters, fields);
     }
 
     @Transactional(propagation=Propagation.REQUIRED)

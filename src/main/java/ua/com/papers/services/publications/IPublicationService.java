@@ -23,9 +23,10 @@ public interface IPublicationService {
     Map<String, Object> getPublicationByIdMap(int id, Set<String> fields) throws NoSuchEntityException;
 
     List<PublicationEntity> getPublications(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException;
-    List<PublicationEntity> getPublications(int offset, int limit, PublicationCriteria criteria) throws NoSuchEntityException;
+    List<PublicationEntity> getPublications(PublicationCriteria criteria) throws NoSuchEntityException;
 
     List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException;
+    List<Map<String, Object>> getPublicationsMap(Set<String> fields, PublicationCriteria criteria) throws NoSuchEntityException;
 
     int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 

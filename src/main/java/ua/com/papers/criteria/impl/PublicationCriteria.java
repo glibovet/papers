@@ -13,6 +13,7 @@ import javax.persistence.Query;
 import javax.persistence.criteria.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -23,12 +24,17 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
     private String query;
     private String link;
     private String title;
-    private List<Integer> ids;
-    private List<Integer> authors_id;
-    private List<Integer> publishers_id;
+    private Collection<Integer> ids;
+    private Collection<Integer> authors_id;
+    private Integer authorId;
+    private Collection<Integer> publishers_id;
     private PublicationStatusEnum status;
     private PublicationTypeEnum type;
     private Boolean in_index;
+
+    public PublicationCriteria(){
+        super(0, 0, PublicationEntity.class);
+    }
 
     public PublicationCriteria(String restriction) throws WrongRestrictionException {
         this(0, 0, restriction);
@@ -51,6 +57,19 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         }
     }
 
+    public Integer getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(Integer authorId) {
+        this.authorId = authorId;
+    }
+
+    public PublicationCriteria authorId(Integer authorId) {
+        this.authorId = authorId;
+        return this;
+    }
+
     public String getQuery() {
         return query;
     }
@@ -59,7 +78,12 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         this.query = query;
     }
 
-    public List<Integer> getIds() {
+    public PublicationCriteria query(String query) {
+        this.query = query;
+        return this;
+    }
+
+    public Collection<Integer> getIds() {
         return ids;
     }
 
@@ -67,7 +91,12 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         this.ids = ids;
     }
 
-    public List<Integer> getAuthors_id() {
+    public PublicationCriteria ids(Collection<Integer> ids) {
+        this.ids = ids;
+        return this;
+    }
+
+    public Collection<Integer> getAuthors_id() {
         return authors_id;
     }
 
@@ -75,12 +104,22 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         this.authors_id = authors_id;
     }
 
-    public List<Integer> getPublishers_id() {
+    public PublicationCriteria authorsId(List<Integer> authors_id) {
+        this.authors_id = authors_id;
+        return this;
+    }
+
+    public Collection<Integer> getPublishers_id() {
         return publishers_id;
     }
 
     public void setPublishers_id(List<Integer> publishers_id) {
         this.publishers_id = publishers_id;
+    }
+
+    public PublicationCriteria publishersId(List<Integer> publishers_id) {
+        this.publishers_id = publishers_id;
+        return this;
     }
 
     public PublicationStatusEnum getStatus() {
@@ -91,12 +130,22 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         this.status = status;
     }
 
+    public PublicationCriteria status(PublicationStatusEnum status) {
+        this.status = status;
+        return this;
+    }
+
     public PublicationTypeEnum getType() {
         return type;
     }
 
     public void setType(PublicationTypeEnum type) {
         this.type = type;
+    }
+
+    public PublicationCriteria type(PublicationTypeEnum type) {
+        this.type = type;
+        return this;
     }
 
     public String getLink() {
@@ -107,6 +156,11 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         this.link = link;
     }
 
+    public PublicationCriteria link(String link) {
+        this.link = link;
+        return this;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -115,12 +169,22 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         this.title = title;
     }
 
+    public PublicationCriteria title(String title) {
+        this.title = title;
+        return this;
+    }
+
     public Boolean getIn_index() {
         return in_index;
     }
 
     public void setIn_index(Boolean in_index) {
         this.in_index = in_index;
+    }
+
+    public PublicationCriteria inIndex(Boolean in_index) {
+        this.in_index = in_index;
+        return this;
     }
 
     @Override
@@ -215,6 +279,10 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
             Join<PublicationEntity, PublisherEntity> publisher = root.join("publisher");
             conditions.add(publisher.get("id").in(this.publishers_id));
             //query.where(publisher.get("id").in(this.publishers_id));
+        }
+        if (this.authorId!=null){
+            Join<PublicationEntity, AuthorMasterEntity> authors = root.join("authors");
+            conditions.add(authors.get("id").in(this.authorId));
         }
         Predicate[] predicates = conditions.toArray(new Predicate[conditions.size()]);
         query.where(cb.and(predicates));
