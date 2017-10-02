@@ -15,6 +15,7 @@ import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
+import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
@@ -162,52 +163,43 @@ public class UranPublicationHandler {
         for (final String fullName : fullNames) {
             log.log(Level.INFO, String.format("full name %s", fullName));
 
-            if (fullNameToId.get() == null
-                    || (id = fullNameToId.get().get(fullName)) == null) {
+            Map<String, Integer> cached = fullNameToId.get();
+
+            if (cached == null || (id = cached.get(fullName)) == null) {
                 // create new author
-                val credentialsArr = fullName.split("\\s");// first, middle and last names
-                val authorView = new AuthorView();
-
-                log.log(Level.INFO, String.format("parsed %s as %s", fullName, Arrays.toString(credentialsArr)));
-
-                if (credentialsArr.length < 2) continue;
-
-                final String initials, lastName;
-
-                if (credentialsArr.length == 2) {
-                    lastName = credentialsArr[1];
-                    initials = String.format("%S.", credentialsArr[0].charAt(0));
-                } else {
-                    lastName = credentialsArr[2];
-                    initials = String.format("%S. %S.", credentialsArr[0].charAt(0), credentialsArr[1].charAt(0));
-                }
-
-                log.log(Level.INFO, String.format("setting last name as %s, initials as %s", lastName, initials));
-                authorView.setLast_name(lastName);
-                authorView.setInitials(initials);
-
                 try {
-                    //FIXME when I should take it??
-                    // --------------------------------------
-                    AuthorMasterView masterView = new AuthorMasterView();
-
-                    masterView.setLast_name(lastName);
-                    masterView.setInitials(initials);
-
-                    val masterId = authorService.createAuthorMaster(masterView);
-                    // --------------------------------------
-                    // create author and grab his id
-                    authorView.setMaster_id(masterId);
-                    authorView.setOriginal("original");// what?
-                    id = authorService.createAuthor(authorView);
-
-                    if (fullNameToId.get() != null) {
-                        fullNameToId.get().put(fullName, id);
+                    String nameTemp = fullName;
+                    if (nameTemp.contains("(") && nameTemp.contains(")")) {
+                        nameTemp = nameTemp.substring(nameTemp.indexOf("("), nameTemp.indexOf(")") + 1);
                     }
+                    if (nameTemp.contains("[") && nameTemp.contains("]")) {
+                        nameTemp = nameTemp.substring(nameTemp.indexOf("["), nameTemp.indexOf("]") + 1);
+                    }
+                    String[] credentialsArr = nameTemp.split("\\s");// first, middle and last names
+                    //AuthorView authorView = new AuthorView();
+                    if (credentialsArr.length < 2) continue;
+                    final String initials, lastName;
+                    if (credentialsArr.length == 2) {
+                        lastName = credentialsArr[1];
+                        initials = String.format("%S.", credentialsArr[0].charAt(0));
+                    } else {
+                        lastName = credentialsArr[2];
+                        initials = String.format("%S. %S.", credentialsArr[0].charAt(0), credentialsArr[1].charAt(0));
+                    }
+
+                    val foundId = findAuthorId(initials, lastName, fullName);
+
+                    if (cached == null) {
+                        // soft reference was released
+                        cached = new HashMap<>();
+                        fullNameToId = new SoftReference<>(cached);
+                    }
+
+                    cached.put(fullName, id = foundId);
                 } catch (final ServiceErrorException | NoSuchEntityException e) {
-                    log.log(Level.WARNING, "Service error occurred while saving publication", e);
+                    log.log(Level.WARNING, "Service error occurred while saving publication Uran", e);
                 } catch (final Exception e) {
-                    log.log(Level.SEVERE, "Fatal error occurred while saving publication", e);
+                    log.log(Level.SEVERE, "Fatal error occurred while saving publication Uran", e);
                 }
             }
             if (id != null) {
@@ -216,6 +208,55 @@ public class UranPublicationHandler {
         }
         result.trimToSize();
         return result;
+    }
+
+    @NotNull
+    private int findAuthorId(String initials, String lastName, String fullName)
+            throws NoSuchEntityException, ValidationException, ServiceErrorException {
+        val authorView = new AuthorView();
+
+        authorView.setLast_name(lastName);
+        authorView.setInitials(initials);
+        authorView.setOriginal(fullName);
+
+        val masterOpt = Optional.ofNullable(authorService.findByNameMaster(lastName, initials));
+        val authorOpt = Optional.ofNullable(authorService.findByOriginal(authorView.getOriginal()));
+
+        if (masterOpt.isPresent()) {
+            if (!authorOpt.isPresent()) {
+                authorView.setMaster_id(masterOpt.get().getId());
+                authorService.createAuthor(authorView);
+            }
+            return masterOpt.get().getId();
+        }
+
+        val masterView = new AuthorMasterView();
+
+        masterView.setLast_name(lastName);
+        masterView.setInitials(initials);
+
+        if (authorOpt.isPresent()) {
+            val author = authorOpt.get();
+            final int id;
+
+            if (author.getMaster() == null) {
+                id = authorService.createAuthorMaster(masterView);
+            } else {
+                id = author.getMaster().getId();
+            }
+
+            val newMaster = authorService.getAuthorMasterById(id);
+
+            author.setMaster(newMaster);
+            authorService.updateAuthor(author);
+            return id;
+        }
+
+        val id = authorService.createAuthorMaster(masterView);
+
+        authorView.setMaster_id(id);
+        authorService.createAuthor(authorView);
+        return id;
     }
 
     @NotNull
