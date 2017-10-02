@@ -9,6 +9,7 @@ import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
+import ua.com.papers.crawler.test.BasePublicationHandler;
 import ua.com.papers.crawler.test.IHandlerCallback;
 import ua.com.papers.crawler.test.UrlAdapter;
 import ua.com.papers.crawler.util.*;
@@ -16,18 +17,18 @@ import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.pojo.entities.AuthorEntity;
-import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
-import ua.com.papers.pojo.view.AuthorMasterView;
-import ua.com.papers.pojo.view.AuthorView;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.services.authors.IAuthorService;
 
 import javax.validation.constraints.NotNull;
 import java.lang.ref.SoftReference;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -41,19 +42,18 @@ import java.util.logging.Level;
 @Value
 @Getter(AccessLevel.NONE)
 @PageHandler(id = 2)
-public class UranPublicationHandler {
+public class UranPublicationHandler extends BasePublicationHandler {
 
     private static final int GROUP_ID = 1;
 
     IHandlerCallback callback;
-    IAuthorService authorService;
     @NonFinal
     PublicationView publicationView;
     @NonFinal
     SoftReference<Map<String, Integer>> fullNameToId;
 
     public UranPublicationHandler(IAuthorService authorService, IHandlerCallback callback, List<AuthorEntity> authorEntities) {
-        this.authorService = Preconditions.checkNotNull(authorService);
+        super(authorService);
         this.callback = Preconditions.checkNotNull(callback);
 
         val cache = new HashMap<String, Integer>();
@@ -163,19 +163,20 @@ public class UranPublicationHandler {
         for (final String fullName : fullNames) {
             log.log(Level.INFO, String.format("full name %s", fullName));
 
-            if (fullNameToId.get() == null||fullNameToId.get().size()==0
-                    || (id = fullNameToId.get().get(fullName)) == null) {
+            Map<String, Integer> cached = fullNameToId.get();
+
+            if (cached == null || (id = cached.get(fullName)) == null) {
                 // create new author
                 try {
                     String nameTemp = fullName;
-                    if (nameTemp.contains("(")&&nameTemp.contains(")")){
-                        nameTemp = nameTemp.substring(nameTemp.indexOf("("),nameTemp.indexOf(")")+1);
+                    if (nameTemp.contains("(") && nameTemp.contains(")")) {
+                        nameTemp = nameTemp.substring(nameTemp.indexOf("("), nameTemp.indexOf(")") + 1);
                     }
-                    if (nameTemp.contains("[")&&nameTemp.contains("]")){
-                        nameTemp = nameTemp.substring(nameTemp.indexOf("["),nameTemp.indexOf("]")+1);
+                    if (nameTemp.contains("[") && nameTemp.contains("]")) {
+                        nameTemp = nameTemp.substring(nameTemp.indexOf("["), nameTemp.indexOf("]") + 1);
                     }
                     String[] credentialsArr = nameTemp.split("\\s");// first, middle and last names
-                    AuthorView authorView = new AuthorView();
+                    //AuthorView authorView = new AuthorView();
                     if (credentialsArr.length < 2) continue;
                     final String initials, lastName;
                     if (credentialsArr.length == 2) {
@@ -185,33 +186,16 @@ public class UranPublicationHandler {
                         lastName = credentialsArr[2];
                         initials = String.format("%S. %S.", credentialsArr[0].charAt(0), credentialsArr[1].charAt(0));
                     }
-                    authorView.setLast_name(lastName);
-                    authorView.setInitials(initials);
-                    AuthorMasterView masterView = new AuthorMasterView();
-                    masterView.setLast_name(lastName);
-                    masterView.setInitials(initials);
-                    authorView.setOriginal(fullName);
-                    AuthorMasterEntity master = authorService.findByNameMaster(lastName,initials);
-                    AuthorEntity author = authorService.findByOriginal(authorView.getOriginal());
-                    if (author == null&& master!=null){
-                        authorView.setMaster_id(master.getId());
-                        authorService.createAuthor(authorView);
-                    }else if (author!=null&&author.getMaster()!=null&&master==null){
-                        master = author.getMaster();
-                    }else if (author!=null&&author.getMaster()==null&&master==null){
-                        id = authorService.createAuthorMaster(masterView);
-                        master = authorService.getAuthorMasterById(id);
-                        author.setMaster(master);
-                        authorService.updateAuthor(author);
-                    }else if (author==null&&master==null){
-                        id = authorService.createAuthorMaster(masterView);
-                        authorView.setMaster_id(id);
-                        authorService.createAuthor(authorView);
+
+                    val foundId = findAuthorId(initials, lastName, fullName);
+
+                    if (cached == null) {
+                        // soft reference was released
+                        cached = new HashMap<>();
+                        fullNameToId = new SoftReference<>(cached);
                     }
-                    id =  master.getId();
-                    if (fullNameToId.get() != null) {
-                        fullNameToId.get().put(fullName, id);
-                    }
+
+                    cached.put(fullName, id = foundId);
                 } catch (final ServiceErrorException | NoSuchEntityException e) {
                     log.log(Level.WARNING, "Service error occurred while saving publication Uran", e);
                 } catch (final Exception e) {

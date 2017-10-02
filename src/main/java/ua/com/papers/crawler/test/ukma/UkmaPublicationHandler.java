@@ -10,6 +10,7 @@ import lombok.val;
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
+import ua.com.papers.crawler.test.BasePublicationHandler;
 import ua.com.papers.crawler.test.IHandlerCallback;
 import ua.com.papers.crawler.test.UrlAdapter;
 import ua.com.papers.crawler.util.*;
@@ -17,10 +18,8 @@ import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.pojo.entities.AuthorEntity;
-import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
-import ua.com.papers.pojo.view.AuthorMasterView;
 import ua.com.papers.pojo.view.AuthorView;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.services.authors.IAuthorService;
@@ -28,7 +27,10 @@ import ua.com.papers.services.authors.IAuthorService;
 import javax.validation.constraints.NotNull;
 import java.lang.ref.SoftReference;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -42,20 +44,19 @@ import java.util.logging.Level;
 @Value
 @Getter(AccessLevel.NONE)
 @PageHandler(id = 5)
-public class UkmaPublicationHandler {
+public class UkmaPublicationHandler extends BasePublicationHandler {
 
     private static final int GROUP_ID = 2;
     static String PAGE_REGEX = "(\\[\\])|([Сс]\\.\\s+\\d+\\.?\\s*-?\\s*\\d+\\.?)";
 
     IHandlerCallback callback;
-    IAuthorService authorService;
     @NonFinal
     PublicationView publicationView;
     @NonFinal
     SoftReference<Map<String, Integer>> fullNameToId;
 
     public UkmaPublicationHandler(IAuthorService authorService, IHandlerCallback callback, List<AuthorEntity> authorEntities) {
-        this.authorService = Preconditions.checkNotNull(authorService);
+        super(authorService);
         this.callback = Preconditions.checkNotNull(callback);
 
         val cache = new HashMap<String, Integer>();
@@ -151,15 +152,16 @@ public class UkmaPublicationHandler {
         for (final String fullName : fullNames) {
             log.log(Level.INFO, String.format("full name %s", fullName));
 
-            if (fullNameToId.get() == null||fullNameToId.get().size()==0
-                    || (id = fullNameToId.get().get(fullName)) == null) {
+            Map<String, Integer> cached = fullNameToId.get();
+
+            if (cached == null || (id = cached.get(fullName)) == null) {
                 // create new author
                 try {
                     String nameTemp = fullName
                             .replace("(","")
                             .replace(")","");
                     String[] credentialsArr = nameTemp.split("\\s");// first, middle and last names
-                    AuthorView authorView = new AuthorView();
+
                     if (credentialsArr.length < 2) continue;
                     final String initials, lastName;
                     if (credentialsArr.length == 2) {
@@ -169,6 +171,17 @@ public class UkmaPublicationHandler {
                         lastName = credentialsArr[0];
                         initials = String.format("%S. %S.", credentialsArr[1].charAt(0), credentialsArr[2].charAt(0));
                     }
+
+                    val foundId = findAuthorId(initials, lastName, fullName);
+
+                    if (cached == null) {
+                        // soft reference was released
+                        cached = new HashMap<>();
+                        fullNameToId = new SoftReference<>(cached);
+                    }
+
+                    cached.put(fullName, id = foundId);
+                    /*
                     authorView.setLast_name(lastName);
                     authorView.setInitials(initials);
                     AuthorMasterView masterView = new AuthorMasterView();
@@ -195,7 +208,7 @@ public class UkmaPublicationHandler {
                     id =  master.getId();
                     if (fullNameToId.get() != null) {
                         fullNameToId.get().put(fullName, id);
-                    }
+                    }*/
                 } catch (final ServiceErrorException | NoSuchEntityException e) {
                     log.log(Level.WARNING, "Service error occurred while saving publication UKMA", e);
                 } catch (final Exception e) {

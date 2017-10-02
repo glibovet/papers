@@ -40,12 +40,12 @@ public class EmailBuilder {
     }
 
     private String formRejectPublicationOrder(Map<String, String> data, String content) {
-        content.replaceAll("REJECT_REASON",data.get("REJECT_REASON"));
+        content = content.replaceAll("REJECT_REASON",data.get("REJECT_REASON"));
         return content;
     }
 
     private String formApprovePublicationOrder(Map<String, String> data, String content) {
-        content.replaceAll("PUBLICATION_LINK",data.get("PUBLICATION_LINK"));
+        content = content.replaceAll("PUBLICATION_LINK",data.get("PUBLICATION_LINK"));
         return content;
     }
 
