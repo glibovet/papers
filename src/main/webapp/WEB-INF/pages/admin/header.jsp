@@ -44,6 +44,7 @@
                     <ul class="dropdown-menu">
                         <li><a href="/admin/publications/all" class="active"><spring:message code="admin.publications.all_publications" /></a></li>
                         <li><a href="/admin/publications/create" class="active"><spring:message code="admin.publications.create" /></a></li>
+                        <li><a href="/admin/publications/orders/all" class="active">замовлення публікацій</a></li>
                     </ul>
                 </li>
             </ul>

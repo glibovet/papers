@@ -50,7 +50,14 @@
                                 <p>${publication.body}</p>
                                 <p>Автор(и): ${publication.authors}</p>
                                 <p>Видавництво: ${publication.publisher}</p>
-                                <a href="/api/storage/paper/${publication.id}" class="btn btn-default" target="_blank">Завантажити <i class="fa fa-download" aria-hidden="true"></i></a>
+                                <c:choose>
+                                    <c:when test="${publication.link ne null}">
+                                        <a href="${publication.link}" class="btn btn-default" target="_blank">Перейти на сторінку публікації</a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <button class="btn btn-success order-publication" data-id="${publication.id}">Замовити файл</button>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </c:forEach>
                     </div>
@@ -71,5 +78,8 @@
         </div>
     </div>
 </div>
+
+<jsp:include page="../common/footer.jsp" />
+<script src="/resources/js/search/search.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@ package ua.com.papers.services.publications;
 import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.ElasticSearchError;
+import ua.com.papers.exceptions.service_error.ElasticSearchException;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
@@ -23,18 +23,21 @@ public interface IPublicationService {
     Map<String, Object> getPublicationByIdMap(int id, Set<String> fields) throws NoSuchEntityException;
 
     List<PublicationEntity> getPublications(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException;
-    List<PublicationEntity> getPublications(int offset, int limit, PublicationCriteria criteria) throws NoSuchEntityException;
+    List<PublicationEntity> getPublications(PublicationCriteria criteria) throws NoSuchEntityException;
 
     List<Map<String, Object>> getPublicationsMap(int offset, int limit, Set<String> fields, String restrict) throws NoSuchEntityException, WrongRestrictionException;
+    List<Map<String, Object>> getPublicationsMap(Set<String> fields, PublicationCriteria criteria) throws NoSuchEntityException;
 
     int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 
-    int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchError;
+    int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchException;
     int updatePublication(PublicationEntity view) throws ServiceErrorException, ValidationException;
 
     int countPublications(String restriction) throws WrongRestrictionException;
 
     void removePublicationsFromIndex();
+
+    void savePublicationFromRobot(PublicationView publication) throws NoSuchEntityException, ValidationException, ServiceErrorException, ElasticSearchException, ForbiddenException, WrongRestrictionException;
 
     List<PublicationEntity> getAllPublications();
 }

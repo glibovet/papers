@@ -1,6 +1,7 @@
 package ua.com.papers.controllers.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -10,21 +11,32 @@ import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.test.MainComposer;
+import ua.com.papers.criteria.Criteria;
+import ua.com.papers.criteria.impl.UserCriteria;
+import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.UserEntity;
+import ua.com.papers.pojo.enums.EmailTypes;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
+import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.view.AuthorView;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
+import ua.com.papers.services.mailing.IMailingService;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
+import ua.com.papers.services.schedule.ScheduleCrawling;
+import ua.com.papers.services.users.IUserService;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Максим on 2/2/2017.
@@ -36,47 +48,53 @@ public class TestController {
     private final IPublisherService publisherService;
     private final IAuthorService authorService;
     private final MainComposer composer;
+    private final IUserService userService;
 
     ICrawlerManager crawler;
 
     @Autowired
-    public TestController(IPublicationService service, IPublisherService publisherService, IAuthorService authorService, MainComposer composer, ICreator creator) {
+    private ScheduleCrawling scheduleCrawling;
+
+    @Autowired
+    public TestController(
+            IPublicationService service, IPublisherService publisherService,
+            IAuthorService authorService, MainComposer composer,
+            ICreator creator, IUserService userService) {
         this.service = service;
         this.publisherService = publisherService;
         this.authorService = authorService;
         this.composer = composer;
         this.crawler = creator.create();
+        this.userService = userService;
     }
 
     @RequestMapping(value = {"/crawl"}, method = RequestMethod.GET)
     public String indexPage() {
+        scheduleCrawling.crawl();
 
-        crawler.startCrawling(
-                composer.asHandlers(),
-                crawlCall()
-        );
-        return "index/index";
+        return "redirect:/";
     }
 
     @RequestMapping(value = {"/stop"}, method = RequestMethod.GET)
     public String stopIndexPage() {
         crawler.stopCrawling();
         crawler.stopIndexing();
-        return "index/index";
+
+        return "redirect:/";
     }
 
     @RequestMapping(value = {"/reindex"}, method = RequestMethod.GET)
     public String reIndex() {
         crawler.startIndexing(
                 composer.asHandlers(),
-                indexCall()
+                IPageIndexer.DEFAULT_CALLBACK
         );
 
-        return "index/index";
+        return "redirect:/";
     }
 
     @RequestMapping(value = {"/crawl1"}, method = RequestMethod.GET)
-    public String indexPage1(){
+    public String indexPage1() throws WrongRestrictionException {
         try {
 
           //  AuthorMasterView masterView = new AuthorMasterView();
@@ -125,76 +143,4 @@ public class TestController {
         System.out.println("On created");
         return "index/index";
     }
-
-    private static ICrawler.Callback crawlCall() {
-
-        return new ICrawler.Callback() {
-
-            @Override
-            public void onStart() {
-                System.out.println("On start");
-            }
-
-            @Override
-            public void onUrlEntered(@NotNull URL url) {
-                System.out.println("On url entered " + url);
-            }
-
-            @Override
-            public void onPageRejected(@NotNull Page page) {
-                System.out.println("On page rejected " + page.getUrl());
-            }
-
-            @Override
-            public void onStop() {
-                System.out.println("On stop");
-            }
-
-            @Override
-            public void onCrawlException(@NotNull URL url, @NotNull Throwable th) {
-                System.out.println("On exception " + th);
-            }
-
-            @Override
-            public void onPageAccepted(@NotNull Page page) {
-                System.out.println("Page accepted " + page.getUrl());
-            }
-        };
-    }
-
-    private static IPageIndexer.Callback indexCall() {
-        return new IPageIndexer.Callback() {
-
-            @Override
-            public void onStart() {
-                System.out.println("On start / index");
-            }
-
-            @Override
-            public void onStop() {
-                System.out.println("On stop / index");
-            }
-
-            @Override
-            public void onIndexed(@NotNull Page page) {
-                System.out.println("On indexed " + page.getUrl());
-            }
-
-            @Override
-            public void onUpdated(@NotNull Page page) {
-                System.out.println("On updated " + page.getUrl());
-            }
-
-            @Override
-            public void onLost(@NotNull Page page) {
-                System.out.println("On lost " + page.getUrl());
-            }
-
-            @Override
-            public void onIndexException(@NotNull URL url, @NotNull Throwable th) {
-
-            }
-        };
-    }
-
 }

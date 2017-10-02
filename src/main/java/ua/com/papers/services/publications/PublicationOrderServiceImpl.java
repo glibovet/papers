@@ -22,6 +22,8 @@ import ua.com.papers.pojo.enums.PublicationOrderStatusEnum;
 import ua.com.papers.pojo.view.PublicationOrderView;
 import ua.com.papers.services.mailing.IMailingService;
 import ua.com.papers.services.utils.SessionUtils;
+import ua.com.papers.utils.SecureToken;
+import ua.com.papers.utils.TokenUtil;
 
 import java.util.*;
 
@@ -32,8 +34,6 @@ import java.util.*;
 @Transactional(propagation= Propagation.REQUIRED)
 public class PublicationOrderServiceImpl implements IPublicationOrderService{
 
-    @Autowired
-    private IPublicationOrderService service;
     @Autowired
     private PublicationOrderRepository repository;
     @Autowired
@@ -46,6 +46,8 @@ public class PublicationOrderServiceImpl implements IPublicationOrderService{
     private IPublicationService publicationService;
     @Autowired
     private IMailingService malingService;
+    @Autowired
+    private TokenUtil tokenUtil;
 
     @Override
     public Map<String, Object> getPublicationOrderMapById(int id, Set<String> fields) throws NoSuchEntityException {
@@ -78,6 +80,8 @@ public class PublicationOrderServiceImpl implements IPublicationOrderService{
     public int create(PublicationOrderView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
         PublicationOrderEntity  entity = new PublicationOrderEntity();
         merge(entity,view);
+        entity.setStatus(PublicationOrderStatusEnum.NEW);
+        entity.setDateCreated(new Date());
         validationService.validForCreation(entity);
         entity = repository.saveAndFlush(entity);
         if(entity == null){
@@ -102,10 +106,10 @@ public class PublicationOrderServiceImpl implements IPublicationOrderService{
         if (view.getStatus()!=null) entity.setStatus(view.getStatus());
         else view.setStatus(entity.getStatus());
 
-        if (view.getPublicationId()!=null)
-            entity.setPublication(publicationService.getPublicationById(view.getPublicationId()));
+        if (view.getPublication_id()!=null)
+            entity.setPublication(publicationService.getPublicationById(view.getPublication_id()));
         else if (entity.getPublication()!=null)
-            view.setPublicationId(entity.getPublication().getId());
+            view.setPublication_id(entity.getPublication().getId());
     }
 
     @Override
@@ -119,14 +123,36 @@ public class PublicationOrderServiceImpl implements IPublicationOrderService{
         if(entity == null){
             throw new ServiceErrorException();
         }
+
         Map<String,String> data = new HashMap<>();
         if (entity.getStatus()== PublicationOrderStatusEnum.APPLIED){
             data.put("PUBLICATION_ID",entity.getPublication().getId().toString());
+
+            SecureToken token = new SecureToken();
+            token.add("PUBLICATION_ID", view.getId());
+            token.add("DATE", new Date().getTime());
+
+            data.put("TOKEN", tokenUtil.generateSecure(token));
+
             malingService.sendEmailToUser(EmailTypes.approve_publication_order,entity.getEmail(), data, Locale.ENGLISH);
         }else if (entity.getStatus()== PublicationOrderStatusEnum.REJECTED){
 
             data.put("REJECT_REASON",entity.getReason());
             malingService.sendEmailToUser(EmailTypes.reject_publication_order,entity.getEmail(), data, Locale.ENGLISH);
+        }
+        return entity.getId();
+    }
+
+    @Override
+    public int update(PublicationOrderView view) throws ServiceErrorException, NoSuchEntityException, ValidationException, AuthRequiredException {
+        if (view.getId()==null||view.getId()==0)
+            throw new ServiceErrorException();
+        PublicationOrderEntity entity = getPublicationOrderById(view.getId());
+        merge(entity,view);
+        validationService.validForUpdate(entity);
+        entity = repository.saveAndFlush(entity);
+        if(entity == null){
+            throw new ServiceErrorException();
         }
         return entity.getId();
     }

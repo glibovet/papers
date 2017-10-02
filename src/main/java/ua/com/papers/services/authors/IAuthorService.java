@@ -36,6 +36,7 @@ public interface IAuthorService {
     int createAuthorMaster(AuthorMasterView view) throws ValidationException, ServiceErrorException, NoSuchEntityException;
 
     int updateAuthor(AuthorView authorView) throws ServiceErrorException, NoSuchEntityException, ValidationException;
+    int updateAuthor(AuthorEntity author) throws ServiceErrorException, NoSuchEntityException, ValidationException;
     int updateAuthorMaster(AuthorMasterView view) throws ServiceErrorException, NoSuchEntityException, ValidationException;
 
     int countAuthors(String restrict) throws WrongRestrictionException;
@@ -43,4 +44,9 @@ public interface IAuthorService {
 
     void deleteAuthor(int id) throws NoSuchEntityException;
     void deleteMasterAuthor(int id) throws NoSuchEntityException;
+
+    AuthorMasterEntity findByNameMaster(String lastName,String initials);
+    AuthorEntity findByOriginal(String original);
+
+    List<Map<String,Object>> searchAuthors(Set<String> fields, String restrict) throws WrongRestrictionException, NoSuchEntityException;
 }

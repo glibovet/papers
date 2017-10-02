@@ -44,7 +44,7 @@ public class PublicationOrderValidationServiceImpl implements IPublicationOrderV
         if(violations != null && !violations.isEmpty()) {
             throw new ValidationException(PublicationOrderEntity.class.getName(), violations);
         }
-        if (entity.getStatus()!= PublicationOrderStatusEnum.APPLIED||entity.getStatus()!=PublicationOrderStatusEnum.REJECTED||entity.getPublication()==null)
+        if ((entity.getStatus() != PublicationOrderStatusEnum.APPLIED && entity.getStatus() != PublicationOrderStatusEnum.REJECTED) || entity.getPublication()==null)
             throw new ServiceErrorException();
     }
 }

@@ -7,9 +7,11 @@ import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.services.utils.SessionUtils;
+import ua.com.papers.utils.SecureToken;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -62,4 +64,31 @@ public class PublicationValidateServiceImpl implements IPublicationValidateServi
         return true;
     }
 
+    @Override
+    public boolean isPublicationAvailable(PublicationEntity entity, SecureToken token) {
+        if (token == null) {
+            return isPublicationAvailable(entity);
+        }
+
+        if (entity.getStatus() != PublicationStatusEnum.ACTIVE) {
+            return false;
+        }
+
+        Object timeObject = token.getData().get("DATE");
+        if (timeObject != null) {
+            long timeCreated = (Long)timeObject;
+
+            if (new Date().getTime() - timeCreated > MAX_TILE_TOKEN_LIVE) {
+                return false;
+            }
+        } else {
+            // some how token does not have date key
+            return false;
+        }
+
+        return true;
+    }
+
+    // 7 days
+    private static final long MAX_TILE_TOKEN_LIVE = 1000 * 60 * 60 * 24 * 7;
 }

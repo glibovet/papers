@@ -90,7 +90,7 @@
         <property name="packagesToScan" value="ua.com.papers.pojo.entities, ua.com.papers.crawler.test.repo"/>
         <property name="jpaVendorAdapter">
             <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
-                <property name="generateDdl" value="true" />
+                <property name="generateDdl" value="false" />
                 <property name="showSql" value="false"/>
                 <property name="databasePlatform" value="org.hibernate.dialect.MySQLDialect"/>
                 <property name="database" value="MYSQL"/>
@@ -101,7 +101,7 @@
                 hibernate.cache.use_second_level_cache = true
                 hibernate.cache.region.factory_class = org.hibernate.cache.ehcache.EhCacheRegionFactory
                 hibernate.cache.use_query_cache = true
-                hibernate.generate_statistics = true
+                hibernate.generate_statistics = false
             </value>
         </property>
     </bean>
@@ -227,5 +227,29 @@
     <bean id="sendPulse" class="ua.com.papers.services.mailing.sendpulse.sendpulse.restapi.Sendpulse">
         <constructor-arg name="_userId" value="${sendpulse.client_id}"/>
         <constructor-arg name="_secret" value="${sendpulse.secure}"/>
+    </bean>
+
+    <bean id="crawlJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="scheduleCrawling" />
+        <property name="targetMethod" value="crawl" />
+    </bean>
+
+    <bean id="crawlCronJob" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="crawlJobDetail" />
+        <!-- every five days in the month at 2 a.m. crawler will start working -->
+        <property name="cronExpression" value="0 0 2 1/7 * ?" />
+    </bean>
+
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="jobDetails">
+            <list>
+                <ref bean="crawlJobDetail"/>
+            </list>
+        </property>
+        <property name="triggers">
+            <list>
+                <ref bean="crawlCronJob"/>
+            </list>
+        </property>
     </bean>
 </beans>

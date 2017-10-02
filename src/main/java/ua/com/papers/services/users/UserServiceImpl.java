@@ -15,10 +15,12 @@ import org.springframework.security.web.authentication.rememberme.AbstractRememb
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.criteria.impl.UserCriteria;
 import ua.com.papers.exceptions.bad_request.WrongPasswordException;
 import ua.com.papers.exceptions.conflict.EmailExistsException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.RolesRepository;
 import ua.com.papers.persistence.dao.repositories.UsersRepository;
 import ua.com.papers.pojo.entities.PermissionEntity;
@@ -59,6 +61,9 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private Converter<UserEntity> userConverter;
 
+    @Autowired
+    private ICriteriaRepository criteriaRepository;
+
     @Override
     @Transactional
     public UserEntity getUserById(int userId) throws NoSuchEntityException {
@@ -85,6 +90,16 @@ public class UserServiceImpl implements IUserService {
         if(list == null || list.getContent().isEmpty())
             throw new NoSuchEntityException("user", String.format("[offset: %d, limit: %d]", offset, limit));
         return list.getContent();
+    }
+
+    @Override
+    public List<UserEntity> getUsers(UserCriteria criteria) throws NoSuchEntityException {
+        List<UserEntity> users = criteriaRepository.find(criteria);
+        if (users == null || users.isEmpty()) {
+            throw new NoSuchEntityException("users");
+        }
+
+        return users;
     }
 
     @Override

@@ -77,6 +77,18 @@ public class PublicationOrderApiController {
             , method = RequestMethod.POST)
     public
     @ResponseBody
+    Response<Integer> update(
+            @RequestBody PublicationOrderView view) throws PapersException {
+        sessionUtils.authorized();
+        sessionUtils.userHasRole(RolesEnum.admin,RolesEnum.moderator);
+        return responseFactory.get(service.update(view));
+    }
+
+    @RequestMapping(
+            value = "/answer"
+            , method = RequestMethod.POST)
+    public
+    @ResponseBody
     Response<Integer> answer(
             @RequestBody PublicationOrderView view) throws PapersException {
         sessionUtils.authorized();

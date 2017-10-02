@@ -23,12 +23,12 @@
                 var repeat_password = self.find('[name=password_repeat]').val();
 
                 if(password.length < 8){
-                    alert('password should have at least 8 characters');
+                    showErrorMessage('password should have at least 8 characters');
                     return;
                 }
 
                 if(password != repeat_password){
-                    alert('passwords must be equals');
+                    showErrorMessage('passwords must be equals');
                     return;
                 }
 
@@ -45,22 +45,13 @@
                             location.href = '/';
                         } else if(response.error){
                             var error = response.error;
-                            var message = error.message;
-                            if(error.errors){
-                                message += "[";
-                                for(var i = 0; i < error.errors.length; ++i){
-                                    message += error.errors[i] + ", ";
-                                }
-                                message += "]";
-                            }
-                            alert(message);
-
+                            showErrorMessage(error.message + buildValidationErrors(error.errors));
                         } else {
-                            alert('service error');
+                            showErrorMessage('service error');
                         }
                     },
                     error: function(xhr){
-                        alert('service error');
+                        showErrorMessage('service error');
                         console.log(xhr);
                     }
                 });
@@ -88,6 +79,8 @@
         </div>
     </div>
 </div>
+
+<jsp:include page="../common/footer.jsp" />
 </body>
 </html>
 

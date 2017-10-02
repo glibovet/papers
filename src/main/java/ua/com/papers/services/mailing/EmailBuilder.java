@@ -9,9 +9,7 @@ import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.pojo.enums.EmailTypes;
 import ua.com.papers.services.users.IUserService;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.Locale;
 import java.util.Map;
 
@@ -32,6 +30,8 @@ public class EmailBuilder {
                 return formApprovePublicationOrder(data, content);
             } else if (typeOfEmail == EmailTypes.reject_publication_order) {
                 return formRejectPublicationOrder(data, content);
+            } else if (typeOfEmail == EmailTypes.crawling_start || typeOfEmail == EmailTypes.crawling_finish) {
+                return content;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -40,23 +40,25 @@ public class EmailBuilder {
     }
 
     private String formRejectPublicationOrder(Map<String, String> data, String content) {
-        content.replaceAll("REJECT_REASON",data.get("REJECT_REASON"));
+        content = content.replaceAll("REJECT_REASON",data.get("REJECT_REASON"));
         return content;
     }
 
     private String formApprovePublicationOrder(Map<String, String> data, String content) {
-        content.replaceAll("PUBLICATION_LINK",data.get("PUBLICATION_LINK"));
+        content = content.replaceAll("PUBLICATION_LINK",data.get("PUBLICATION_LINK"));
         return content;
     }
 
     private String readResourceText(String resourceName) throws IOException {
-        FileReader fileReader = null;
+        FileInputStream fileInputStream = null;
+        InputStreamReader inputStreamReader = null;
         BufferedReader reader = null;
         try {
             StringBuilder content = new StringBuilder();
             Resource resource = new ClassPathResource(resourceName);
-            fileReader = new FileReader(resource.getFile());
-            reader = new BufferedReader(fileReader);
+            fileInputStream = new FileInputStream(resource.getFile().getAbsolutePath());
+            inputStreamReader = new InputStreamReader(fileInputStream, "UTF8");
+            reader = new BufferedReader(inputStreamReader);
 
             String line;
             while ((line = reader.readLine()) != null) {
@@ -65,17 +67,17 @@ public class EmailBuilder {
 
             return content.toString();
         } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (Exception e) { }
-            }
+            close(reader);
+            close(inputStreamReader);
+            close(fileInputStream);
+        }
+    }
 
-            if (fileReader != null) {
-                try {
-                    fileReader.close();
-                } catch (Exception e) { }
-            }
+    private void close(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (Exception e) { }
         }
     }
 

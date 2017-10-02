@@ -47,8 +47,10 @@ public class Fields {
         public static final String LAST_NAME="last_name";
         public static final String INITIALS = "initials";
         public static final String AUTHORS = "authors";
+        public static final String PUBLICATIONS_COUNT = "publications_count";
+        public static final String PUBLICATIONS_ID_LIST = "publications_id";
 
-        public static final String DEFAULT = ID + ',' + LAST_NAME;
+        public static final String DEFAULT = ID + ',' + LAST_NAME + ',' + INITIALS;
 
     }
 

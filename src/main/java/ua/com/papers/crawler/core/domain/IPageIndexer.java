@@ -65,6 +65,28 @@ public interface IPageIndexer {
 
     }
 
+    public static final Callback DEFAULT_CALLBACK = new Callback() {
+        @Override
+        public void onIndexed(Page page) {
+
+        }
+
+        @Override
+        public void onUpdated(Page page) {
+
+        }
+
+        @Override
+        public void onLost(Page page) {
+
+        }
+
+        @Override
+        public void onIndexException(URL url, Throwable th) {
+
+        }
+    };
+
     /**
      * Adds page to indexer storage
      *

@@ -14,6 +14,7 @@ public class PublicationDTO {
     private String annotation;
     private String body;
     private String publisher;
+    private String link;
     private PublicationTypeEnum type;
 
     public PublicationDTO() {}
@@ -74,6 +75,14 @@ public class PublicationDTO {
         this.type = type;
     }
 
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
     @Override
     public String toString() {
         return "PublicationDTO{" +
@@ -82,6 +91,7 @@ public class PublicationDTO {
                 ", authors='" + authors + '\'' +
                 ", annotation='" + annotation + '\'' +
                 ", publisher='" + publisher + '\'' +
+                ", link='" + link + '\'' +
                 ", type=" + type +
                 '}';
     }

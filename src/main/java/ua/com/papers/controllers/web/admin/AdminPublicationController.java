@@ -31,4 +31,17 @@ public class AdminPublicationController {
         return "admin/publications/edit";
     }
 
+    @RequestMapping(value = "/orders/all")
+    public String allOrders(){
+        return "admin/publications/orders/all";
+    }
+
+    @RequestMapping(value = "/orders/{id}/info")
+    public String orderInfo(
+            @PathVariable("id") int id,
+            Model model
+    ){
+        model.addAttribute("id", id);
+        return "admin/publications/orders/info";
+    }
 }

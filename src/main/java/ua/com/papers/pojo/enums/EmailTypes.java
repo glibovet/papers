@@ -5,5 +5,8 @@ package ua.com.papers.pojo.enums;
  */
 public enum EmailTypes {
     reject_publication_order,
-    approve_publication_order
+    approve_publication_order,
+
+    crawling_start,
+    crawling_finish
 }

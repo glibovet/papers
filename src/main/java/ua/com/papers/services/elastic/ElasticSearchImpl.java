@@ -24,7 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.ElasticSearchError;
+import ua.com.papers.exceptions.not_found.PublicationWithoutFileException;
+import ua.com.papers.exceptions.service_error.ElasticSearchException;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
@@ -75,7 +76,7 @@ public class ElasticSearchImpl implements IElasticSearch{
     }
 
     @Override
-    public Boolean createIndexIfNotExist() throws ForbiddenException, ElasticSearchError {
+    public Boolean createIndexIfNotExist() throws ForbiddenException, ElasticSearchException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (!indexExist()){
@@ -84,7 +85,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         return true;
     }
 
-    public Boolean indexExist() throws ElasticSearchError {
+    public Boolean indexExist() throws ElasticSearchException {
         if (client == null)
             initializeClient();
         return client
@@ -96,7 +97,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                 .isExists();
     }
 
-    public Boolean indexDelete() throws ForbiddenException, ElasticSearchError, NoSuchEntityException {
+    public Boolean indexDelete() throws ForbiddenException, ElasticSearchException, NoSuchEntityException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
@@ -109,7 +110,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                     .execute()
                     .actionGet();
         } catch (IndexNotFoundException e) {
-            throw new ElasticSearchError("індекс все ще не створений");
+            throw new ElasticSearchException("індекс все ще не створений");
         }
 
         publicationService.removePublicationsFromIndex();
@@ -119,7 +120,7 @@ public class ElasticSearchImpl implements IElasticSearch{
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchError {
+    public Boolean indexPublication(int id) throws ForbiddenException, NoSuchEntityException, ServiceErrorException, ValidationException, ElasticSearchException, PublicationWithoutFileException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
@@ -134,7 +135,7 @@ public class ElasticSearchImpl implements IElasticSearch{
 
     @Override
     @Transactional
-    public boolean indexAll() throws ForbiddenException, ElasticSearchError {
+    public boolean indexAll() throws ForbiddenException, ElasticSearchException {
         if(!sessionUtils.isUserWithRole(RolesEnum.admin))
             throw new ForbiddenException();
         if (client == null)
@@ -146,8 +147,10 @@ public class ElasticSearchImpl implements IElasticSearch{
         List<PublicationEntity> entities = publicationService.getAllPublications();
         for (PublicationEntity entity : entities) {
             try {
-                indexPublication(entity);
-            } catch (ValidationException | NoSuchEntityException | ServiceErrorException e) {
+                if (!entity.isInIndex() && entity.getFileLink() != null) {
+                    indexPublication(entity);
+                }
+            } catch (ValidationException | NoSuchEntityException | ServiceErrorException | PublicationWithoutFileException e) {
                 // nothing to do
             }
         }
@@ -215,6 +218,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                 publicationDTO.setPublisher(publication.getPublisher().getTitle());
             }
             publicationDTO.setType(publication.getType());
+            publicationDTO.setLink(publication.getLink());
 
             publicationDTOs.add(publicationDTO);
         }
@@ -230,7 +234,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         return "";
     }
 
-    private boolean indexPublication(PublicationEntity publication) throws NoSuchEntityException, ServiceErrorException, ForbiddenException, ValidationException {
+    private boolean indexPublication(PublicationEntity publication) throws NoSuchEntityException, ServiceErrorException, ForbiddenException, ValidationException, PublicationWithoutFileException {
         XContentBuilder builder = buildPublicationJsonForIndexing(publication);
         if (builder == null)
             return false;
@@ -244,17 +248,18 @@ public class ElasticSearchImpl implements IElasticSearch{
         return true;
     }
 
-    private XContentBuilder buildPublicationJsonForIndexing(PublicationEntity publication) throws NoSuchEntityException, ForbiddenException, ServiceErrorException {
+    private XContentBuilder buildPublicationJsonForIndexing(PublicationEntity publication) throws NoSuchEntityException, ForbiddenException, ServiceErrorException, PublicationWithoutFileException {
         if (publication == null)
             return null;
         byte[] publicationFile = storageService.getPaperAsByteArray(publication);
-        if (publicationFile == null || publicationFile.length == 0)
-            return null;
+        if (publicationFile == null || publicationFile.length == 0) {
+            throw new PublicationWithoutFileException();
+        }
         XContentBuilder builder = null;
-        String authors = "";
+        StringBuilder authors = new StringBuilder();
         if (publication.getAuthors()!=null){
             for (AuthorMasterEntity author:publication.getAuthors()){
-                authors+=author.getLastName()+" "+author.getInitials()+" ";
+                authors.append(author.getLastName()).append(" ").append(author.getInitials()).append(" ");
             }
         }
         try {
@@ -263,7 +268,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                     .field("id", publication.getId())
                     .field("title", publication.getTitle())
                     .field("annotation", publication.getAnnotation())
-                    .field("authors",authors)
+                    .field("authors", authors.toString())
                     .field("body", Base64.encodeBytes(publicationFile));
             builder.endObject();
         } catch (IOException e) {
