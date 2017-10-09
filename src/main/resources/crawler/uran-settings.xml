@@ -1,0 +1,34 @@
+<settings>
+    <urls>
+        <url>http://journals.uran.ua/index.php/1991-0177/issue/archive</url>
+        <url>http://nz.ukma.edu.ua/index.php?option=com_content&amp;task=section&amp;id=10&amp;Itemid=47</url>
+    </urls>
+
+    <pages>
+        <!-- Note that page and extract method identifiers should be unique through this document -->
+        <!-- Handlers description for journals.uran.ua -->
+        <page id="1">
+            <analyze-params>
+                <analyze weight="10">#issue > h4 > a</analyze>
+            </analyze-params>
+            <url-params>
+                <extract attr="href" selector="#issue > h4 > a"/>
+            </url-params>
+        </page>
+        <page id="2">
+            <analyze-params>
+                <analyze weight="70">#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a</analyze>
+            </analyze-params>
+            <extract-params>
+                <extract id="1">#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a</extract>
+                <extract id="2">#content > table > tbody > tr:nth-child(1) > td.tocTitle > a</extract>
+                <extract id="3">#content > table > tbody > tr:nth-child(2) > td.tocAuthors</extract>
+                <extract id="4">#headerTitle > h1</extract>
+            </extract-params>
+            <url-params>
+                <extract attr="href" selector="#issues > a"/>
+            </url-params>
+        </page>
+    </pages>
+
+</settings>

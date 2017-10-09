@@ -1,12 +1,9 @@
 package ua.com.papers.crawler.core.domain;
 
 import com.google.common.base.Preconditions;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
-import lombok.val;
 import org.joda.time.DateTimeZone;
 import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.bo.Page;
@@ -48,7 +45,8 @@ public class PageIndexer implements IPageIndexer {
     IAnalyzeManager analyzeManager;
     IFormatManagerFactory formatManagerFactory;
     SchedulerSetting setting;
-    @NonFinal ExecutorService executor;
+    @NonFinal
+    ExecutorService executor;
 
     public PageIndexer(@NotNull IPageIndexRepository repository, @NotNull IFormatManagerFactory formatManagerFactory,
                        @NotNull IAnalyzeManager analyzeManager, @NotNull SchedulerSetting setting) {
@@ -172,27 +170,23 @@ public class PageIndexer implements IPageIndexer {
                 // if server is properly configured, then it'll return
                 // 304 (NOT MODIFIED) header, in another case 'last-modified'
                 // field will be checked
-                val huc = (HttpURLConnection) index.getUrl().openConnection();
+                @Cleanup("disconnect") val huc = (HttpURLConnection) index.getUrl().openConnection();
 
-                try {
-                    val lastVisit = index.getLastVisit().withZone(TIME_ZONE);
+                val lastVisit = index.getLastVisit().withZone(TIME_ZONE);
 
-                    huc.setRequestMethod("GET");
-                    huc.addRequestProperty("If-Modified-Since", lastVisit.toString(GMT_FORMAT));
-                    huc.connect();
+                huc.setRequestMethod("GET");
+                huc.addRequestProperty("If-Modified-Since", lastVisit.toString(GMT_FORMAT));
+                huc.connect();
 
-                    val code = huc.getResponseCode();
+                val code = huc.getResponseCode();
 
-                    if (code == HttpURLConnection.HTTP_OK) {
-                        // check last modified field if specified
-                        return huc.getLastModified() == 0 // 'last-modified' field wasn't specified, reload
-                                || huc.getLastModified() >= lastVisit.getMillis();
-                    }
-                    // no error and not modified since last visit
-                    return code < 400 && code != HttpURLConnection.HTTP_NOT_MODIFIED;
-                } finally {
-                    huc.disconnect();
+                if (code == HttpURLConnection.HTTP_OK) {
+                    // check last modified field if specified
+                    return huc.getLastModified() == 0 // 'last-modified' field wasn't specified, reload
+                            || huc.getLastModified() >= lastVisit.getMillis();
                 }
+                // no error and not modified since last visit
+                return code < 400 && code != HttpURLConnection.HTTP_NOT_MODIFIED;
             } catch (final IOException e) {
                 // not fatal network error occurred
                 log.log(Level.WARNING, String.format("Failed to process index: %s", index.getUrl()));
