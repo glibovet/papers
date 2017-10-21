@@ -9,7 +9,10 @@ import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.PublicationView;
+import ua.com.papers.utils.ResultCallback;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +39,14 @@ public interface IPublicationService {
     int countPublications(String restriction) throws WrongRestrictionException;
 
     void removePublicationsFromIndex();
+
+    /**
+     * Saves publication in async manner. In a contrary to {@link #savePublicationFromRobot(PublicationView)}
+     * upload error to the storage won't be swallowed
+     * @param publication
+     * @param callback
+     */
+    void savePublicationFromRobot(@NotNull PublicationView publication, @Nullable ResultCallback<PublicationEntity> callback);
 
     void savePublicationFromRobot(PublicationView publication) throws NoSuchEntityException, ValidationException, ServiceErrorException, ElasticSearchException, ForbiddenException, WrongRestrictionException;
 

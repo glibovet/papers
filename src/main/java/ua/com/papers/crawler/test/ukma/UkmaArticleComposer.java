@@ -11,18 +11,15 @@ import ua.com.papers.crawler.test.IHandlerCallback;
 import ua.com.papers.crawler.util.PageHandler;
 import ua.com.papers.crawler.util.PostHandle;
 import ua.com.papers.crawler.util.PreHandle;
-import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
-import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.ServiceErrorException;
-import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.AuthorEntity;
-import ua.com.papers.exceptions.service_error.*;
+import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
 import ua.com.papers.storage.IStorageService;
+import ua.com.papers.utils.ResultCallback;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -81,11 +78,21 @@ public final class UkmaArticleComposer {
         }
 
         for (val publication : publicationViews) {
-            try {
+            //try {
                 publication.setPublisher_id(publisherView.getId());
-                publicationService.savePublicationFromRobot(publication);
+                publicationService.savePublicationFromRobot(publication, new ResultCallback<PublicationEntity>() {
+                    @Override
+                    public void onResult(@NotNull PublicationEntity publicationEntity) {
+                        log.log(Level.INFO, "Publication was saved");
+                    }
 
-            } catch (WrongRestrictionException | NoSuchEntityException e) {}
+                    @Override
+                    public void onException(@NotNull Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+
+           /* } catch (WrongRestrictionException | NoSuchEntityException e) {}
             catch (ElasticSearchException elasticSearchException) {
                 log.log(Level.SEVERE, "Fatal error occurred while saving publication UKMA. Problem with Elastic", elasticSearchException);
             } catch (ForbiddenException e) {
@@ -94,7 +101,7 @@ public final class UkmaArticleComposer {
                 log.log(Level.SEVERE, "Fatal error occurred while saving publication UKMA", e);
             } catch (ServiceErrorException e) {
                 log.log(Level.SEVERE, "Fatal error occurred while saving publication UKMA", e);
-            }
+            }*/
 
         }
     }

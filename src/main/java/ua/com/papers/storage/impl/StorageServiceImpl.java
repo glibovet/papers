@@ -1,5 +1,6 @@
 package ua.com.papers.storage.impl;
 
+import lombok.val;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
@@ -17,14 +19,16 @@ import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publications.IPublicationValidateService;
 import ua.com.papers.storage.IStorage;
 import ua.com.papers.storage.IStorageService;
+import ua.com.papers.utils.ResultCallback;
 import ua.com.papers.utils.SecureToken;
 import ua.com.papers.utils.TokenUtil;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 /**
  * Created by Andrii on 05.10.2016.
@@ -40,6 +44,53 @@ public class StorageServiceImpl implements IStorageService {
     private IPublicationValidateService publicationValidateService;
     @Autowired
     private TokenUtil tokenUtil;
+
+    @Override
+    public void uploadPaper(@NotNull PublicationEntity publication, @NotNull ResultCallback<File> callback) {
+        Preconditions.checkNotNullAll(publication, callback, publication.getId(), publication.getFileLink());
+
+        val papersContainer = new File(ROOT_DIR + PUBLICATIONS_FOLDER + '/' + publication.getId());
+
+        if (!papersContainer.exists()) {
+            papersContainer.mkdirs();
+        }
+
+        val fileName = publication.getId() + "." + FilenameUtils.getExtension(publication.getFileLink());
+        val serverFile = new File(papersContainer, fileName);
+
+        Optional<Exception> exception = Optional.empty();
+
+        try (val input = new URL(publication.getFileLink()).openStream();
+             val output = new FileOutputStream(serverFile)) {
+            IOUtils.copy(input, output);
+        } catch (final IOException e) {
+            try {
+                serverFile.delete();
+            } catch (final Exception e1) {
+                exception = Optional.of(new StorageException(e));
+            }
+        }
+
+        if (exception.isPresent()) {
+            callback.onException(exception.get());
+        } else if (useRemote) {
+            val storagePath = new File(StorageServiceImpl.fullPath(fileName, PUBLICATIONS_FOLDER + '/' + publication.getId()));
+
+            storage.upload(serverFile, storagePath, new ResultCallback<File>() {
+                @Override
+                public void onResult(@NotNull File file) {
+                    callback.onResult(file);
+                }
+
+                @Override
+                public void onException(@NotNull Exception e) {
+                    callback.onException(e);
+                }
+            });
+        } else {
+            callback.onResult(serverFile);
+        }
+    }
 
     @Override
     public boolean uploadPaper(int id, String url) throws NoSuchEntityException, StorageException {
@@ -231,4 +282,25 @@ public class StorageServiceImpl implements IStorageService {
 
     @Value("${remote_storage.use}")
     private boolean useRemote;
+
+    private static String fullPath(String name, String folder) {
+        String path;
+
+        if (name.charAt(0) == '/') {
+            path = name;
+        } else {
+            path = '/' + name;
+        }
+
+        if (folder != null && !folder.isEmpty() && folder.compareTo("/") != 0) {
+            if (folder.charAt(0) == '/') {
+                path = folder + path;
+            } else {
+                path = '/' + folder + path;
+            }
+        }
+
+        return path;
+    }
+
 }

@@ -1,30 +1,183 @@
 package ua.com.papers.storage.impl;
 
+
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.async.LaunchEmptyResult;
 import com.dropbox.core.v2.files.*;
+import lombok.experimental.var;
+import lombok.extern.java.Log;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.pojo.storage.FileData;
 import ua.com.papers.pojo.storage.FileItem;
 import ua.com.papers.pojo.storage.ItemType;
 import ua.com.papers.storage.IStorage;
+import ua.com.papers.utils.ResultCallback;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.NotNull;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
 
 /**
  * Created by oleh_kurpiak on 01.10.2016.
  */
 @Service
+@Log
 public class StorageImpl implements IStorage {
+    /**
+     * Actually, documentation says uploading up to 1000 files
+     * in batch is allowed
+     * <a href="https://www.dropbox.com/developers/reference/data-ingress-guide">see link</a>
+     */
+    private static final int MAX_BATCH_SIZE = 10;
+    /**
+     * Max time to wait between insertions into upload queue
+     */
+    private static final long MAX_IDLE_AWAIT_TIMEOUT = 3 * 60 * 1000L;
+
+    private final class ResultCallbackImp implements ResultCallback<File> {
+        private final ResultCallback<File> original;
+        private final UploadJob job;
+
+        private ResultCallbackImp(ResultCallback<File> original, UploadJob job) {
+            this.original = original;
+            this.job = job;
+        }
+
+        @Override
+        public void onResult(@NotNull File file) {
+            release();
+            original.onResult(file);
+        }
+
+        @Override
+        public void onException(@NotNull Exception e) {
+            release();
+            original.onException(e);
+        }
+
+        private void release() {
+            synchronized (uploadJobs) {
+                uploadJobs.remove(job);
+            }
+        }
+    }
+
+    private static final class UploadJob {
+        private final List<UploadSessionFinishArg> uploadArgs;
+        private final Map<File, ResultCallback<File>> callbacks;
+        private long lastInsertTimestamp;
+        private LaunchEmptyResult batchUploadResult;
+        private final DbxClientV2 clientV2;
+
+        private UploadJob(DbxClientV2 clientV2) {
+            this.lastInsertTimestamp = 0L;
+            this.uploadArgs = new ArrayList<>();
+            this.callbacks = new HashMap<>();
+            this.clientV2 = clientV2;
+        }
+
+        void appendFile(File src, File to, ResultCallback<File> callback) throws DbxException, IOException {
+
+            try (val inputStream = new FileInputStream(src)) {
+                // start upload session
+                val sessionId = clientV2.files().uploadSessionStart(true).uploadAndFinish(inputStream).getSessionId();
+                val cursor = new UploadSessionCursor(sessionId, src.length());
+
+
+                val shouldUpload = shouldUpload();
+
+                clientV2.files().uploadSessionAppendV2(cursor, shouldUpload);
+
+                val uploadArg = new UploadSessionFinishArg(cursor, new CommitInfo(to.getPath().replaceAll("\\\\", "/"), WriteMode.OVERWRITE, true, new Date(System.currentTimeMillis()), true));
+
+                uploadArgs.add(uploadArg);
+                callbacks.put(src, callback);
+                lastInsertTimestamp = System.currentTimeMillis();
+            }
+        }
+
+        long getLastInsertTimestamp() {
+            return lastInsertTimestamp;
+        }
+
+        int getBatchSize() {
+            return uploadArgs.size();
+        }
+
+        boolean isUploading() {
+            return batchUploadResult != null && !batchUploadResult.isComplete();
+        }
+
+        private void upload() {
+
+            try {
+                batchUploadResult = clientV2.files().uploadSessionFinishBatch(uploadArgs);
+
+                log.log(Level.INFO, String.format("starting batch upload, thread %s, job %s, files size %d",
+                        Thread.currentThread(), batchUploadResult.getAsyncJobIdValue(), uploadArgs.size()));
+                var isCompleted = false;
+
+                while (!isCompleted) {
+                    try {
+                        val checkResult = clientV2.files().uploadSessionFinishBatchCheck(batchUploadResult.getAsyncJobIdValue());
+
+                        isCompleted = checkResult.isComplete();
+
+                        log.log(Level.INFO, String.format("job %s is uploading, status %s",
+                                batchUploadResult.getAsyncJobIdValue(), checkResult.toStringMultiline()));
+                        Thread.sleep(1000L);
+                    } catch (final InterruptedException e) {
+                        log.log(Level.INFO, String.format("thread %s was interrupted", Thread.currentThread()), e);
+                    }
+                }
+                log.log(Level.INFO, String.format("job %s has completed", batchUploadResult.getAsyncJobIdValue()));
+                notifySuccess();
+            } catch (final DbxException e) {
+                log.log(Level.SEVERE, "db exception occurred", e);
+                notifyException(e);
+            }
+        }
+
+        private boolean shouldUpload() {
+            val currentTime = System.currentTimeMillis();
+            return !isUploading() && (uploadArgs.size() >= StorageImpl.MAX_BATCH_SIZE
+                    || currentTime - lastInsertTimestamp >= StorageImpl.MAX_IDLE_AWAIT_TIMEOUT);
+        }
+
+        private void notifySuccess() {
+            for (val entry : callbacks.entrySet()) {
+                entry.getValue().onResult(entry.getKey());
+            }
+        }
+
+        private void notifyException(Exception e) {
+            for (val callback : callbacks.values()) {
+                callback.onException(e);
+            }
+        }
+    }
+
+    private final ExecutorService executorService;
+    private final Queue<UploadJob> uploadJobs;
+
+    public StorageImpl() {
+        this.uploadJobs = new LinkedList<>();
+        this.executorService = Executors.newWorkStealingPool();
+    }
+
+    @Override
+    public void upload(@NotNull File from, @NotNull File to, @NotNull ResultCallback<File> callback) {
+        executorService.submit(() -> doUpload(from, to, callback));
+    }
 
     @Override
     public void upload(byte[] file, String fileName, String folder) throws StorageException {
@@ -61,9 +214,9 @@ public class StorageImpl implements IStorage {
 
     @Override
     public List<FileItem> listFiles(String folder) throws StorageException {
-        if(folder == null || folder.compareTo("/") == 0)
+        if (folder == null || folder.compareTo("/") == 0)
             folder = "";
-        else if(folder.charAt(0) != '/')
+        else if (folder.charAt(0) != '/')
             folder = '/' + folder;
 
         try {
@@ -71,9 +224,9 @@ public class StorageImpl implements IStorage {
             ListFolderResult result = client().files().listFolder(folder);
             for (Metadata metadata : result.getEntries()) {
                 ItemType type;
-                if(metadata instanceof FileMetadata){
+                if (metadata instanceof FileMetadata) {
                     type = ItemType.FILE;
-                } else if(metadata instanceof FolderMetadata){
+                } else if (metadata instanceof FolderMetadata) {
                     type = ItemType.FOLDER;
                 } else {
                     continue;
@@ -94,12 +247,12 @@ public class StorageImpl implements IStorage {
     public FileData download(OutputStream stream, String partOfName, String folder) throws StorageException {
         try {
             List<FileItem> files = listFiles(folder);
-            for(FileItem item : files){
-                if(item.type == ItemType.FILE){
+            for (FileItem item : files) {
+                if (item.type == ItemType.FILE) {
                     int dot = item.name.indexOf('.');
                     dot = dot > -1 ? dot : item.name.length();
                     String name = item.name.substring(0, dot);
-                    if(partOfName.compareTo(name) == 0){
+                    if (partOfName.compareTo(name) == 0) {
                         DownloadBuilder builder = client().files().downloadBuilder(item.path);
                         FileMetadata data = builder.start().download(stream);
 
@@ -115,7 +268,57 @@ public class StorageImpl implements IStorage {
         }
     }
 
-    private String fullPath(String name, String folder){
+    private void doUpload(File from, File to, ResultCallback<File> callback) {
+        Preconditions.checkNotNullAll(from, to, callback);
+        final UploadJob lastJob;
+
+        synchronized (uploadJobs) {
+            var job = uploadJobs.peek();
+
+            if (job == null) {
+                // create a new job
+                job = new UploadJob(client());
+                uploadJobs.add(job);
+                log.log(Level.INFO, String.format("inserting a new upload job, queue size %d", uploadJobs.size()));
+            }
+            lastJob = job;
+        }
+
+        synchronized (lastJob) {
+            val shouldUpload = StorageImpl.shouldUpload(lastJob);
+
+            if (shouldUpload) {
+                log.log(Level.INFO, "Start upload");
+                lastJob.upload();
+            } else {
+                try {
+                    log.log(Level.INFO, String.format("Appending files %s, %s", from, to));
+                    lastJob.appendFile(from, to, new ResultCallbackImp(callback, lastJob));
+                } catch (final DbxException | IOException e) {
+                    callback.onException(new StorageException(e));
+                } finally {
+                    lastJob.notifyAll();
+                }
+
+                try {
+                    lastJob.wait(StorageImpl.MAX_IDLE_AWAIT_TIMEOUT);
+                } catch (final InterruptedException e) {
+                    log.log(Level.INFO, "Interrupted upload wait lock", e);
+                }
+
+                if (StorageImpl.shouldUpload(lastJob)) {
+                    lastJob.upload();
+                }
+            }
+        }
+    }
+
+    private static boolean shouldUpload(UploadJob job) {
+        return !job.isUploading() && job.getBatchSize() > 0 && (job.getBatchSize() >= StorageImpl.MAX_BATCH_SIZE
+                || System.currentTimeMillis() - job.getLastInsertTimestamp() > StorageImpl.MAX_IDLE_AWAIT_TIMEOUT);
+    }
+
+    private String fullPath(String name, String folder) {
         String path;
 
         if (name.charAt(0) == '/') {
@@ -135,15 +338,23 @@ public class StorageImpl implements IStorage {
         return path;
     }
 
-    private DbxClientV2 client(){
-        if(dbxClient == null) {
-            DbxRequestConfig config = DbxRequestConfig.newBuilder(appName).withUserLocale("en_EN").build();
-            dbxClient = new DbxClientV2(config, token);
+    private DbxClientV2 client() {
+        var local = dbxClient;
+
+        if (local == null) {
+            synchronized (this) {
+                local = dbxClient;
+
+                if (local == null) {
+                    val config = DbxRequestConfig.newBuilder(appName).withUserLocale("en_EN").build();
+                    dbxClient = local = new DbxClientV2(config, token);
+                }
+            }
         }
-        return dbxClient;
+        return local;
     }
 
-    private DbxClientV2 dbxClient;
+    private volatile DbxClientV2 dbxClient;
 
     @Value("${dropbox.app_name}")
     private String appName;

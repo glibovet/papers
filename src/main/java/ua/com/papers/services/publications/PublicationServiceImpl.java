@@ -1,15 +1,20 @@
 package ua.com.papers.services.publications;
 
+import lombok.extern.java.Log;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.criteria.Criteria;
 import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.*;
+import ua.com.papers.exceptions.service_error.ElasticSearchException;
+import ua.com.papers.exceptions.service_error.ForbiddenException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
+import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.PublicationRepository;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
@@ -19,17 +24,23 @@ import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.elastic.IElasticSearch;
 import ua.com.papers.services.publisher.IPublisherService;
 import ua.com.papers.storage.IStorageService;
+import ua.com.papers.utils.ResultCallback;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 /**
  * Created by Andrii on 26.09.2016.
  */
 @Service
+@Log
 public class PublicationServiceImpl implements IPublicationService{
 
     @Autowired
@@ -55,6 +66,12 @@ public class PublicationServiceImpl implements IPublicationService{
 
     @Autowired
     private IStorageService storageService;
+
+    private final ExecutorService executorService;
+
+    public PublicationServiceImpl() {
+        this.executorService = Executors.newSingleThreadExecutor();
+    }
 
     @Override
     @Transactional
@@ -104,15 +121,7 @@ public class PublicationServiceImpl implements IPublicationService{
     @Override
     @Transactional
     public int createPublication(PublicationView view) throws ServiceErrorException, NoSuchEntityException, ValidationException {
-        PublicationEntity  entity = new PublicationEntity();
-        merge(entity,view);
-        addAuthors(entity, view);
-        publicationValidateService.publicationValidForCreation(entity);
-        entity = publicationRepository.saveAndFlush(entity);
-        if(entity == null){
-            throw new ServiceErrorException();
-        }
-        return entity.getId();
+        return doCreatePublication(view).getId();
     }
 
     @Override
@@ -153,6 +162,11 @@ public class PublicationServiceImpl implements IPublicationService{
     @Transactional
     public void removePublicationsFromIndex() {
         publicationRepository.removePublicationsFromIndex();
+    }
+
+    @Override
+    public void savePublicationFromRobot(@NotNull PublicationView publication, @Nullable ResultCallback<PublicationEntity> callback) {
+        executorService.submit(() -> doSavePublicationFromRobot(publication, callback));
     }
 
     @Override
@@ -270,4 +284,100 @@ public class PublicationServiceImpl implements IPublicationService{
             }
         }
     }
+
+    private void doSavePublicationFromRobot(PublicationView publication, ResultCallback<PublicationEntity> callback) {
+        Preconditions.checkNotNull(publication);
+        Optional<PublicationEntity> entity = Optional.empty();
+        Optional<Exception> exception = Optional.empty();
+
+        try {
+            val searchResult = getPublications(PublicationServiceImpl.newCriteriaForPublication(publication));
+
+            if (searchResult.isEmpty()) {
+                // not found, let's create it
+                entity = Optional.of(doCreatePublication(publication));
+            } else {
+                entity = Optional.of(searchResult.get(0));
+            }
+        } catch (final NoSuchEntityException e) {
+            try {
+                entity = Optional.of(doCreatePublication(publication));
+            } catch (final ValidationException | NoSuchEntityException | ServiceErrorException e1) {
+                log.log(Level.SEVERE, "failed to create publication", e);
+                exception = Optional.of(e);
+            }
+        } catch (final Exception e) {
+            // should never get here
+            log.log(Level.SEVERE, "caught unknown error", e);
+            exception = Optional.of(e);
+        }
+
+        assert (exception.isPresent() && !entity.isPresent()) || (!exception.isPresent() && entity.isPresent())
+                : String.format("wrong assertion - %s, %s", exception, id);
+
+        if (exception.isPresent()) {
+            PublicationServiceImpl.notifyExceptionIfNotNull(callback, exception.get());
+
+        } else {
+            assert entity.isPresent();// make intellij happy
+            val entityVal = entity.get();
+
+            if (entityVal.isInIndex() || publication.getFile_link() == null) {
+                // publication was already indexed, proceed
+                callback.onResult(entityVal);
+            } else {
+                storageService.uploadPaper(entityVal, new ResultCallback<File>() {
+                    @Override
+                    public void onResult(@NotNull File file) {
+                        callback.onResult(entityVal);
+                    }
+
+                    @Override
+                    public void onException(@NotNull Exception e) {
+                        //if (e instanceof ) and so on
+                        e.printStackTrace();
+                        PublicationServiceImpl.notifyExceptionIfNotNull(callback, new ServiceErrorException(e));
+                    }
+                });
+            }
+        }
+    }
+
+    private PublicationEntity doCreatePublication(PublicationView view) throws ValidationException, NoSuchEntityException, ServiceErrorException {
+        PublicationEntity  entity = new PublicationEntity();
+        merge(entity,view);
+        addAuthors(entity, view);
+        publicationValidateService.publicationValidForCreation(entity);
+        entity = publicationRepository.saveAndFlush(entity);
+        if(entity == null){
+            throw new ServiceErrorException();
+        }
+        return entity;
+    }
+
+    private static PublicationCriteria newCriteriaForPublication(PublicationView publication) {
+        PublicationCriteria criteria;
+
+        try {
+            criteria = new PublicationCriteria("{}");
+        } catch (final WrongRestrictionException e) {
+            throw new RuntimeException(e);
+        }
+
+        criteria.setLink(publication.getLink());
+        criteria.setTitle(publication.getTitle());
+        criteria.setOffset(0);
+        criteria.setLimit(2);
+
+        return criteria;
+    }
+
+    private static void notifyExceptionIfNotNull(@Nullable ResultCallback<?> callback, @NotNull Exception e) {
+        Preconditions.checkNotNull(e);
+
+        if (callback != null) {
+            callback.onException(e);
+        }
+    }
+
 }
