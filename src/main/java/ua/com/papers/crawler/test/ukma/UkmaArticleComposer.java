@@ -78,31 +78,19 @@ public final class UkmaArticleComposer {
         }
 
         for (val publication : publicationViews) {
-            //try {
-                publication.setPublisher_id(publisherView.getId());
-                publicationService.savePublicationFromRobot(publication, new ResultCallback<PublicationEntity>() {
-                    @Override
-                    public void onResult(@NotNull PublicationEntity publicationEntity) {
-                        log.log(Level.INFO, "Publication was saved");
-                    }
 
-                    @Override
-                    public void onException(@NotNull Exception e) {
-                        e.printStackTrace();
-                    }
-                });
+            publication.setPublisher_id(publisherView.getId());
+            publicationService.savePublicationFromRobot(publication, new ResultCallback<PublicationEntity>() {
+                @Override
+                public void onResult(@NotNull PublicationEntity publicationEntity) {
+                    log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
+                }
 
-           /* } catch (WrongRestrictionException | NoSuchEntityException e) {}
-            catch (ElasticSearchException elasticSearchException) {
-                log.log(Level.SEVERE, "Fatal error occurred while saving publication UKMA. Problem with Elastic", elasticSearchException);
-            } catch (ForbiddenException e) {
-                log.log(Level.WARNING, "Service error occurred while saving publication UKMA", e);
-            } catch (ValidationException e) {
-                log.log(Level.SEVERE, "Fatal error occurred while saving publication UKMA", e);
-            } catch (ServiceErrorException e) {
-                log.log(Level.SEVERE, "Fatal error occurred while saving publication UKMA", e);
-            }*/
-
+                @Override
+                public void onException(@NotNull Exception e) {
+                    log.log(Level.WARNING, String.format("Failed to save publication %s", publication.getLink()), e);
+                }
+            });
         }
     }
 

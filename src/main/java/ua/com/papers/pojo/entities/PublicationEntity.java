@@ -2,6 +2,7 @@ package ua.com.papers.pojo.entities;
 
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
+import ua.com.papers.pojo.enums.UploadStatus;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -38,6 +39,10 @@ public class PublicationEntity implements Serializable {
     @Column(name="type")
     @Enumerated(EnumType.STRING)
     private PublicationTypeEnum type;
+
+    @Column(name = "upload_status")
+    @Enumerated(EnumType.STRING)
+    private UploadStatus uploadStatus;
 
     @Column(name="link")
     @Size(max = 500, message = "error.publication.link.size")
@@ -173,6 +178,14 @@ public class PublicationEntity implements Serializable {
         this.authors.add(author);
     }
 
+    public UploadStatus getUploadStatus() {
+        return uploadStatus;
+    }
+
+    public void setUploadStatus(UploadStatus uploadStatus) {
+        this.uploadStatus = uploadStatus;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -188,6 +201,7 @@ public class PublicationEntity implements Serializable {
         if (type != that.type) return false;
         if (link != null ? !link.equals(that.link) : that.link != null) return false;
         if (publisher != null ? !publisher.equals(that.publisher) : that.publisher != null) return false;
+        if (uploadStatus != null ? !uploadStatus.equals(that.uploadStatus) : that.uploadStatus != null) return false;
         return status == that.status;
 
     }
@@ -203,6 +217,7 @@ public class PublicationEntity implements Serializable {
         result = 31 * result + (inIndex ? 1 : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (literatureParsed ? 1 : 0);
+        result = 31 * result + (uploadStatus != null ? uploadStatus.hashCode() : 0);
         return result;
     }
 

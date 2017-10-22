@@ -90,36 +90,14 @@ public final class UranArticleComposer {
             publicationService.savePublicationFromRobot(publication, new ResultCallback<PublicationEntity>() {
                 @Override
                 public void onResult(@NotNull PublicationEntity publicationEntity) {
-                    log.log(Level.INFO, "Publication was saved");
+                    log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
                 }
 
                 @Override
                 public void onException(@NotNull Exception e) {
-                    e.printStackTrace();
+                    log.log(Level.WARNING, String.format("Failed to save publication %s", publication.getLink()), e);
                 }
             });
-            /*try {
-                publication.setPublisher_id(publisherView.getId());
-                if (publication.getLink()!=null&&publication.getFile_link()==null) {
-                    String file_url = publication.getLink();
-                    if (!file_url.contains("viewIssue")) {
-                        if (file_url.contains("view"))
-                            file_url = file_url.replace("view", "download");
-                        publication.setFile_link(file_url);
-                    }
-                }
-                publicationService.savePublicationFromRobot(publication);
-
-            } catch (WrongRestrictionException | NoSuchEntityException e) {}
-            catch (ElasticSearchException elasticSearchException) {
-                log.log(Level.SEVERE, "Fatal error occurred while saving publication Uran. Problem with Elastic", elasticSearchException);
-            } catch (ForbiddenException e) {
-                log.log(Level.WARNING, "Service error occurred while saving publication Uran", e);
-            } catch (ValidationException e) {
-                log.log(Level.SEVERE, "Fatal error occurred while saving publication Uran", e);
-            } catch (ServiceErrorException e) {
-                log.log(Level.SEVERE, "Fatal error occurred while saving publication Uran", e);
-            }*/
         }
     }
 

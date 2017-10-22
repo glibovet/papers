@@ -41,35 +41,7 @@ public class StorageImpl implements IStorage {
     /**
      * Max time to wait between insertions into upload queue
      */
-    private static final long MAX_IDLE_AWAIT_TIMEOUT = 3 * 60 * 1000L;
-
-    private final class ResultCallbackImp implements ResultCallback<File> {
-        private final ResultCallback<File> original;
-        private final UploadJob job;
-
-        private ResultCallbackImp(ResultCallback<File> original, UploadJob job) {
-            this.original = original;
-            this.job = job;
-        }
-
-        @Override
-        public void onResult(@NotNull File file) {
-            release();
-            original.onResult(file);
-        }
-
-        @Override
-        public void onException(@NotNull Exception e) {
-            release();
-            original.onException(e);
-        }
-
-        private void release() {
-            synchronized (uploadJobs) {
-                uploadJobs.remove(job);
-            }
-        }
-    }
+    private static final long MAX_IDLE_AWAIT_TIMEOUT = 30 * 1000L;
 
     private static final class UploadJob {
         private final List<UploadSessionFinishArg> uploadArgs;
@@ -117,7 +89,7 @@ public class StorageImpl implements IStorage {
             return batchUploadResult != null && !batchUploadResult.isComplete();
         }
 
-        private void upload() {
+        private void upload(Runnable end) {
 
             try {
                 batchUploadResult = clientV2.files().uploadSessionFinishBatch(uploadArgs);
@@ -144,6 +116,10 @@ public class StorageImpl implements IStorage {
             } catch (final DbxException e) {
                 log.log(Level.SEVERE, "db exception occurred", e);
                 notifyException(e);
+            } finally {
+                if (end != null) {
+                    end.run();
+                }
             }
         }
 
@@ -176,7 +152,14 @@ public class StorageImpl implements IStorage {
 
     @Override
     public void upload(@NotNull File from, @NotNull File to, @NotNull ResultCallback<File> callback) {
-        executorService.submit(() -> doUpload(from, to, callback));
+        executorService.submit(() -> {
+            try {
+                doUpload(from, to, callback);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
     }
 
     @Override
@@ -274,9 +257,15 @@ public class StorageImpl implements IStorage {
 
         synchronized (uploadJobs) {
             var job = uploadJobs.peek();
+            var isNeedNewJob = job == null;
 
-            if (job == null) {
-                // create a new job
+            if (!isNeedNewJob) {
+                synchronized (job) {
+                    isNeedNewJob = job.isUploading();
+                }
+            }
+
+            if (isNeedNewJob) {
                 job = new UploadJob(client());
                 uploadJobs.add(job);
                 log.log(Level.INFO, String.format("inserting a new upload job, queue size %d", uploadJobs.size()));
@@ -289,11 +278,14 @@ public class StorageImpl implements IStorage {
 
             if (shouldUpload) {
                 log.log(Level.INFO, "Start upload");
-                lastJob.upload();
+                synchronized (uploadJobs) {
+                    uploadJobs.remove(lastJob);
+                }
+                lastJob.upload(this::runNextJob);
             } else {
                 try {
                     log.log(Level.INFO, String.format("Appending files %s, %s", from, to));
-                    lastJob.appendFile(from, to, new ResultCallbackImp(callback, lastJob));
+                    lastJob.appendFile(from, to, callback);
                 } catch (final DbxException | IOException e) {
                     callback.onException(new StorageException(e));
                 } finally {
@@ -307,8 +299,19 @@ public class StorageImpl implements IStorage {
                 }
 
                 if (StorageImpl.shouldUpload(lastJob)) {
-                    lastJob.upload();
+                    lastJob.upload(this::runNextJob);
                 }
+            }
+        }
+    }
+
+    private void runNextJob() {
+        synchronized (uploadJobs) {
+            val job = uploadJobs.peek();
+
+            if (job != null && StorageImpl.shouldUpload(job)) {
+                uploadJobs.remove(job);
+                job.upload(this::runNextJob);
             }
         }
     }

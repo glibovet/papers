@@ -19,6 +19,7 @@ import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.PublicationRepository;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
+import ua.com.papers.pojo.enums.UploadStatus;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.elastic.IElasticSearch;
@@ -33,8 +34,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
-
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 /**
  * Created by Andrii on 26.09.2016.
@@ -313,7 +312,7 @@ public class PublicationServiceImpl implements IPublicationService{
         }
 
         assert (exception.isPresent() && !entity.isPresent()) || (!exception.isPresent() && entity.isPresent())
-                : String.format("wrong assertion - %s, %s", exception, id);
+                : String.format("wrong assertion - %s, %s", exception, entity);
 
         if (exception.isPresent()) {
             PublicationServiceImpl.notifyExceptionIfNotNull(callback, exception.get());
@@ -324,19 +323,24 @@ public class PublicationServiceImpl implements IPublicationService{
 
             if (entityVal.isInIndex() || publication.getFile_link() == null) {
                 // publication was already indexed, proceed
-                callback.onResult(entityVal);
+                PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
             } else {
                 storageService.uploadPaper(entityVal, new ResultCallback<File>() {
                     @Override
                     public void onResult(@NotNull File file) {
-                        callback.onResult(entityVal);
+                        PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
                     }
 
                     @Override
                     public void onException(@NotNull Exception e) {
-                        //if (e instanceof ) and so on
-                        e.printStackTrace();
-                        PublicationServiceImpl.notifyExceptionIfNotNull(callback, new ServiceErrorException(e));
+                        entityVal.setUploadStatus(UploadStatus.FAILED);
+
+                        try {
+                            updatePublication(entityVal);
+                            PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
+                        } catch (final ValidationException | ServiceErrorException e1) {
+                            PublicationServiceImpl.notifyExceptionIfNotNull(callback, new ServiceErrorException(e));
+                        }
                     }
                 });
             }
@@ -370,6 +374,14 @@ public class PublicationServiceImpl implements IPublicationService{
         criteria.setLimit(2);
 
         return criteria;
+    }
+
+    private static <T> void notifyIfNotNull(ResultCallback<T> callback, T t) {
+        Preconditions.checkNotNull(t);
+
+        if (callback != null) {
+            callback.onResult(t);
+        }
     }
 
     private static void notifyExceptionIfNotNull(@Nullable ResultCallback<?> callback, @NotNull Exception e) {
