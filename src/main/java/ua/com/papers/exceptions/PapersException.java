@@ -2,7 +2,6 @@ package ua.com.papers.exceptions;
 
 import org.springframework.context.MessageSource;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -12,6 +11,18 @@ import java.util.Locale;
 public abstract class PapersException extends Exception {
 
     private int code;
+
+    public PapersException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public PapersException(Throwable cause) {
+        super(cause);
+    }
+
+    protected PapersException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 
     public PapersException(){
         this("PapersException");

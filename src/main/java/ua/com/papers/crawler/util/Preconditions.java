@@ -1,5 +1,7 @@
 package ua.com.papers.crawler.util;
 
+import java.util.Locale;
+
 /**
  * Created by Максим on 4/18/2017.
  */
@@ -15,6 +17,14 @@ public final class Preconditions {
             throw new NullPointerException();
 
         return t;
+    }
+
+    public static void checkNotNullAll(Object... o) {
+        for (int i = 0; i < o.length; ++i) {
+            if (o[i] == null) {
+                throw new NullPointerException(String.format(Locale.ENGLISH, "%d-th argument was null", i + 1));
+            }
+        }
     }
 
     public static <T> T checkNotNull(T t, String message) {

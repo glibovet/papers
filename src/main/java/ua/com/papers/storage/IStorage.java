@@ -3,7 +3,10 @@ package ua.com.papers.storage;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.pojo.storage.FileData;
 import ua.com.papers.pojo.storage.FileItem;
+import ua.com.papers.utils.ResultCallback;
 
+import javax.validation.constraints.NotNull;
+import java.io.File;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -11,6 +14,8 @@ import java.util.List;
  * Created by oleh_kurpiak on 01.10.2016.
  */
 public interface IStorage {
+
+    void upload(@NotNull File from, @NotNull File to, @NotNull ResultCallback<File> callback);
 
     /**
      *
