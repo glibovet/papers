@@ -32,16 +32,6 @@ import java.util.logging.Level;
 @Service
 @Log
 public class StorageImpl implements IStorage {
-    /**
-     * Actually, documentation says uploading up to 1000 files
-     * in batch is allowed
-     * <a href="https://www.dropbox.com/developers/reference/data-ingress-guide">see link</a>
-     */
-    private static final int MAX_BATCH_SIZE = 10;
-    /**
-     * Max time to wait between insertions into upload queue
-     */
-    private static final long MAX_IDLE_AWAIT_TIMEOUT = 30 * 1000L;
 
     private static final class UploadJob {
         private final List<UploadSessionFinishArg> uploadArgs;
@@ -64,10 +54,7 @@ public class StorageImpl implements IStorage {
                 val sessionId = clientV2.files().uploadSessionStart(true).uploadAndFinish(inputStream).getSessionId();
                 val cursor = new UploadSessionCursor(sessionId, src.length());
 
-
-                val shouldUpload = shouldUpload();
-
-                clientV2.files().uploadSessionAppendV2(cursor, shouldUpload);
+                clientV2.files().uploadSessionAppendV2(cursor, true);
 
                 val uploadArg = new UploadSessionFinishArg(cursor, new CommitInfo(to.getPath().replaceAll("\\\\", "/"), WriteMode.OVERWRITE, true, new Date(System.currentTimeMillis()), true));
 
@@ -123,11 +110,11 @@ public class StorageImpl implements IStorage {
             }
         }
 
-        private boolean shouldUpload() {
+       /* private boolean shouldUpload() {
             val currentTime = System.currentTimeMillis();
             return !isUploading() && (uploadArgs.size() >= StorageImpl.MAX_BATCH_SIZE
                     || currentTime - lastInsertTimestamp >= StorageImpl.MAX_IDLE_AWAIT_TIMEOUT);
-        }
+        }*/
 
         private void notifySuccess() {
             for (val entry : callbacks.entrySet()) {
@@ -274,7 +261,7 @@ public class StorageImpl implements IStorage {
         }
 
         synchronized (lastJob) {
-            val shouldUpload = StorageImpl.shouldUpload(lastJob);
+            val shouldUpload = shouldUpload(lastJob);
 
             if (shouldUpload) {
                 log.log(Level.INFO, "Start upload");
@@ -293,12 +280,12 @@ public class StorageImpl implements IStorage {
                 }
 
                 try {
-                    lastJob.wait(StorageImpl.MAX_IDLE_AWAIT_TIMEOUT);
+                    lastJob.wait(maxIdleAwaitTimeout);
                 } catch (final InterruptedException e) {
                     log.log(Level.INFO, "Interrupted upload wait lock", e);
                 }
 
-                if (StorageImpl.shouldUpload(lastJob)) {
+                if (shouldUpload(lastJob)) {
                     lastJob.upload(this::runNextJob);
                 }
             }
@@ -309,16 +296,16 @@ public class StorageImpl implements IStorage {
         synchronized (uploadJobs) {
             val job = uploadJobs.peek();
 
-            if (job != null && StorageImpl.shouldUpload(job)) {
+            if (job != null && shouldUpload(job)) {
                 uploadJobs.remove(job);
                 job.upload(this::runNextJob);
             }
         }
     }
 
-    private static boolean shouldUpload(UploadJob job) {
-        return !job.isUploading() && job.getBatchSize() > 0 && (job.getBatchSize() >= StorageImpl.MAX_BATCH_SIZE
-                || System.currentTimeMillis() - job.getLastInsertTimestamp() > StorageImpl.MAX_IDLE_AWAIT_TIMEOUT);
+    private boolean shouldUpload(UploadJob job) {
+        return !job.isUploading() && job.getBatchSize() > 0 && (job.getBatchSize() >= maxBatchSize
+                || System.currentTimeMillis() - job.getLastInsertTimestamp() > maxIdleAwaitTimeout);
     }
 
     private String fullPath(String name, String folder) {
@@ -364,4 +351,19 @@ public class StorageImpl implements IStorage {
 
     @Value("${dropbox.app_token}")
     private String token;
+
+    /**
+     * Actually, documentation says uploading up to 1000 files
+     * in batch is allowed
+     * <a href="https://www.dropbox.com/developers/reference/data-ingress-guide">see link</a>
+     */
+    @Value("${dropbox.max.batch.size}")
+    private int maxBatchSize;
+
+    /**
+     * Max time to wait between insertions into upload queue
+     */
+    @Value("${dropbox.max.idle.timeout}")
+    private long maxIdleAwaitTimeout;
+
 }
