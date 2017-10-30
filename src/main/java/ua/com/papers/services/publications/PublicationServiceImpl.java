@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
 import ua.com.papers.crawler.util.Preconditions;
+import ua.com.papers.crawler.util.TextUtils;
 import ua.com.papers.criteria.Criteria;
 import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
@@ -40,7 +41,7 @@ import java.util.logging.Level;
  */
 @Service
 @Log
-public class PublicationServiceImpl implements IPublicationService{
+public class PublicationServiceImpl implements IPublicationService {
 
     @Autowired
     private Converter<PublicationEntity> publicationConverter;
@@ -69,7 +70,11 @@ public class PublicationServiceImpl implements IPublicationService{
     private final ExecutorService executorService;
 
     public PublicationServiceImpl() {
-        this.executorService = Executors.newSingleThreadExecutor();
+        this.executorService = Executors.newSingleThreadExecutor(r -> {
+            val th = new Thread(r, "Publication service upload thread");
+            th.setUncaughtExceptionHandler((t, e) -> log.log(Level.WARNING, "uncaught exception", e));
+            return th;
+        });
     }
 
     @Override
@@ -84,7 +89,7 @@ public class PublicationServiceImpl implements IPublicationService{
     @Override
     @Transactional
     public Map<String, Object> getPublicationByIdMap(int id, Set<String> fields) throws NoSuchEntityException {
-        return publicationConverter.convert(getPublicationById(id),fields);
+        return publicationConverter.convert(getPublicationById(id), fields);
     }
 
     @Override
@@ -92,7 +97,7 @@ public class PublicationServiceImpl implements IPublicationService{
     public List<PublicationEntity> getPublications(int offset, int limit, String restrict) throws NoSuchEntityException, WrongRestrictionException {
         Criteria<PublicationEntity> criteria = new PublicationCriteria(offset, limit, restrict);
         List<PublicationEntity> list = criteriaRepository.find(criteria);
-        if(list == null || list.isEmpty())
+        if (list == null || list.isEmpty())
             throw new NoSuchEntityException("publication", String.format("[offset: %d, limit: %d]", offset, limit));
         return list;
     }
@@ -101,7 +106,7 @@ public class PublicationServiceImpl implements IPublicationService{
     @Transactional
     public List<PublicationEntity> getPublications(PublicationCriteria criteria) throws NoSuchEntityException {
         List<PublicationEntity> list = criteriaRepository.find(criteria);
-        if(list == null || list.isEmpty())
+        if (list == null || list.isEmpty())
             throw new NoSuchEntityException("publication", String.format("[offset: %d, limit: %d]", criteria.getOffset(), criteria.getLimit()));
         return list;
     }
@@ -126,10 +131,10 @@ public class PublicationServiceImpl implements IPublicationService{
     @Override
     @Transactional
     public int updatePublication(PublicationView view) throws NoSuchEntityException, ServiceErrorException, ValidationException, ForbiddenException, ElasticSearchException {
-        if (view.getId()==null||view.getId()==0)
+        if (view.getId() == null || view.getId() == 0)
             throw new ServiceErrorException();
         PublicationEntity entity = getPublicationById(view.getId());
-        merge(entity,view);
+        merge(entity, view);
         addAuthors(entity, view);
         int id = updatePublication(entity);
         //if (id!=0&&entity.isInIndex())
@@ -140,11 +145,11 @@ public class PublicationServiceImpl implements IPublicationService{
     @Override
     @Transactional
     public int updatePublication(PublicationEntity entity) throws ServiceErrorException, ValidationException {
-        if (entity==null||entity.getId()==0)
+        if (entity == null || entity.getId() == 0)
             throw new ServiceErrorException();
         publicationValidateService.publicationValidForUpdate(entity);
         entity = publicationRepository.saveAndFlush(entity);
-        if(entity == null){
+        if (entity == null) {
             throw new ServiceErrorException();
         }
         return entity.getId();
@@ -179,13 +184,13 @@ public class PublicationServiceImpl implements IPublicationService{
         criteria.setOffset(0);
         criteria.setLimit(2);
         List<PublicationEntity> searchResult = null;
-        int id=0;
+        int id = 0;
         try {
             searchResult = getPublications(criteria);
         } catch (NoSuchEntityException e) {
             id = createPublication(publication);
         }
-        if (searchResult!=null&&searchResult.size() >= 1) {
+        if (searchResult != null && searchResult.size() >= 1) {
             fromDb = searchResult.get(0);
             if (fromDb.isInIndex())
                 return;
@@ -208,19 +213,20 @@ public class PublicationServiceImpl implements IPublicationService{
     }
 
     private void merge(PublicationEntity entity, PublicationView view) throws NoSuchEntityException {
-        if (view.getId()!=null) entity.setId(view.getId());
+        if (view.getId() != null) entity.setId(view.getId());
         else view.setId(entity.getId());
 
-        if (view.getTitle()!=null&&!"".equals(view.getTitle())) entity.setTitle(view.getTitle());
+        if (view.getTitle() != null && !"".equals(view.getTitle())) entity.setTitle(view.getTitle());
         else view.setTitle(entity.getTitle());
 
-        if (view.getAnnotation()!=null&&!"".equals(view.getAnnotation())) entity.setAnnotation(view.getAnnotation());
+        if (view.getAnnotation() != null && !"".equals(view.getAnnotation()))
+            entity.setAnnotation(view.getAnnotation());
         else view.setAnnotation(entity.getAnnotation());
 
-        if (view.getType()!=null) entity.setType(view.getType());
+        if (view.getType() != null) entity.setType(view.getType());
         else view.setType(entity.getType());
 
-        if (view.getLink()!=null&&!"".equals(view.getLink())) entity.setLink(view.getLink());
+        if (view.getLink() != null && !"".equals(view.getLink())) entity.setLink(view.getLink());
         else view.setLink(entity.getLink());
 
 
@@ -228,23 +234,23 @@ public class PublicationServiceImpl implements IPublicationService{
             // should update original file name
             int slash = view.getFile_link().lastIndexOf('/');
             if (slash > -1) {
-                entity.setFileNameOriginal(view.getFile_link().substring(slash+1));
+                entity.setFileNameOriginal(view.getFile_link().substring(slash + 1));
             } else {
                 entity.setFileNameOriginal(view.getFile_link());
             }
         }
-        if (view.getFile_link()!=null&&!"".equals(view.getFile_link())) entity.setFileLink(view.getFile_link());
+        if (view.getFile_link() != null && !"".equals(view.getFile_link())) entity.setFileLink(view.getFile_link());
         else view.setFile_link(entity.getFileLink());
 
-        if (view.getPublisher_id() != null && view.getPublisher_id()!=0){
+        if (view.getPublisher_id() != null && view.getPublisher_id() != 0) {
             entity.setPublisher(publisherService.getPublisherById(view.getPublisher_id()));
-        }else if (entity.getPublisher()!=null)
+        } else if (entity.getPublisher() != null)
             view.setPublisher_id(entity.getPublisher().getId());
 
-        if (view.getStatus() != null)entity.setStatus(view.getStatus());
+        if (view.getStatus() != null) entity.setStatus(view.getStatus());
         else view.setStatus(entity.getStatus());
 
-        if(view.getAuthors_id() != null && !view.getAuthors_id().isEmpty()) {
+        if (view.getAuthors_id() != null && !view.getAuthors_id().isEmpty()) {
             // FIXME: 2/19/2017 remove workaround
             Set<AuthorMasterEntity> entities;
 
@@ -252,7 +258,7 @@ public class PublicationServiceImpl implements IPublicationService{
 
                 StringBuilder sb = new StringBuilder("{\"ids\":[");
 
-                for(val id : view.getAuthors_id()) {
+                for (val id : view.getAuthors_id()) {
                     sb.append("\"").append(id.intValue()).append("\",");
                 }
 
@@ -279,7 +285,8 @@ public class PublicationServiceImpl implements IPublicationService{
             for (Integer id : newAuthors) {
                 try {
                     entity.addAuthor(authorService.getAuthorMasterById(id));
-                } catch (NoSuchEntityException e) { }
+                } catch (NoSuchEntityException e) {
+                }
             }
         }
     }
@@ -320,15 +327,22 @@ public class PublicationServiceImpl implements IPublicationService{
         } else {
             assert entity.isPresent();// make intellij happy
             val entityVal = entity.get();
+            val needUpload = (!entityVal.isInIndex() || entityVal.getUploadStatus() != UploadStatus.UPLOADED)
+                    && (!TextUtils.isEmpty(publication.getFile_link()) || !TextUtils.isEmpty(entityVal.getFileLink()));
 
-            if (entityVal.isInIndex() || publication.getFile_link() == null) {
-                // publication was already indexed, proceed
-                PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
-            } else {
+            if (needUpload) {
                 storageService.uploadPaper(entityVal, new ResultCallback<File>() {
+
                     @Override
                     public void onResult(@NotNull File file) {
-                        PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
+                        entityVal.setUploadStatus(UploadStatus.UPLOADED);
+
+                        try {
+                            updatePublication(entityVal);
+                            PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
+                        } catch (final Exception e) {
+                            PublicationServiceImpl.notifyExceptionIfNotNull(callback, e);
+                        }
                     }
 
                     @Override
@@ -337,23 +351,27 @@ public class PublicationServiceImpl implements IPublicationService{
 
                         try {
                             updatePublication(entityVal);
-                            PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
+                            PublicationServiceImpl.notifyExceptionIfNotNull(callback, new ServiceErrorException(e));
                         } catch (final ValidationException | ServiceErrorException e1) {
                             PublicationServiceImpl.notifyExceptionIfNotNull(callback, new ServiceErrorException(e));
                         }
                     }
                 });
+            } else {
+                // publication was already indexed, proceed
+                PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
             }
         }
     }
 
     private PublicationEntity doCreatePublication(PublicationView view) throws ValidationException, NoSuchEntityException, ServiceErrorException {
-        PublicationEntity  entity = new PublicationEntity();
-        merge(entity,view);
+        PublicationEntity entity = new PublicationEntity();
+        merge(entity, view);
         addAuthors(entity, view);
+        entity.setUploadStatus(UploadStatus.PENDING);
         publicationValidateService.publicationValidForCreation(entity);
         entity = publicationRepository.saveAndFlush(entity);
-        if(entity == null){
+        if (entity == null) {
             throw new ServiceErrorException();
         }
         return entity;

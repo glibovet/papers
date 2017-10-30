@@ -42,13 +42,13 @@ public class PublicationEntity implements Serializable {
 
     @Column(name = "upload_status")
     @Enumerated(EnumType.STRING)
-    private UploadStatus uploadStatus;
+    private UploadStatus uploadStatus = UploadStatus.PENDING;
 
     @Column(name="link")
     @Size(max = 500, message = "error.publication.link.size")
     private String link;
 
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="publisher_id")
     private PublisherEntity publisher;
 
@@ -62,7 +62,7 @@ public class PublicationEntity implements Serializable {
     @Column(name="literature_parsed")
     private boolean literatureParsed;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
             name="author_to_publication",
             joinColumns=@JoinColumn(name="publication_id", referencedColumnName="ID"),
@@ -233,6 +233,7 @@ public class PublicationEntity implements Serializable {
                 ", inIndex=" + inIndex +
                 ", status=" + status +
                 ", literatureParsed=" + literatureParsed +
+                ", uploadStatus=" + uploadStatus +
                 '}';
     }
 }
