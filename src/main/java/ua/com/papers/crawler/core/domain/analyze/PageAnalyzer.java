@@ -2,6 +2,7 @@ package ua.com.papers.crawler.core.domain.analyze;
 
 import com.google.common.base.Preconditions;
 import lombok.Value;
+import lombok.experimental.var;
 import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.vo.PageID;
@@ -39,9 +40,9 @@ public class PageAnalyzer implements IPageAnalyzer {
     public Result analyze(@NotNull Page page) {
 
         val doc = page.toDocument();
-        int weightSum = 0;
+        var weightSum = 0;
 
-        for (final AnalyzeTemplate template : templates) {
+        for (val template : templates) {
             weightSum += doc.select(template.getCssSelector()).size() * template.getWeight();
         }
         return new Result(pageID, weightSum);

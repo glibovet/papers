@@ -253,7 +253,7 @@
 
       <!-- start jackson -->
       <!-- Dropbox uploading doesn't work with this dependency-->
-      <!--dependency>
+      <dependency>
           <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-mapper-asl</artifactId>
           <version>1.9.13</version>
@@ -268,20 +268,20 @@
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
-          <version>2.6.0</version>
+          <version>2.7.4</version>
       </dependency>
 
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
-          <version>2.6.0</version>
+          <version>2.7.4</version>
       </dependency>
 
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-annotations</artifactId>
           <version>2.6.0</version>
-      </dependency-->
+      </dependency>
 
       <!-- end jackson -->
 
