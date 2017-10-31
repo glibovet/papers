@@ -254,7 +254,7 @@
 
       <!-- start jackson -->
       <!-- Dropbox uploading doesn't work with this dependency-->
-      <dependency>
+      <!--dependency>
           <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-mapper-asl</artifactId>
           <version>1.9.13</version>
@@ -282,7 +282,7 @@
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-annotations</artifactId>
           <version>2.6.0</version>
-      </dependency>
+      </dependency-->
 
       <!-- end jackson -->
 
@@ -319,11 +319,11 @@
           <version>2.7</version>
       </dependency>
 
-      <dependency>
+      <!--dependency>
           <groupId>org.jglue.fluent-json</groupId>
           <artifactId>fluent-json</artifactId>
           <version>2.0.0</version>
-      </dependency>
+      </dependency-->
       <dependency>
           <groupId>org.jsoup</groupId>
           <artifactId>jsoup</artifactId>
