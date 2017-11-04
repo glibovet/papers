@@ -25,6 +25,7 @@
         <commons-lang.version>2.6</commons-lang.version>
       <spring.security.version>4.1.2.RELEASE</spring.security.version>
       <es.version>2.4.4</es.version>
+      <jackson.version>2.6.0</jackson.version>
 
       <!-- JDBC Setting -->
       <hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect>
@@ -268,19 +269,19 @@
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
-          <version>2.7.4</version>
+          <version>${jackson.version}</version>
       </dependency>
 
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
-          <version>2.7.4</version>
+          <version>${jackson.version}</version>
       </dependency>
 
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-annotations</artifactId>
-          <version>2.6.0</version>
+          <version>${jackson.version}</version>
       </dependency>
 
       <!-- end jackson -->
