@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test.uran;
+package ua.com.papers.services.crawler.unit.ukma;
 
 import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
@@ -7,11 +7,12 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import lombok.val;
+import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
-import ua.com.papers.crawler.test.BasePublicationHandler;
-import ua.com.papers.crawler.test.IHandlerCallback;
-import ua.com.papers.crawler.test.UrlAdapter;
+import ua.com.papers.services.crawler.BasePublicationHandler;
+import ua.com.papers.services.crawler.IHandlerCallback;
+import ua.com.papers.services.crawler.UrlAdapter;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -34,17 +35,18 @@ import java.util.logging.Level;
 /**
  * <p>
  * An example of publication handler. This class
- * handles pages like http://journals.uran.ua/index.php/1991-0177/issue/view/4013
+ * handles pages like
  * </p>
  * Created by Максим on 2/8/2017.
  */
 @Log
 @Value
 @Getter(AccessLevel.NONE)
-@PageHandler(id = 2)
-public class UranPublicationHandler extends BasePublicationHandler {
+@PageHandler(id = 5)
+public class UkmaPublicationHandler extends BasePublicationHandler {
 
-    private static final int GROUP_ID = 1;
+    private static final int GROUP_ID = 2;
+    static String PAGE_REGEX = "(\\[\\])|([Сс]\\.\\s+\\d+\\.?\\s*-?\\s*\\d+\\.?)";
 
     IHandlerCallback callback;
     @NonFinal
@@ -52,7 +54,7 @@ public class UranPublicationHandler extends BasePublicationHandler {
     @NonFinal
     SoftReference<Map<String, Integer>> fullNameToId;
 
-    public UranPublicationHandler(IAuthorService authorService, IHandlerCallback callback, List<AuthorEntity> authorEntities) {
+    public UkmaPublicationHandler(IAuthorService authorService, IHandlerCallback callback, List<AuthorEntity> authorEntities) {
         super(authorService);
         this.callback = Preconditions.checkNotNull(callback);
 
@@ -77,29 +79,6 @@ public class UranPublicationHandler extends BasePublicationHandler {
 
             val cache = new HashMap<String, Integer>();
             fullNameToId = new SoftReference<>(cache);
-
-            /*try {
-
-                List<AuthorEntity> res = authorService.getAuthors(0, -1, null);
-
-                for (val entity : res) {
-
-                    String key = entity.getLastName() + (TextUtils.isEmpty(entity.getInitials()) ? "" : entity.getInitials())
-                            .trim();
-
-                    cache.put(key, entity.getId());
-                }
-
-                *//*fullNameToId = authorService.getAuthors(0, -1, null)
-                        .stream()
-                        .collect(Collectors.toMap(
-                                a -> (a.getLastName() + (TextUtils.isEmpty(a.getInitials()) ? "" : a.getInitials()))
-                                        .trim(),// probably overdo but it guaranties valid key even
-                                // if it was incorrectly saved
-                                AuthorEntity::getId));*//*
-            } catch (final NoSuchEntityException e) {//FIXME if db is empty
-                log.log(Level.WARNING, "NoSuchEntityException, FIXME", e);
-            }*/
         }
     }
 
@@ -108,27 +87,33 @@ public class UranPublicationHandler extends BasePublicationHandler {
         log.log(Level.INFO, String.format("#onPageEnd %s, url %s", getClass(), page.getUrl()));
     }
 
-    @Handler(id = 1, group = GROUP_ID, converter = UrlAdapter.class)
+    @Handler(id = 7, group = GROUP_ID)
+    public void onHandleTitle(Element element) {
+        log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
+
+        element.select("strong").remove();
+        element.getElementsByTag("a").remove();
+
+        val text = element.text().replaceAll(PAGE_REGEX, "");
+
+        publicationView.setTitle(text);
+    }
+
+    @Handler(id = 8, converter = StringAdapter.class, group = GROUP_ID)
+    public void onHandleAuthors(String authorsStr) {
+        log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authorsStr));
+        publicationView.setAuthors_id(getAuthorIdsByNames(authorsStr.trim().replaceAll("\\s*,\\s*", ",").split(",")));
+    }
+
+    @Handler(id = 9, converter = UrlAdapter.class, group = GROUP_ID)
     public void onHandleUrl(URL url) {
         log.log(Level.INFO, String.format("#onHandleUrl %s, %s", getClass(), url));
 
         if (url == null) {
             log.log(Level.WARNING, "Failed to parse document url");
         } else {
-            publicationView.setLink(url.toExternalForm());
+            publicationView.setFile_link(url.toExternalForm());
         }
-    }
-
-    @Handler(id = 2, group = GROUP_ID, converter = StringAdapter.class)
-    public void onHandleTitle(String title) {
-        log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
-        publicationView.setTitle(title);
-    }
-
-    @Handler(id = 3, group = GROUP_ID, converter = StringAdapter.class)
-    public void onHandleAuthors(String authors) {
-        log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authors));
-        publicationView.setAuthors_id(getAuthorIdsByNames(authors.trim().replaceAll("\\s*,\\s*", ",").split(",")));
     }
 
     @PreHandle(group = GROUP_ID)
@@ -140,8 +125,11 @@ public class UranPublicationHandler extends BasePublicationHandler {
     }
 
     @PostHandle(group = GROUP_ID)
-    public void postPublication() {
+    public void postPublication(Page page) {
         log.log(Level.INFO, String.format("#postPublication %s", getClass()));
+
+        // save parsed page link
+        publicationView.setLink(page.getUrl().toExternalForm());
 
         val isValid = !TextUtils.isEmpty(publicationView.getLink())
                 && !TextUtils.isEmpty(publicationView.getTitle())
@@ -168,23 +156,19 @@ public class UranPublicationHandler extends BasePublicationHandler {
             if (cached == null || (id = cached.get(fullName)) == null) {
                 // create new author
                 try {
-                    String nameTemp = fullName;
-                    if (nameTemp.contains("(") && nameTemp.contains(")")) {
-                        nameTemp = nameTemp.substring(nameTemp.indexOf("("), nameTemp.indexOf(")") + 1);
-                    }
-                    if (nameTemp.contains("[") && nameTemp.contains("]")) {
-                        nameTemp = nameTemp.substring(nameTemp.indexOf("["), nameTemp.indexOf("]") + 1);
-                    }
+                    String nameTemp = fullName
+                            .replace("(","")
+                            .replace(")","");
                     String[] credentialsArr = nameTemp.split("\\s");// first, middle and last names
-                    //AuthorView authorView = new AuthorView();
+
                     if (credentialsArr.length < 2) continue;
                     final String initials, lastName;
                     if (credentialsArr.length == 2) {
-                        lastName = credentialsArr[1];
-                        initials = String.format("%S.", credentialsArr[0].charAt(0));
+                        lastName = credentialsArr[0];
+                        initials = String.format("%S.", credentialsArr[1].charAt(0));
                     } else {
-                        lastName = credentialsArr[2];
-                        initials = String.format("%S. %S.", credentialsArr[0].charAt(0), credentialsArr[1].charAt(0));
+                        lastName = credentialsArr[0];
+                        initials = String.format("%S. %S.", credentialsArr[1].charAt(0), credentialsArr[2].charAt(0));
                     }
 
                     val foundId = findAuthorId(initials, lastName, fullName);
@@ -196,10 +180,38 @@ public class UranPublicationHandler extends BasePublicationHandler {
                     }
 
                     cached.put(fullName, id = foundId);
+                    /*
+                    authorView.setLast_name(lastName);
+                    authorView.setInitials(initials);
+                    AuthorMasterView masterView = new AuthorMasterView();
+                    masterView.setLast_name(lastName);
+                    masterView.setInitials(initials);
+                    authorView.setOriginal(fullName);
+                    AuthorMasterEntity master = authorService.findByNameMaster(lastName,initials);
+                    AuthorEntity author = authorService.findByOriginal(authorView.getOriginal());
+                    if (author == null&& master!=null){
+                        authorView.setMaster_id(master.getId());
+                        authorService.createAuthor(authorView);
+                    }else if (author!=null&&author.getMaster()!=null&&master==null){
+                        master = author.getMaster();
+                    }else if (author!=null&&author.getMaster()==null&&master==null){
+                        id = authorService.createAuthorMaster(masterView);
+                        master = authorService.getAuthorMasterById(id);
+                        author.setMaster(master);
+                        authorService.updateAuthor(author);
+                    }else if (author==null&&master==null){
+                        id = authorService.createAuthorMaster(masterView);
+                        authorView.setMaster_id(id);
+                        authorService.createAuthor(authorView);
+                    }
+                    id =  master.getId();
+                    if (fullNameToId.get() != null) {
+                        fullNameToId.get().put(fullName, id);
+                    }*/
                 } catch (final ServiceErrorException | NoSuchEntityException e) {
-                    log.log(Level.WARNING, "Service error occurred while saving publication Uran", e);
+                    log.log(Level.WARNING, "Service error occurred while saving publication UKMA", e);
                 } catch (final Exception e) {
-                    log.log(Level.SEVERE, "Fatal error occurred while saving publication Uran", e);
+                    log.log(Level.SEVERE, "Fatal error occurred while saving publication UKMA", e);
                 }
             }
             if (id != null) {

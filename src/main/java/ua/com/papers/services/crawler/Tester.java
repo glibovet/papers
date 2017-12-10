@@ -1,5 +1,7 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.services.crawler;
 
+import lombok.val;
+import org.jsoup.Jsoup;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
@@ -12,7 +14,12 @@ public class Tester {
 
     public static void main(String[] args) throws Exception {
 
-      /*val creator = XmlCreator.newInstance("src/main/resources/crawler/crawler-settings.xml");
+        val doc = Jsoup.parse("<a href=\"/handle/123456789/6537\"> <span class=\"Z3988\">Кримський науковий центр</span> </a>", "");
+
+        System.out.println(doc.select("a"));
+        System.out.println(doc.select("a").get(0).absUrl("abs:href"));
+
+      /*val creator = XmlCrawlerManagerFactory.newInstance("src/main/resources/crawler/crawler-settings.xml");
         val scheduler = creator.create();
 
         scheduler.startCrawling(

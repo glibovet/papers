@@ -45,7 +45,17 @@ public class UrlExtractor implements IUrlExtractor {
                 // get selected elements and transform them into urls
                 .map(tuple -> tuple.v1()
                         .stream()
-                        .map(elem -> elem.absUrl(tuple.v2().getAttrName()))
+                        .map(elem -> {
+                            val baseUrl = tuple.v2().getBaseUrl();
+
+                            if (baseUrl.isPresent()) {
+                                elem.setBaseUri(baseUrl.get().toExternalForm());
+                            }
+
+                            System.out.println(elem.toString());
+                            val res = elem.absUrl(tuple.v2().getAttrName());
+                            return res;
+                        })
                         // since method #elem.absUrl returns non-empty strings
                         // for valid urls, we don't need to wrap url instance
                         // creation in try/catch block

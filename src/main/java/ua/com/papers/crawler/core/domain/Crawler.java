@@ -152,7 +152,6 @@ public class Crawler implements ICrawler {
 
     @Override
     public void stop() {
-
         if (loopManager != null) {
             loopManager.stop();
         }

@@ -5,7 +5,7 @@ import lombok.*;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 import ua.com.papers.crawler.core.creator.ICrawlerFactory;
-import ua.com.papers.crawler.core.creator.ICreator;
+import ua.com.papers.crawler.core.creator.ICrawlerManagerFactory;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.settings.Settings;
 
@@ -23,12 +23,12 @@ import java.io.IOException;
 /**
  * <p>
  *     XML-based abstract creator which
- *     partially implements {@linkplain ICreator}
+ *     partially implements {@linkplain ICrawlerManagerFactory}
  * </p>
  * Created by Максим on 1/16/2017.
  */
 @Data
-public abstract class AbstractClasspathXmlCreator implements ICreator {
+public abstract class AbstractClasspathXmlCrawlerManagerFactory implements ICrawlerManagerFactory {
 
     private final File file;
     private final ICrawlerFactory factory;
@@ -42,9 +42,9 @@ public abstract class AbstractClasspathXmlCreator implements ICreator {
     private boolean isCacheEnabled;
 
 
-    public AbstractClasspathXmlCreator(@NotNull File file, @NotNull File xsd, @NotNull ICrawlerFactory factory) {
-        AbstractClasspathXmlCreator.checkFile(file);
-        AbstractClasspathXmlCreator.checkXmlValid(file, xsd);
+    public AbstractClasspathXmlCrawlerManagerFactory(@NotNull File file, @NotNull File xsd, @NotNull ICrawlerFactory factory) {
+        AbstractClasspathXmlCrawlerManagerFactory.checkFile(file);
+        AbstractClasspathXmlCrawlerManagerFactory.checkXmlValid(file, xsd);
         Preconditions.checkNotNull(factory, "crawler factory == null");
 
         this.file = file;

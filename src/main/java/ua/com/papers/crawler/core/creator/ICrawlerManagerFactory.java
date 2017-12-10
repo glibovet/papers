@@ -11,7 +11,7 @@ import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
  * </p>
  * Created by Максим on 1/9/2017.
  */
-public interface ICreator {
+public interface ICrawlerManagerFactory {
 
     /**
      * @return a new instance of {@linkplain ICrawlerManager}

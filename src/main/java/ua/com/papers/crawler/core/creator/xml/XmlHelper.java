@@ -3,6 +3,10 @@ package ua.com.papers.crawler.core.creator.xml;
 import lombok.val;
 import org.w3c.dom.Element;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Optional;
+
 /**
  * <p>
  *     Helper class which provides utility methods
@@ -58,6 +62,23 @@ public final class XmlHelper {
 
     private static boolean isNullOrEmpty(String str) {
         return str == null || str.length() == 0;
+    }
+
+    public static Optional<URL> parseUrl(Element e, String attr) {
+        if (e == null) {
+            return Optional.empty();
+        }
+        val attrVal = e.getAttribute(attr);
+
+        if (isNullOrEmpty(attrVal)) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(new URL(attrVal));
+        } catch (final MalformedURLException error) {
+            throw new RuntimeException(error);
+        }
     }
 
 }

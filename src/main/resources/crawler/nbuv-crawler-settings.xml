@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<crawler>
+
+    <urls>
+        <url>http://dspace.nbuv.gov.ua/</url>
+    </urls>
+
+    <scheduler-params>
+        <index-delay>10000</index-delay>
+        <processing-delay>10000</processing-delay>
+        <processing-threads>3</processing-threads>
+        <index-threads>3</index-threads>
+    </scheduler-params>
+
+    <pages>
+        <!-- Note that page and extract method identifiers should be unique through this document -->
+        <!-- Handlers description for http://dspace.nbuv.gov.ua/ and its descendants -->
+        <page id="1">
+            <!-- todo: make a better syntax for this -->
+            <analyze-params>
+                <analyze weight="70">*</analyze>
+            </analyze-params>
+            <extract-params>
+                <extract id="1">#aspect_artifactbrowser_CommunityBrowser_div_comunity-browser > ul > li > ul > li.ds-artifact-item.community > div > div > a</extract>
+                <extract id="2">#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > .artifact-description > .artifact-title > a</extract>
+                <extract id="3">#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > div > div > a</extract>
+                <extract id="4">#aspect_artifactbrowser_CollectionViewer_div_collection-view > div > ul > a</extract>
+                <extract id="5">#aspect_artifactbrowser_ItemViewer_div_item-view > div.item-summary-view-metadata > p > a</extract>
+            </extract-params>
+            <url-params base="http://dspace.nbuv.gov.ua/">
+                <extract attr="href" selector="#aspect_artifactbrowser_CommunityBrowser_div_comunity-browser > ul > li > ul > li.ds-artifact-item.community > div > div > a" />
+                <extract attr="href" selector="#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > .artifact-description > .artifact-title > a" />
+                <extract attr="href" selector="#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > div > div > a" />
+                <extract attr="href" selector="#aspect_artifactbrowser_CollectionViewer_div_collection-view > div > ul > a" />
+                <extract attr="href" selector="#aspect_artifactbrowser_ItemViewer_div_item-view > div.item-summary-view-metadata > p > a" />
+            </url-params>
+        </page>
+        <!-- Page with file link, authors and publisher -->
+        <page id="2">
+            <analyze-params>
+                <!-- Has file link -->
+                <analyze weight="40">#aspect_artifactbrowser_ItemViewer_div_item-view > div > div > div.file-link > a</analyze>
+                <!-- Has authors -->
+                <analyze weight="40">#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.contributor.author)</analyze>
+                <!-- Has publishers -->
+                <analyze weight="40">#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.publisher)</analyze>
+                <!-- Has title -->
+                <analyze weight="40">#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.title)</analyze>
+            </analyze-params>
+            <extract-params>
+                <!-- Grab file link -->
+                <extract id="6">#aspect_artifactbrowser_ItemViewer_div_item-view > div > div > div.file-link > a</extract>
+                <!-- Grab authors -->
+                <extract id="7">#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.contributor.author)) > td:nth-child(2)</extract>
+                <!-- Grab publishers -->
+                <extract id="8">#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.publisher)) > td:nth-child(2)</extract>
+                <!-- Grab title -->
+                <extract id="9">#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.title)) > td:nth-child(2)</extract>
+            </extract-params>
+        </page>
+    </pages>
+</crawler>

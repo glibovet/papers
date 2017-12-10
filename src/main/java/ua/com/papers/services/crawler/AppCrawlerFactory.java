@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.services.crawler;
 
 import lombok.Value;
 import org.springframework.beans.factory.annotation.Autowired;

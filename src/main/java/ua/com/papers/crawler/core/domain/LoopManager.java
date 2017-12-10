@@ -31,11 +31,12 @@ import java.util.logging.Level;
 @Log
 final class LoopManager {
 
-    Queue<URL> urls;
+    LinkedList<URL> urls;
     Set<URL> crawledUrls;
     Set<Looper> pendingLoopers;
     AtomicInteger acceptedCnt, activeLoopers;
     @NonFinal @NotNull ThreadPoolExecutor executor;
+    Random randomizer;
 
     Props props;
 
@@ -65,6 +66,7 @@ final class LoopManager {
         this.crawledUrls = new TreeSet<>((o1, o2) -> o1.toExternalForm().compareTo(o2.toExternalForm()));
         this.activeLoopers = new AtomicInteger(0);
         this.pendingLoopers = new HashSet<>(props.schedulerSetting.getIndexThreads());
+        this.randomizer = new Random();
     }
 
     synchronized void start() {
@@ -109,8 +111,16 @@ final class LoopManager {
 
     @NotNull
     synchronized Optional<URL> pollUrl() {
-        val canRun = isRunning && props.predicate.canRun(crawledUrls, acceptedCnt.get());
-        return canRun ? Optional.ofNullable(urls.poll()) : Optional.empty();
+        var polled = Optional.<URL>empty();
+        val pendingUrls = urls.size();
+        val canRun = isRunning && props.predicate.canRun(crawledUrls, acceptedCnt.get())
+                && pendingUrls > 0;
+
+        if (canRun) {
+            return Optional.of(urls.get(randomizer.nextInt(pendingUrls)));
+        }
+
+        return polled;
     }
 
     void notifyCrawlException(URL url, Throwable th) {

@@ -75,8 +75,9 @@ final class Looper implements Runnable {
 
         while ((urlOptional = loopManager.pollUrl()).isPresent()) {
             try {
-
                 log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
+
+                assert urlOptional.isPresent();
 
                 val url = urlOptional.get();
 
