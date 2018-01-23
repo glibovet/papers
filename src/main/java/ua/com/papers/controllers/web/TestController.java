@@ -2,7 +2,6 @@ package ua.com.papers.controllers.web;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +19,6 @@ import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.crawler.ICrawlerService;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
-import ua.com.papers.services.schedule.ScheduleCrawling;
 
 import java.util.Arrays;
 
@@ -35,10 +33,6 @@ public class TestController {
     IPublisherService publisherService;
     IAuthorService authorService;
     ICrawlerService crawlerService;
-
-    @Autowired
-    @NonFinal
-    private ScheduleCrawling scheduleCrawling;
 
     @Autowired
     public TestController(

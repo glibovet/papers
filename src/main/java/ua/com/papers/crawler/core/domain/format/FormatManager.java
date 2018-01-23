@@ -1,6 +1,5 @@
 package ua.com.papers.crawler.core.domain.format;
 
-import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
@@ -17,6 +16,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 @Value
 @Log
 @Getter(value = AccessLevel.NONE)
+// TODO: 1/14/2018 Deduce adapter type from handler arg
 public class FormatManager implements IFormatManager {
 
     private static final int DEFAULT_LIFECYCLE_METHODS_CNT = 2;
@@ -36,7 +39,8 @@ public class FormatManager implements IFormatManager {
     /**
      * Map of cached converters
      */
-    private static final Map<Class<? extends IPartAdapter<?>>, IPartAdapter<?>> CACHE;
+    Map<Class<? extends IPartAdapter<?>>, IPartAdapter<?>> cache;
+    ReentrantReadWriteLock cacheLock;
 
     private interface Invoker {
 
@@ -68,7 +72,7 @@ public class FormatManager implements IFormatManager {
     }
 
     @Value
-    private static class HandlerInvoker implements Invoker {
+    private class HandlerInvoker implements Invoker {
 
         Page page;
         int group;
@@ -123,9 +127,9 @@ public class FormatManager implements IFormatManager {
                     if (idToPart.containsKey(annotation.id())) {
 
                         val elem = idToPart.get(annotation.id());
-                        val converter = FormatManager.getConverter(annotation.converter());
+                        val converter = getConverter(annotation.converter());
 
-                        FormatManager.invokeProcessMethod(m.getV1(), m.getV2(), converter.convert(elem));
+                        FormatManager.invokeProcessMethod(m.getV1(), m.getV2(), converter.convert(elem, page));
                     }
                 });
                 // post group
@@ -134,30 +138,7 @@ public class FormatManager implements IFormatManager {
         }
     }
 
-    static {
-        CACHE = Collections.synchronizedMap(
-                new HashMap<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>() {
-                    {
-                        // register default converters
-                        put(Handler.SkipAdapter.class, Handler.SkipAdapter.instance);
-                        put(StringAdapter.class, StringAdapter.instance);
-                    }
-                }
-        );
-    }
-
-    public static Collection<IPartAdapter<?>> getRegisteredConverters() {
-        return Collections.unmodifiableCollection(CACHE.values());
-    }
-
-    @SuppressWarnings("unchecked")
-    public static void registerConverter(@NotNull IPartAdapter<?> converter) {
-        Preconditions.checkNotNull(converter);
-        CACHE.put((Class<? extends IPartAdapter<?>>) converter.getClass(), converter);
-    }
-
     public FormatManager(@NotNull Collection<Object> handlers, IPageFormatter pageFormatter) {
-
         this.pageFormatter = Preconditions.checkNotNull(pageFormatter);
         FormatManager.checkHandlers(handlers);
 
@@ -166,6 +147,43 @@ public class FormatManager implements IFormatManager {
                 .collect(Collectors.groupingBy(h -> new PageID(h.getClass().getAnnotation(PageHandler.class).id()),
                         Collectors.mapping(h -> h, Collectors.toList()))
                 );
+
+        cacheLock = new ReentrantReadWriteLock();
+        cache = new HashMap<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>() {
+            {
+                // register default converters
+                put(Handler.SkipAdapter.class, Handler.SkipAdapter.instance);
+                put(StringAdapter.class, StringAdapter.instance);
+            }
+        };
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void registerAdapter(@NotNull IPartAdapter<?> adapter) {
+        Preconditions.checkNotNull(adapter);
+        writeIntoCache(cache -> {
+            cache.put((Class<? extends IPartAdapter<?>>) adapter.getClass(), adapter);
+        });
+    }
+
+    @Override
+    public void unregisterAdapter(@NotNull Class<? extends IPartAdapter<?>> cl) {
+        Preconditions.checkNotNull(cl);
+
+        writeIntoCache(cache -> {
+            cache.remove(cl);
+        });
+    }
+
+    @Override
+    public Set<? extends IPartAdapter<?>> getRegisteredAdapters() {
+        try {
+            cacheLock.readLock().lock();
+            return Collections.unmodifiableSet(new HashSet<>(cache.values()));
+        } finally {
+            cacheLock.readLock().unlock();
+        }
     }
 
     @Override
@@ -186,9 +204,9 @@ public class FormatManager implements IFormatManager {
             }
 
             synchronized (lock) {
-                preInvokers.forEach(LifecycleInvoker::invoke);
-                invokers.forEach(HandlerInvoker::invoke);
-                postInvokers.forEach(LifecycleInvoker::invoke);
+                preInvokers.forEach(Invoker::invoke);
+                invokers.forEach(Invoker::invoke);
+                postInvokers.forEach(Invoker::invoke);
             }
         }
     }
@@ -229,7 +247,7 @@ public class FormatManager implements IFormatManager {
         return result;
     }
 
-    private static List<HandlerInvoker> extractHandlerInvokers(Page page, Object h, List<RawContent> contents) {
+    private List<HandlerInvoker> extractHandlerInvokers(Page page, Object h, List<RawContent> contents) {
         val result = new ArrayList<HandlerInvoker>();
 
         for (val m : h.getClass().getMethods()) {
@@ -314,27 +332,45 @@ public class FormatManager implements IFormatManager {
         return present;
     }
 
-    private static IPartAdapter<?> getConverter(Class<? extends IPartAdapter<?>> cl) {
+    private IPartAdapter<?> getConverter(Class<? extends IPartAdapter<?>> cl) {
+        return writeIntoCache(cache -> {
+            IPartAdapter<?> cached = cache.get(cl);
 
-        IPartAdapter<?> result = CACHE.get(cl);
-
-        if (result == null) {
-            // such converter wasn't found in cache
-            // try load converter through reflection
-            try {
-                result = cl.getConstructor().newInstance();
-                CACHE.put(cl, result);
-            } catch (final NoSuchMethodException e) {
-                throw new RuntimeException(String.format("%s should define non-arg constructor", cl), e);
-            } catch (final IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                throw new RuntimeException(String.format("An error occurred while creating a new instance of %s", cl), e);
+            if (cached == null) {
+                // such converter wasn't found in cache
+                // try load converter through reflection
+                try {
+                    cached = cl.getConstructor().newInstance();
+                    cache.put(cl, cached);
+                } catch (final NoSuchMethodException e) {
+                    throw new RuntimeException(String.format("%s should define non-arg constructor", cl), e);
+                } catch (final IllegalAccessException | InstantiationException | InvocationTargetException e) {
+                    throw new RuntimeException(String.format("An error occurred while creating a new instance of %s", cl), e);
+                }
             }
+            return Preconditions.checkNotNull(cached, String.format("No handler for %s", cl));
+        });
+    }
+
+    private void writeIntoCache(Consumer<Map<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>> function) {
+        try {
+            cacheLock.writeLock().lock();
+            function.accept(cache);
+        } finally {
+            cacheLock.writeLock().unlock();
         }
-        return Preconditions.checkNotNull(result, String.format("No handler for %s", cl));
+    }
+
+    private <R> R writeIntoCache(Function<Map<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>, R> function) {
+        try {
+            cacheLock.writeLock().lock();
+            return function.apply(cache);
+        } finally {
+            cacheLock.writeLock().unlock();
+        }
     }
 
     private static void invokeLifecycleMethod(Method m, Page page, Object who) {
-
         val args = m.getParameterTypes();
 
         try {

@@ -1,8 +1,8 @@
 package ua.com.papers.crawler.core.domain.format.convert;
 
 import org.jsoup.nodes.Element;
+import ua.com.papers.crawler.core.domain.bo.Page;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -17,10 +17,11 @@ public interface IPartAdapter<T> {
     /**
      * Converts {@linkplain Element} into T
      *
-     * @param element element to convert
+     * @param element  element to convert
+     * @param page     page to format
      * @return transformed instance of T, may be null
      */
-    @Nullable
-    T convert(@NotNull Element element);
+    @NotNull
+    T convert(@NotNull Element element, @NotNull Page page);
 
 }

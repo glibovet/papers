@@ -1,6 +1,5 @@
 package ua.com.papers.crawler.core.creator.xml;
 
-import com.google.common.base.Preconditions;
 import lombok.*;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -8,6 +7,7 @@ import ua.com.papers.crawler.core.creator.ICrawlerFactory;
 import ua.com.papers.crawler.core.creator.ICrawlerManagerFactory;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
 import ua.com.papers.crawler.settings.Settings;
+import ua.com.papers.crawler.util.Preconditions;
 
 import javax.validation.constraints.NotNull;
 import javax.xml.XMLConstants;
