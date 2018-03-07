@@ -33,8 +33,8 @@ import java.util.concurrent.ScheduledExecutorService;
 public final class XmlCrawlerManagerFactory extends AbstractClasspathXmlCrawlerManagerFactory {
 
     public XmlCrawlerManagerFactory(String xsdPath, String filepath, ICrawlerFactory factory) {
-        super(new File(filepath),
-                new File(xsdPath), factory);
+        super(new File(getAbsolutePathForResource(filepath)),
+                new File(getAbsolutePathForResource(xsdPath)), factory);
     }
 
     /**
