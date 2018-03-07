@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test.ukma;
+package ua.com.papers.services.crawler.unit.ukma;
 
 import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
@@ -8,7 +8,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
-import ua.com.papers.crawler.test.IHandlerCallback;
+import ua.com.papers.services.crawler.IHandlerCallback;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;

@@ -1,6 +1,6 @@
 package ua.com.papers.crawler.core.domain.schedule;
 
-import com.google.common.base.Preconditions;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
@@ -8,6 +8,7 @@ import lombok.extern.java.Log;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.util.Preconditions;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;

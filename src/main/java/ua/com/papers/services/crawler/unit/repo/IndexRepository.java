@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test.repo;
+package ua.com.papers.services.crawler.unit.repo;
 
 import lombok.Value;
 import lombok.val;

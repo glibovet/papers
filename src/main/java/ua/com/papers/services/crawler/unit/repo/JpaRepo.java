@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test.repo;
+package ua.com.papers.services.crawler.unit.repo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Propagation;

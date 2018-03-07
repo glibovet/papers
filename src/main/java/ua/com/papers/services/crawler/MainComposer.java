@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.services.crawler;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -7,8 +7,8 @@ import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ua.com.papers.crawler.test.ukma.UkmaArticleComposer;
-import ua.com.papers.crawler.test.uran.UranArticleComposer;
+import ua.com.papers.services.crawler.unit.ukma.UkmaArticleComposer;
+import ua.com.papers.services.crawler.unit.uran.UranArticleComposer;
 import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;

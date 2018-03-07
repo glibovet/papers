@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.services.crawler;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -6,8 +6,8 @@ import lombok.val;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import ua.com.papers.crawler.core.creator.ICrawlerFactory;
-import ua.com.papers.crawler.core.creator.ICreator;
-import ua.com.papers.crawler.core.creator.xml.AbstractClasspathXmlCreator;
+import ua.com.papers.crawler.core.creator.ICrawlerManagerFactory;
+import ua.com.papers.crawler.core.creator.xml.AbstractClasspathXmlCrawlerManagerFactory;
 import ua.com.papers.crawler.core.creator.xml.XmlHelper;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.settings.*;
@@ -25,16 +25,16 @@ import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * <p>
- * {@linkplain ICreator} implementation that creates crawler from xml file
+ * {@linkplain ICrawlerManagerFactory} implementation that creates crawler from xml file
  * </p>
  * Created by Максим on 1/9/2017.
  */
 @Getter(value = AccessLevel.NONE)
-public final class XmlCreator extends AbstractClasspathXmlCreator {
+public final class XmlCrawlerManagerFactory extends AbstractClasspathXmlCrawlerManagerFactory {
 
-    public XmlCreator(String xsdPath, String filepath, ICrawlerFactory factory) {
-        super(new File(getAbsolutePathForResource(filepath)),
-                new File(getAbsolutePathForResource(xsdPath)), factory);
+    public XmlCrawlerManagerFactory(String xsdPath, String filepath, ICrawlerFactory factory) {
+        super(new File(filepath),
+                new File(xsdPath), factory);
     }
 
     /**
@@ -44,7 +44,7 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
      * @return absolute file path
      */
     private static String getAbsolutePathForResource(String relativePath) {
-        ClassLoader loader = XmlCreator.class.getClassLoader();
+        ClassLoader loader = XmlCrawlerManagerFactory.class.getClassLoader();
 
         URL resource = loader.getResource(relativePath);
         if (resource == null) {
@@ -173,8 +173,11 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
 
         val extractParams = (Element) parent.getElementsByTagName("url-params").item(0);
 
-        if (extractParams == null) return Collections.emptyList();
+        if (extractParams == null) {
+            return Collections.emptyList();
+        }
 
+        val baseUrl = XmlHelper.parseUrl(extractParams, "base");
         val nodes = extractParams.getElementsByTagName("extract");
         val result = new ArrayList<UrlSelectSetting>(nodes.getLength());
 
@@ -182,8 +185,9 @@ public final class XmlCreator extends AbstractClasspathXmlCreator {
             val entry = (Element) nodes.item(i);
             val selector = entry.getAttribute("selector");
             val attr = entry.getAttribute("attr");
+            val localBaseUrl = XmlHelper.parseUrl(entry, "base");
 
-            result.add(new UrlSelectSetting(selector, attr));
+            result.add(new UrlSelectSetting(selector, attr, localBaseUrl.orElse(baseUrl.orElse(null))));
         }
 
         return Collections.unmodifiableCollection(result);

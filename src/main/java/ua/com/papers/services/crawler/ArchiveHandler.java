@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.services.crawler;
 
 import lombok.Value;
 import lombok.extern.java.Log;
