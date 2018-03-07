@@ -1,6 +1,7 @@
 package ua.com.papers.crawler.core.domain.format.convert;
 
 import org.jsoup.nodes.Element;
+import ua.com.papers.crawler.core.domain.bo.Page;
 
 import javax.validation.constraints.NotNull;
 
@@ -14,7 +15,7 @@ public final class StringAdapter implements IPartAdapter<String> {
     private StringAdapter() {}
 
     @Override
-    public String convert(@NotNull Element element) {
+    public String convert(@NotNull Element element, Page page) {
         return element.text();
     }
 }

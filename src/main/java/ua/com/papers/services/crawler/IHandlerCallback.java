@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.services.crawler;
 
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;

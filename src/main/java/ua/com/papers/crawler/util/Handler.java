@@ -1,6 +1,7 @@
 package ua.com.papers.crawler.util;
 
 import org.jsoup.nodes.Element;
+import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.format.convert.IPartAdapter;
 
 import javax.validation.constraints.NotNull;
@@ -31,7 +32,7 @@ public @interface Handler {
         }
 
         @Override
-        public Element convert(@NotNull Element element) {
+        public Element convert(@NotNull Element element, Page page) {
             return element;
         }
     }

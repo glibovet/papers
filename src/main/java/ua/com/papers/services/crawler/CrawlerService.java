@@ -1,23 +1,22 @@
 package ua.com.papers.services.crawler;
 
 import lombok.extern.java.Log;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ua.com.papers.crawler.core.creator.ICreator;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
-import ua.com.papers.crawler.test.MainComposer;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
+import java.util.Collection;
 import java.util.logging.Level;
 
 /**
  * <p>
- *     Simple implementation of {@linkplain ICrawlerService}
+ * Simple implementation of {@linkplain ICrawlerService}
  * </p>
  * Created by Максим on 6/8/2017.
  */
@@ -25,26 +24,28 @@ import java.util.logging.Level;
 @Log
 public final class CrawlerService implements ICrawlerService, ICrawler.Callback, IPageIndexer.Callback {
 
-    private final ICrawlerManager crawler;
-    private final MainComposer composer;
+    private final Collection<? extends WebSiteCrawlUnit> crawlUnits;
 
     @Autowired
-    public CrawlerService(ICreator creator, MainComposer composer) {
-        this.crawler = creator.create();
-        this.composer = composer;
+    public CrawlerService(Collection<? extends WebSiteCrawlUnit> crawlUnits) {
+        this.crawlUnits = crawlUnits;
     }
 
     @Override
     public void startCrawling() {
-        crawler.startCrawling(composer.asHandlers(), this);
+        for (val unit : crawlUnits) {
+            unit.getManager().startCrawling(unit.getHandlers(), this);
+        }
     }
 
     @Override
     public void stopCrawling() {
-        crawler.stopCrawling();
+        for (val unit : crawlUnits) {
+            unit.getManager().stopCrawling();
+        }
     }
 
-    @Override
+   /* @Override
     public boolean isCrawling() {
         return crawler.isCrawling();
     }
@@ -62,7 +63,7 @@ public final class CrawlerService implements ICrawlerService, ICrawler.Callback,
     @Override
     public boolean isReIndexing() {
         return crawler.isIndexing();
-    }
+    }*/
 
     /* Crawler info callbacks */
 

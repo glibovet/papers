@@ -7,8 +7,8 @@
     </urls>
 
     <scheduler-params>
-        <index-delay>60000</index-delay>
-        <processing-delay>30000</processing-delay>
+        <index-delay>10000</index-delay>
+        <processing-delay>10000</processing-delay>
         <processing-threads>3</processing-threads>
         <index-threads>3</index-threads>
     </scheduler-params>

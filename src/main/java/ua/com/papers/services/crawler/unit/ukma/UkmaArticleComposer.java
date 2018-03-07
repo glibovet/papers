@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test.uran;
+package ua.com.papers.services.crawler.unit.ukma;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -7,7 +7,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.test.IHandlerCallback;
+import ua.com.papers.services.crawler.IHandlerCallback;
 import ua.com.papers.crawler.util.PageHandler;
 import ua.com.papers.crawler.util.PostHandle;
 import ua.com.papers.crawler.util.PreHandle;
@@ -34,28 +34,28 @@ import java.util.logging.Level;
 @Log
 @Value
 @Getter(AccessLevel.NONE)
-@PageHandler(id = 2)
-public final class UranArticleComposer {
+@PageHandler(id = 5)
+public final class UkmaArticleComposer {
 
     IAuthorService authorService;
     IPublisherService publisherService;
     IPublicationService publicationService;
-    IStorageService storageService;
     IHandlerCallback callback;
     List<PublicationView> publicationViews;
+    IStorageService storageService;
 
     @NonFinal
     private boolean isFailed;
     @NonFinal
     private PublisherView publisherView;
 
-    public UranArticleComposer(IAuthorService authorService, IPublisherService publisherService,
+    public UkmaArticleComposer(IAuthorService authorService, IPublisherService publisherService,
                                IPublicationService publicationService, IStorageService storageService) {
         this.authorService = authorService;
         this.publisherService = publisherService;
         this.publicationService = publicationService;
-        this.publicationViews = new ArrayList<>();
         this.storageService = storageService;
+        this.publicationViews = new ArrayList<>();
         this.callback = createCallback();
     }
 
@@ -78,15 +78,8 @@ public final class UranArticleComposer {
         }
 
         for (val publication : publicationViews) {
+
             publication.setPublisher_id(publisherView.getId());
-            if (publication.getLink()!=null&&publication.getFile_link()==null) {
-                String file_url = publication.getLink();
-                if (!file_url.contains("viewIssue")) {
-                    if (file_url.contains("view"))
-                        file_url = file_url.replace("view", "download");
-                    publication.setFile_link(file_url);
-                }
-            }
             publicationService.savePublicationFromRobot(publication, new ResultCallback<PublicationEntity>() {
                 @Override
                 public void onResult(@NotNull PublicationEntity publicationEntity) {
@@ -103,8 +96,8 @@ public final class UranArticleComposer {
 
     public Collection<Object> asHandlers(List<AuthorEntity> authorEntities) {
         return Arrays.asList(
-                new UranPublicationHandler(authorService, callback, authorEntities),
-                new UranPublisherHandler(publisherService, callback),
+                new UkmaPublicationHandler(authorService, callback, authorEntities),
+                new UkmaPublisherHandler(publisherService, callback),
                 this
         );
     }
@@ -126,12 +119,12 @@ public final class UranArticleComposer {
 
             @Override
             public void onPublisherReady(@NotNull PublisherView publisherView) {
-                UranArticleComposer.this.publisherView = publisherView;
+                UkmaArticleComposer.this.publisherView = publisherView;
             }
 
             @Override
             public void onPublicationReady(@NotNull PublicationView publicationView) {
-                UranArticleComposer.this.publicationViews.add(publicationView);
+                UkmaArticleComposer.this.publicationViews.add(publicationView);
             }
         };
     }

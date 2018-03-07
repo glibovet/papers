@@ -12,15 +12,15 @@ import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
 import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
 import ua.com.papers.crawler.core.domain.select.UrlExtractor;
 import ua.com.papers.crawler.core.domain.storage.InMemoryRepo;
-import ua.com.papers.crawler.settings.*;
+import ua.com.papers.crawler.settings.PageSetting;
+import ua.com.papers.crawler.settings.Settings;
+import ua.com.papers.crawler.settings.UrlSelectSetting;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * <p>
@@ -55,13 +55,7 @@ public class SimpleCrawlerFactory extends AbstractCrawlerFactory {
 
     @Override
     protected IFormatManagerFactory createFormatFactory(@NotNull Settings settings) {
-        return new FormatManagerFactory(
-                settings.getPageSettings()
-                        .stream()
-                        .flatMap(
-                                (Function<PageSetting, Stream<? extends FormatTemplate>>) setting -> setting.getFormatTemplates().stream()
-                        ).collect(Collectors.toList())
-        );
+        return new FormatManagerFactory(settings);
     }
 
     @Override

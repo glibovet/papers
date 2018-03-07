@@ -13,12 +13,12 @@ public interface ICrawlerService {
 
     void stopCrawling();
 
-    boolean isCrawling();
+    /*boolean isCrawling();
 
     void startReIndex();
 
     void stopReIndex();
 
-    boolean isReIndexing();
+    boolean isReIndexing();*/
 
 }

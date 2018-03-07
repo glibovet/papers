@@ -62,7 +62,7 @@ public class PublicationEntity implements Serializable {
     @Column(name="literature_parsed")
     private boolean literatureParsed;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE/*, CascadeType.PERSIST, CascadeType.REFRESH*/})
     @JoinTable(
             name="author_to_publication",
             joinColumns=@JoinColumn(name="publication_id", referencedColumnName="ID"),

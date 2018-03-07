@@ -1,21 +1,19 @@
 package ua.com.papers.services.schedule;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ua.com.papers.crawler.core.creator.ICreator;
+import ua.com.papers.crawler.core.creator.ICrawlerManagerFactory;
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
-import ua.com.papers.crawler.test.MainComposer;
+import ua.com.papers.services.crawler.MainComposer;
 import ua.com.papers.criteria.impl.UserCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.pojo.enums.EmailTypes;
 import ua.com.papers.pojo.enums.RolesEnum;
-import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.mailing.IMailingService;
-import ua.com.papers.services.publications.IPublicationService;
-import ua.com.papers.services.publisher.IPublisherService;
 import ua.com.papers.services.users.IUserService;
 
 import java.util.Arrays;
@@ -38,11 +36,11 @@ public class ScheduleCrawling {
     private ICrawlerManager crawler;
 
     @Autowired
-    public ScheduleCrawling(ICreator creator) {
+    public ScheduleCrawling(@Qualifier("defaultCrawlerFactory") ICrawlerManagerFactory creator) {
         this.crawler = creator.create();
     }
 
-    public void crawl() {
+    public void startCrawling() {
         crawler.startCrawling(
                 composer.asHandlers(),
                 new ICrawler.Callback() {
@@ -83,6 +81,10 @@ public class ScheduleCrawling {
                     }
                 }
         );
+    }
+
+    public void stopCrawling() {
+        crawler.stopCrawling();
     }
 
     private List<UserEntity> admins() throws NoSuchEntityException, WrongRestrictionException {

@@ -1,94 +1,69 @@
 package ua.com.papers.controllers.web;
 
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import ua.com.papers.crawler.core.creator.ICreator;
-import ua.com.papers.crawler.core.domain.ICrawler;
-import ua.com.papers.crawler.core.domain.IPageIndexer;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
-import ua.com.papers.crawler.test.MainComposer;
-import ua.com.papers.criteria.Criteria;
-import ua.com.papers.criteria.impl.UserCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
-import ua.com.papers.pojo.entities.UserEntity;
-import ua.com.papers.pojo.enums.EmailTypes;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
-import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.view.AuthorView;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
-import ua.com.papers.services.mailing.IMailingService;
+import ua.com.papers.services.crawler.ICrawlerService;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
-import ua.com.papers.services.schedule.ScheduleCrawling;
-import ua.com.papers.services.users.IUserService;
 
-import javax.validation.constraints.NotNull;
-import java.net.URL;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by Максим on 2/2/2017.
  */
 @Controller
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestController {
 
-    private final IPublicationService service;
-    private final IPublisherService publisherService;
-    private final IAuthorService authorService;
-    private final MainComposer composer;
-    private final IUserService userService;
-
-    ICrawlerManager crawler;
-
-    @Autowired
-    private ScheduleCrawling scheduleCrawling;
+    IPublicationService service;
+    IPublisherService publisherService;
+    IAuthorService authorService;
+    ICrawlerService crawlerService;
 
     @Autowired
     public TestController(
             IPublicationService service, IPublisherService publisherService,
-            IAuthorService authorService, MainComposer composer,
-            ICreator creator, IUserService userService) {
+            IAuthorService authorService, ICrawlerService crawlerService) {
         this.service = service;
         this.publisherService = publisherService;
         this.authorService = authorService;
-        this.composer = composer;
-        this.crawler = creator.create();
-        this.userService = userService;
+        this.crawlerService = crawlerService;
     }
 
-    @RequestMapping(value = {"/crawl"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/start"}, method = RequestMethod.GET)
     public String indexPage() {
-        scheduleCrawling.crawl();
-
+        //scheduleCrawling.startCrawling();
+        crawlerService.startCrawling();
         return "redirect:/";
     }
 
     @RequestMapping(value = {"/stop"}, method = RequestMethod.GET)
     public String stopIndexPage() {
-        crawler.stopCrawling();
-        crawler.stopIndexing();
-
+        //scheduleCrawling.stopCrawling();
+        crawlerService.stopCrawling();
         return "redirect:/";
     }
 
     @RequestMapping(value = {"/reindex"}, method = RequestMethod.GET)
     public String reIndex() {
-        crawler.startIndexing(
+        /*crawler.startIndexing(
                 composer.asHandlers(),
                 IPageIndexer.DEFAULT_CALLBACK
-        );
+        );*/
 
         return "redirect:/";
     }
@@ -97,12 +72,12 @@ public class TestController {
     public String indexPage1() throws WrongRestrictionException {
         try {
 
-          //  AuthorMasterView masterView = new AuthorMasterView();
+            //  AuthorMasterView masterView = new AuthorMasterView();
 
-           // masterView.setInitials("initials");
-           // masterView.setLast_name("last name");
+            // masterView.setInitials("initials");
+            // masterView.setLast_name("last name");
 
-           // int masterId = authorService.createAuthorMaster(masterView);
+            // int masterId = authorService.createAuthorMaster(masterView);
 
             AuthorView authorView = new AuthorView();
 
@@ -115,9 +90,9 @@ public class TestController {
             PublisherView publisherView = new PublisherView();
 
             publisherView.setTitle("title1");
-       //     publisherView.setAddress(1);
-       //     publisherView.setContacts("contacts");
-       //     publisherView.setDescription("description");
+            //     publisherView.setAddress(1);
+            //     publisherView.setContacts("contacts");
+            //     publisherView.setDescription("description");
             publisherView.setUrl("www.example.com1");
 
             int pubId = publisherService.createPublisher(publisherView);

@@ -308,7 +308,7 @@ public class PublicationServiceImpl implements IPublicationService {
         } catch (final NoSuchEntityException e) {
             try {
                 entity = Optional.of(doCreatePublication(publication));
-            } catch (final ValidationException | NoSuchEntityException | ServiceErrorException e1) {
+            } catch (final Exception e1) {
                 log.log(Level.SEVERE, "failed to create publication", e);
                 exception = Optional.of(e);
             }

@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.services.crawler;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;

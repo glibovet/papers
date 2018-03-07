@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.test;
+package ua.com.papers.services.crawler;
 
 import com.google.common.base.Preconditions;
 import ua.com.papers.crawler.core.domain.bo.Page;

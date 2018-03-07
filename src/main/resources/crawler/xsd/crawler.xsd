@@ -91,16 +91,18 @@
                     <xs:attribute name="attr" type="non-empty-string" use="required"/>
                     <xs:attribute name="selector" type="non-empty-string"
                                   use="required"/>
+                    <xs:attribute name="base" type="xs:anyURI"/>
                 </xs:complexType>
             </xs:element>
         </xs:sequence>
+        <xs:attribute name="base" type="xs:anyURI"/>
     </xs:complexType>
 
     <!-- start of urls tag definition -->
     <xs:complexType name="urls">
         <xs:sequence>
             <!-- single url tag -->
-            <xs:element maxOccurs="unbounded" name="url" type="xs:anyURI" />
+            <xs:element maxOccurs="unbounded" name="url" type="xs:anyURI"/>
             <!-- single url tag -->
         </xs:sequence>
     </xs:complexType>

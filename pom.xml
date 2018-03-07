@@ -38,7 +38,7 @@
             <id>local</id>
             <properties>
                 <jdbc.username>root</jdbc.username>
-                <jdbc.password>root</jdbc.password>
+                <jdbc.password>45xf4dl7</jdbc.password>
                 <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
                 <jdbc.database.name>papers</jdbc.database.name>
                 <jdbc.database.server>localhost</jdbc.database.server>
@@ -76,7 +76,7 @@
       <dependency>
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok</artifactId>
-          <version>1.16.18</version>
+          <version>1.16.20</version>
           <scope>provided</scope>
       </dependency>
 
@@ -358,6 +358,18 @@
           <artifactId>spring-context-support</artifactId>
           <version>${spring.version}</version>
       </dependency>
+
+      <!--
+      Starting with Java 9 some modules should be added as
+      dependencies
+      -->
+
+      <dependency>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
+          <version>2.2.8</version>
+      </dependency>
+
   </dependencies>
 
     <dependencyManagement>
