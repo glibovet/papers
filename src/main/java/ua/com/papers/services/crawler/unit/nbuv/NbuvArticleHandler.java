@@ -10,23 +10,28 @@ import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
+import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.entities.PublisherEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
 import ua.com.papers.pojo.view.PublicationView;
 import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
+import ua.com.papers.services.crawler.BasePublicationHandler;
 import ua.com.papers.services.crawler.UrlAdapter;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
+import ua.com.papers.utils.ResultCallback;
 
+import javax.validation.constraints.NotNull;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -37,33 +42,30 @@ import java.util.stream.Collectors;
 @Log
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Component
-public final class NbuvArticleHandler {
+public final class NbuvArticleHandler extends BasePublicationHandler {
 
-    IAuthorService authorService;
     IPublisherService publisherService;
     IPublicationService publicationService;
 
-    @NonFinal
-    PublicationView publicationView;
-    @NonFinal
-    PublisherView publisherView;
+    PublicationView publicationView = new PublicationView();
+    PublisherView publisherView = new PublisherView();
     @NonFinal
     Map<String, Integer> titleToId;
+    Map<String, Integer> fullNameToId = new HashMap<>();
 
     @Autowired
     public NbuvArticleHandler(IAuthorService authorService, IPublisherService publisherService, IPublicationService publicationService) {
-        this.authorService = authorService;
+        super(authorService);
         this.publisherService = publisherService;
         this.publicationService = publicationService;
+
+        publicationView.setStatus(PublicationStatusEnum.ACTIVE);
+        publicationView.setType(PublicationTypeEnum.ARTICLE);
     }
 
     @PreHandle
-    public void onPrepare(Page page) throws WrongRestrictionException, NoSuchEntityException {
+    public void onPrepare(Page page) throws WrongRestrictionException {
         log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
-
-        publicationView = new PublicationView();
-        publicationView.setStatus(PublicationStatusEnum.ACTIVE);
-        publicationView.setType(PublicationTypeEnum.ARTICLE);
 
         if (titleToId == null) {
             // load all data
@@ -71,12 +73,19 @@ public final class NbuvArticleHandler {
                 titleToId = publisherService.getPublishers(0, -1, null)
                         .stream()
                         .collect(Collectors.toMap(PublisherEntity::getTitle, PublisherEntity::getId));
-            } catch (final NoSuchEntityException e) {//FIXME if db is empty...OMG, whyyyy
+            } catch (final NoSuchEntityException e) {//FIXME if db is empty
                 log.log(Level.WARNING, "FIXME", e);
                 titleToId = new HashMap<>();
             }
         }
-        // reset instance
+        // reset view instances
+        publicationView.setId(null);
+        publicationView.setPublisher_id(null);
+        publicationView.setLink(null);
+        publicationView.setAuthors_id(null);
+        publicationView.setTitle(null);
+        publicationView.setFile_link(null);
+
         publisherView.setId(null);
         publisherView.setTitle(null);
     }
@@ -85,16 +94,16 @@ public final class NbuvArticleHandler {
     public void onPageParsed(Page page) {
         log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
         // save parsed page link
-        /*publicationView.setLink(page.getUrl().toExternalForm());
+        publicationView.setLink(page.getUrl().toExternalForm());
 
         val isValid = !TextUtils.isEmpty(publicationView.getLink())
                 && !TextUtils.isEmpty(publicationView.getTitle())
-                && publicationView.getAuthors_id() != null && !publicationView.getAuthors_id().isEmpty();
+                && publicationView.getAuthors_id() != null && !publicationView.getAuthors_id().isEmpty()
+                && publisherView.getId() != null;
 
         if (isValid) {
             log.log(Level.INFO, String.format("trying to save publication %s", publicationView.getLink()));
 
-            publicationView.setPublisher_id(publisherView.getId());
             publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
                 @Override
                 public void onResult(@NotNull PublicationEntity publicationEntity) {
@@ -108,43 +117,57 @@ public final class NbuvArticleHandler {
             });
         } else {
             log.log(Level.WARNING, "failed to process publication");
-        }*/
-
-        preparePublisher(publisherView);
+        }
     }
 
     @Handler(id = 6, converter = UrlAdapter.class)
     public void onHandleUri(URL link) {
         log.log(Level.INFO, "onHandleUri " + link);
+        publicationView.setFile_link(link.toExternalForm());
     }
 
     @Handler(id = 7)
     public void onHandleAuthors(Element authors) {
-        log("onHandleAuthors", authors);
+        log.log(Level.INFO, "onHandleAuthors " + authors.ownText());
+
+        var ids = publicationView.getAuthors_id();
+
+        if (ids == null) {
+            ids = new ArrayList<>();
+            publicationView.setAuthors_id(ids);
+        }
+
+        try {
+            findAuthorIdByName(authors.ownText()).ifPresent(ids::add);
+        } catch (final Exception e) {
+            log.log(Level.WARNING, "Failed to find author by full name, was " + authors, e);
+        }
     }
 
     @Handler(id = 8)
-    public void onHandlePublishers(String publishers) {
-        log.log(Level.INFO, "onHandlePublishers " + publishers);
+    public void onHandlePublishers(Element publisher) throws Exception {
+        log.log(Level.INFO, "onHandlePublisher " + publisher.ownText());
 
-        if (TextUtils.isEmpty(publishers)) {
-            log.log(Level.WARNING, String.format("failed to parse title, %s", getClass()));
+        if (TextUtils.isEmpty(publisher.ownText())) {
+            log.log(Level.WARNING, String.format("failed to parse title, %s", publisher));
         } else {
-            publisherView.setTitle(publishers.replaceAll("[\\[\\],]", ""));
+            preparePublisher(publisher.ownText().trim());
+            publicationView.setPublisher_id(publisherView.getId());
         }
     }
 
     @Handler(id = 9)
-    public void onHandleTitle(String title) {
+    public void onHandleTitle(Element title) {
         log.log(Level.INFO, "onHandleTitle " + title);
-        publicationView.setTitle(title);
+        publicationView.setTitle(title.ownText().trim());
     }
 
-    private Optional<? extends PublisherView> preparePublisher(PublisherView publisherView) throws Exception {
-        if (TextUtils.isEmpty(publisherView.getTitle())) {
-            return Optional.empty();
-        }
-        var id = titleToId.get(publisherView.getTitle());
+    private void preparePublisher(String title) throws Exception {
+        Preconditions.checkArgument(!title.isEmpty(), "Empty publisher title");
+
+        publisherView.setTitle(title);
+
+        var id = titleToId.get(title);
 
         if (id == null) {
             val entity = publisherService.findPublisherByTitle(publisherView.getTitle());
@@ -158,11 +181,28 @@ public final class NbuvArticleHandler {
         }
 
         publisherView.setId(id);
-        return Optional.of(publisherView);
     }
 
-    private static void log(String method, Element element) {
-        log.log(Level.INFO, method + " " + element);
+    private Optional<Integer> findAuthorIdByName(String fullName) throws NoSuchEntityException, ServiceErrorException, ValidationException {
+        var id = fullNameToId.get(fullName);
+
+        if (id != null) {
+            return Optional.of(id);
+        }
+
+        val credentials = fullName.trim().split(", ");
+
+        if (credentials.length != 2) {
+            return Optional.empty();
+        }
+
+        val lastName = credentials[0];
+        val initials = credentials[1];
+
+        id = findAuthorId(initials, lastName, fullName);
+
+        fullNameToId.put(fullName, id);
+        return Optional.of(id);
     }
 
 }

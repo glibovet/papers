@@ -3,6 +3,7 @@
 
     <urls>
         <url>http://dspace.nbuv.gov.ua/</url>
+        <url>http://dspace.nbuv.gov.ua/handle/123456789/126927?show=full</url>
     </urls>
 
     <scheduler-params>
