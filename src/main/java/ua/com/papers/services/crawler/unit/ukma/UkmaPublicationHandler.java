@@ -9,7 +9,7 @@ import lombok.extern.java.Log;
 import lombok.val;
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
+import ua.com.papers.crawler.core.format.convert.StringAdapter;
 import ua.com.papers.services.crawler.BasePublicationHandler;
 import ua.com.papers.services.crawler.IHandlerCallback;
 import ua.com.papers.services.crawler.UrlAdapter;

@@ -3,14 +3,14 @@ package ua.com.papers.services.crawler;
 import lombok.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ua.com.papers.crawler.core.creator.SimpleCrawlerFactory;
+import ua.com.papers.crawler.core.factory.SimpleCrawlerFactory;
 import ua.com.papers.crawler.core.domain.Crawler;
 import ua.com.papers.crawler.core.domain.ICrawlerPredicate;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.PageIndexer;
-import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
-import ua.com.papers.crawler.core.domain.format.IFormatManagerFactory;
-import ua.com.papers.crawler.core.domain.storage.IPageIndexRepository;
+import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
+import ua.com.papers.crawler.core.format.IFormatManagerFactory;
+import ua.com.papers.crawler.core.storage.IPageIndexRepository;
 import ua.com.papers.crawler.settings.Settings;
 
 import javax.annotation.Nullable;

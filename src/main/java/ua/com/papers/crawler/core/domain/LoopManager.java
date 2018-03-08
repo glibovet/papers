@@ -8,10 +8,10 @@ import lombok.experimental.NonFinal;
 import lombok.experimental.var;
 import lombok.extern.java.Log;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.analyze.IAnalyzeManager;
+import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.format.IFormatManager;
-import ua.com.papers.crawler.core.domain.select.IUrlExtractor;
+import ua.com.papers.crawler.core.format.IFormatManager;
+import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.settings.SchedulerSetting;
 import ua.com.papers.crawler.util.Preconditions;
 

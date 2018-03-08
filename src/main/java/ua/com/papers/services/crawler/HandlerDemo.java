@@ -5,12 +5,12 @@ import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.util.PageHandler;
 import ua.com.papers.crawler.util.PostHandle;
 import ua.com.papers.crawler.util.PreHandle;
-import ua.com.papers.crawler.util.Url;
 
 import javax.validation.constraints.NotNull;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * Created by Максим on 11/27/2016.
@@ -61,7 +61,7 @@ public class HandlerDemo {
     }
 
   //  @Handler(id = 3, converter = UrlAdapter.class)
-    public void onHandleImage(Url url) {
+    public void onHandleImage(URL url) {
         writeLine(url == null ? "Failed to parse url" : url.toString());
     }
 

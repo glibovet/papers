@@ -2,7 +2,7 @@ package ua.com.papers.crawler.util;
 
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.format.convert.IPartAdapter;
+import ua.com.papers.crawler.core.format.convert.IPartAdapter;
 
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.ElementType;

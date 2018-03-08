@@ -1,16 +1,17 @@
 package ua.com.papers.services.crawler.unit.repo;
 
+import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.val;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import ua.com.papers.crawler.core.domain.storage.IPageIndexRepository;
-import ua.com.papers.crawler.util.Url;
+import ua.com.papers.crawler.core.storage.IPageIndexRepository;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Date;
 import java.util.Iterator;
@@ -67,8 +68,9 @@ public final class IndexRepository implements IPageIndexRepository {
                 index.getContentHash());
     }
 
+    @SneakyThrows(MalformedURLException.class)
     private static Index toIndex(IndexEntity entity) {
-        return new Index(new DateTime(entity.getLastVisit().getTime()), new Url(entity.getUrl()).getUrl(), entity.getContentHash());
+        return new Index(new DateTime(entity.getLastVisit().getTime()), new URL(entity.getUrl()), entity.getContentHash());
     }
 
 }

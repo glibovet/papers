@@ -5,10 +5,10 @@ import lombok.Getter;
 import lombok.val;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import ua.com.papers.crawler.core.creator.ICrawlerFactory;
-import ua.com.papers.crawler.core.creator.ICrawlerManagerFactory;
-import ua.com.papers.crawler.core.creator.xml.AbstractClasspathXmlCrawlerManagerFactory;
-import ua.com.papers.crawler.core.creator.xml.XmlHelper;
+import ua.com.papers.crawler.core.factory.ICrawlerFactory;
+import ua.com.papers.crawler.core.factory.ICrawlerManagerFactory;
+import ua.com.papers.crawler.core.factory.xml.AbstractClasspathXmlCrawlerManagerFactory;
+import ua.com.papers.crawler.core.factory.xml.XmlHelper;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.settings.*;
 

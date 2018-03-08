@@ -1,8 +1,8 @@
 package ua.com.papers.services.crawler;
 
 import lombok.Value;
-import ua.com.papers.crawler.core.creator.ICrawlerManagerFactory;
-import ua.com.papers.crawler.core.domain.schedule.ICrawlerManager;
+import ua.com.papers.crawler.core.factory.ICrawlerManagerFactory;
+import ua.com.papers.crawler.core.schedule.ICrawlerManager;
 
 import java.util.Collection;
 
