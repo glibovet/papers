@@ -10,7 +10,8 @@ import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.format.IFormatManager;
+import ua.com.papers.crawler.core.processor.IFormatManager;
+import ua.com.papers.crawler.core.processor.exception.ProcessException;
 import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.settings.SchedulerSetting;
 import ua.com.papers.crawler.util.Preconditions;
@@ -178,7 +179,12 @@ final class LoopManager {
                                         }
                                     }
                                 });
-                        props.formatManager.processPage(result.getPageID(), page);
+
+                        try {
+                            props.formatManager.processPage(result.getPageID(), page);
+                        } catch (final ProcessException e) {
+
+                        }
                     }
             );
         }

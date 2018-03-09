@@ -7,7 +7,11 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.format.convert.StringAdapter;
+import ua.com.papers.crawler.core.processor.xml.annotation.Part;
+import ua.com.papers.crawler.core.processor.xml.annotation.PageHandler;
+import ua.com.papers.crawler.core.processor.xml.annotation.PostHandle;
+import ua.com.papers.crawler.core.processor.xml.annotation.PreHandle;
+import ua.com.papers.crawler.core.processor.convert.StringAdapter;
 import ua.com.papers.services.crawler.IHandlerCallback;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
@@ -102,7 +106,7 @@ public class UkmaPublisherHandler {
         }
     }
 
-    @Handler(id = 5, converter = StringAdapter.class)
+    @Part(id = 5, converter = StringAdapter.class)
     public void onHandlePubHouseTitle(String title) {
         log.log(Level.INFO, String.format("#onHandlePubHouseTitle %s, %s", getClass(), title));
 
@@ -113,7 +117,7 @@ public class UkmaPublisherHandler {
         }
     }
 
-    @Handler(id = 6, converter = StringAdapter.class)
+    @Part(id = 6, converter = StringAdapter.class)
     public void onHandlePubHouseCity(String city) {
         //todo finish
     }

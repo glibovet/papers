@@ -5,7 +5,7 @@ import ua.com.papers.crawler.core.domain.Crawler;
 import ua.com.papers.crawler.core.domain.ICrawlerPredicate;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
-import ua.com.papers.crawler.core.format.IFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
 import ua.com.papers.crawler.core.schedule.CrawlerManager;
 import ua.com.papers.crawler.core.schedule.ICrawlerManager;
 import ua.com.papers.crawler.core.select.IUrlExtractor;

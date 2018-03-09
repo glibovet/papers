@@ -9,7 +9,7 @@ import ua.com.papers.crawler.core.domain.ICrawlerPredicate;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.PageIndexer;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
-import ua.com.papers.crawler.core.format.IFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
 import ua.com.papers.crawler.core.storage.IPageIndexRepository;
 import ua.com.papers.crawler.settings.Settings;
 

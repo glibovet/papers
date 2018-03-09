@@ -5,7 +5,7 @@ import lombok.experimental.var;
 import lombok.val;
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.format.convert.IPartAdapter;
+import ua.com.papers.crawler.core.processor.convert.IPartAdapter;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
@@ -15,6 +15,11 @@ import java.net.URL;
  * Created by Максим on 1/8/2017.
  */
 public final class UrlAdapter implements IPartAdapter<URL> {
+
+    public static final UrlAdapter INSTANCE = new UrlAdapter();
+
+    private UrlAdapter() {
+    }
 
     @Override
     @NotNull

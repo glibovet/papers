@@ -9,7 +9,7 @@ import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.format.IFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
 import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.settings.Conditions;
 import ua.com.papers.crawler.settings.SchedulerSetting;

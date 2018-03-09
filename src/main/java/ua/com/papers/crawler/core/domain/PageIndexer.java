@@ -7,7 +7,8 @@ import lombok.extern.java.Log;
 import org.joda.time.DateTimeZone;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.format.IFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.exception.ProcessException;
 import ua.com.papers.crawler.core.storage.IPageIndexRepository;
 import ua.com.papers.crawler.settings.Conditions;
 import ua.com.papers.crawler.settings.SchedulerSetting;
@@ -104,7 +105,13 @@ public class PageIndexer implements IPageIndexer {
                         } else if (PageIndexer.hasChanges(page, index)) {
                             callback.onUpdated(page);
                             synchronized (lock) {
-                                indexRes.forEach(result -> formatManager.processPage(result.getPageID(), page));
+                                indexRes.forEach(result -> {
+                                    try {
+                                        formatManager.processPage(result.getPageID(), page);
+                                    } catch (ProcessException e) {
+
+                                    }
+                                });
                             }
                         } else {
                             callback.onIndexed(page);

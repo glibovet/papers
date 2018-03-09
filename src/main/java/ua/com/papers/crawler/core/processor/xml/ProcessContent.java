@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.format;
+package ua.com.papers.crawler.core.processor.xml;
 
 import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
@@ -19,13 +19,13 @@ import java.util.TreeMap;
  * Created by Максим on 12/17/2016.
  */
 @Value
-public class RawContent {
+public class ProcessContent {
 
     int pageID;
     @Getter(value = AccessLevel.NONE)
     Map<Integer, Element> idToPart;
 
-    public RawContent(int pageID) {
+    public ProcessContent(int pageID) {
         this.pageID = pageID;
         this.idToPart = new TreeMap<>();
     }

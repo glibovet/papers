@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.format.convert;
+package ua.com.papers.crawler.core.processor.convert;
 
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.domain.bo.Page;

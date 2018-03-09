@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.format;
+package ua.com.papers.crawler.core.processor.xml;
 
 import com.google.common.base.Preconditions;
 import lombok.Value;
@@ -51,7 +51,7 @@ public class PageFormatter implements IPageFormatter {
     }
 
     @Override
-    public List<RawContent> format(@NotNull PageID id, @NotNull Page page) {
+    public List<ProcessContent> format(@NotNull PageID id, @NotNull Page page) {
 
         mapper.page = page;
         mapper.allocSize = 0;
@@ -59,18 +59,18 @@ public class PageFormatter implements IPageFormatter {
         val idToParts = formatTemplates
                 .stream()
                 .collect(Collectors.toMap(FormatTemplate::getId, mapper));
-        val result = new ArrayList<RawContent>(mapper.allocSize);
+        val result = new ArrayList<ProcessContent>(mapper.allocSize);
 
         for(int i = 0; i < mapper.allocSize; ++i) {
 
-            RawContent content;
+            ProcessContent content;
 
             for (val partID : idToParts.keySet()) {
 
                 if (i == result.size() - 1) {
                     content = result.get(i);
                 } else {
-                    content = new RawContent(id.getId());
+                    content = new ProcessContent(id.getId());
                     result.add(content);
                 }
 

@@ -1,6 +1,8 @@
-package ua.com.papers.crawler.core.format;
+package ua.com.papers.crawler.core.processor.xml;
 
 import lombok.Value;
+import ua.com.papers.crawler.core.processor.IFormatManager;
+import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
 import ua.com.papers.crawler.settings.FormatTemplate;
 import ua.com.papers.crawler.settings.PageSetting;
 import ua.com.papers.crawler.settings.Settings;
@@ -17,12 +19,12 @@ import java.util.stream.Stream;
  * Created by Максим on 12/19/2016.
  */
 @Value
-public class FormatManagerFactory implements IFormatManagerFactory {
+public class XmlFormatManagerFactory implements IFormatManagerFactory {
 
     Collection<? extends FormatTemplate> templates;
     Settings settings;
 
-    public FormatManagerFactory(Settings settings) {
+    public XmlFormatManagerFactory(Settings settings) {
         this.settings = Preconditions.checkNotNull(settings);
         this.templates = Collections.unmodifiableCollection(settings.getPageSettings()
                 .stream()

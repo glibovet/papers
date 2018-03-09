@@ -2,6 +2,7 @@ package ua.com.papers.crawler.core.schedule;
 
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
+import ua.com.papers.crawler.core.processor.xml.annotation.PageHandler;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
@@ -20,7 +21,7 @@ public interface ICrawlerManager {
      * thread for if configuration allows this, in another case task will be inserted at the end of the job queue
      *
      * @param handlers      to process page parts, each handler should be annotated with
-     *                      {@linkplain ua.com.papers.crawler.util.PageHandler} or
+     *                      {@linkplain PageHandler} or
      *                      {@linkplain IllegalArgumentException} will be raised
      * @param crawlCallback callback to monitor progress status
      */
@@ -32,7 +33,7 @@ public interface ICrawlerManager {
      *
      * @param indexCallback callback to monitor indexing status
      * @param handlers      to process page parts, each handler should be annotated with
-     *                      {@linkplain ua.com.papers.crawler.util.PageHandler} or
+     *                      {@linkplain PageHandler} or
      *                      {@linkplain IllegalArgumentException} will be raised
      */
     void startIndexing(@NotNull Collection<Object> handlers, @NotNull IPageIndexer.Callback indexCallback);

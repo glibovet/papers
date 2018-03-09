@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.format;
+package ua.com.papers.crawler.core.processor.xml;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -6,20 +6,27 @@ import lombok.Value;
 import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.format.convert.IPartAdapter;
-import ua.com.papers.crawler.core.format.convert.StringAdapter;
 import ua.com.papers.crawler.core.domain.vo.PageID;
-import ua.com.papers.crawler.util.*;
+import ua.com.papers.crawler.core.processor.IFormatManager;
+import ua.com.papers.crawler.core.processor.convert.IPartAdapter;
+import ua.com.papers.crawler.core.processor.convert.SkipAdapter;
+import ua.com.papers.crawler.core.processor.convert.StringAdapter;
+import ua.com.papers.crawler.core.processor.util.ProcessorUtil;
+import ua.com.papers.crawler.core.processor.xml.annotation.PageHandler;
+import ua.com.papers.crawler.core.processor.xml.annotation.Part;
+import ua.com.papers.crawler.core.processor.xml.annotation.PostHandle;
+import ua.com.papers.crawler.core.processor.xml.annotation.PreHandle;
+import ua.com.papers.crawler.util.Preconditions;
+import ua.com.papers.crawler.util.Tuple;
+import ua.com.papers.services.crawler.UrlAdapter;
 
 import javax.validation.constraints.NotNull;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -66,7 +73,7 @@ public class FormatManager implements IFormatManager {
 
         @Override
         public void invoke() {
-            target.forEach(m -> FormatManager.invokeLifecycleMethod(m.getV1(), page, m.getV2()));
+            target.forEach(m -> ProcessorUtil.invokeLifecycleMethod(m.getV1(), page, m.getV2()));
         }
 
     }
@@ -79,9 +86,9 @@ public class FormatManager implements IFormatManager {
         List<Tuple<Method, Object>> preHandlers;
         List<Tuple<Method, Object>> handlers;
         List<Tuple<Method, Object>> postHandlers;
-        List<RawContent> content;
+        List<ProcessContent> content;
 
-        HandlerInvoker(int group, Page page, List<RawContent> contents) {
+        HandlerInvoker(int group, Page page, List<ProcessContent> contents) {
             this.group = group;
             this.page = page;
             this.content = Collections.unmodifiableList(contents);
@@ -91,7 +98,7 @@ public class FormatManager implements IFormatManager {
         }
 
         void addHandler(Method m, Object who) {
-            val actual = m.getAnnotation(Handler.class).group();
+            val actual = m.getAnnotation(Part.class).group();
             Preconditions.checkArgument(actual == group,
                     String.format("Illegal group, was %d, should be %d", actual, group));
             handlers.add(new Tuple<>(m, who));
@@ -116,24 +123,24 @@ public class FormatManager implements IFormatManager {
             // group
             content.forEach(raw -> {
                 // pre group
-                preHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m.getV1(), page, m.getV2()));
+                preHandlers.forEach(m -> ProcessorUtil.invokeLifecycleMethod(m.getV1(), page, m.getV2()));
 
                 val idToPart = raw.getIdToPart();
 
                 handlers.forEach(m -> {
 
-                    val annotation = m.getV1().getAnnotation(Handler.class);
+                    val annotation = m.getV1().getAnnotation(Part.class);
 
                     if (idToPart.containsKey(annotation.id())) {
 
                         val elem = idToPart.get(annotation.id());
                         val converter = getConverter(annotation.converter());
 
-                        FormatManager.invokeProcessMethod(m.getV1(), m.getV2(), converter.convert(elem, page));
+                        ProcessorUtil.invokeProcessMethod(m.getV1(), m.getV2(), converter.convert(elem, page));
                     }
                 });
                 // post group
-                postHandlers.forEach(m -> FormatManager.invokeLifecycleMethod(m.getV1(), page, m.getV2()));
+                postHandlers.forEach(m -> ProcessorUtil.invokeLifecycleMethod(m.getV1(), page, m.getV2()));
             });
         }
     }
@@ -152,8 +159,9 @@ public class FormatManager implements IFormatManager {
         cache = new HashMap<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>() {
             {
                 // register default converters
-                put(Handler.SkipAdapter.class, Handler.SkipAdapter.instance);
+                put(SkipAdapter.class, SkipAdapter.instance);
                 put(StringAdapter.class, StringAdapter.instance);
+                put(UrlAdapter.class, UrlAdapter.INSTANCE);
             }
         };
     }
@@ -247,7 +255,7 @@ public class FormatManager implements IFormatManager {
         return result;
     }
 
-    private List<HandlerInvoker> extractHandlerInvokers(Page page, Object h, List<RawContent> contents) {
+    private List<HandlerInvoker> extractHandlerInvokers(Page page, Object h, List<ProcessContent> contents) {
         val result = new ArrayList<HandlerInvoker>();
 
         for (val m : h.getClass().getMethods()) {
@@ -256,16 +264,16 @@ public class FormatManager implements IFormatManager {
             // annotated method doesn't have annotation at all or accepts one or zero arguments
             val pre = m.getAnnotation(PreHandle.class);
             val post = m.getAnnotation(PostHandle.class);
-            val part = m.getAnnotation(Handler.class);
+            val part = m.getAnnotation(Part.class);
 
             if (pre == null && post == null && part == null) continue;
 
-            // current method is annotated with @PostHandle, @PreHandle or @Handler
-            val group = part != null ? m.getAnnotation(Handler.class).group()
+            // current method is annotated with @PostHandle, @PreHandle or @Part
+            val group = part != null ? m.getAnnotation(Part.class).group()
                     : (post != null ? m.getAnnotation(PostHandle.class).group()
                     : m.getAnnotation(PreHandle.class).group());
 
-            if ((group == Handler.PAGE && part != null) || group != Handler.PAGE) {
+            if ((group == Part.PAGE && part != null) || group != Part.PAGE) {
 
                 // such methods were already registered
                 // for later invocation
@@ -306,30 +314,20 @@ public class FormatManager implements IFormatManager {
     private static void checkMethod(Method method, Object handler) {
         val argsLen = method.getParameterTypes().length;
         // annotated method doesn't have annotation at all or accepts one or zero arguments
-        val preCond = FormatManager.checkLifecycleMethod(PreHandle.class, method);
-        val postCond = FormatManager.checkLifecycleMethod(PostHandle.class, method);
-        val partCond = method.getAnnotation(Handler.class) != null;
+        val preCond = ProcessorUtil.checkLifecycleMethod(PreHandle.class, method);
+        val postCond = ProcessorUtil.checkLifecycleMethod(PostHandle.class, method);
+        val partCond = method.getAnnotation(Part.class) != null;
 
         Preconditions.checkArgument(!partCond || argsLen == 1, String.format(
-                "Method annotated with %s can accept exactly one argument (see converter generic param)", Handler.class));
+                "Method annotated with %s can accept exactly one argument (see converter generic param)", Part.class));
         // annotations counter
-        val cnt = plusOne(preCond) + plusOne(postCond) + plusOne(partCond);
+        val cnt = ProcessorUtil.plusOne(preCond) + ProcessorUtil.plusOne(postCond) + ProcessorUtil.plusOne(partCond);
 
         if (cnt > 1)
             // only one annotation allowed per method!
             throw new IllegalStateException(
                     String.format("two or more annotations %s, %s, %s on method %s in class %s",
-                            PreHandle.class, PostHandle.class, Handler.class, method, handler.getClass()));
-    }
-
-    private static boolean checkLifecycleMethod(Class<? extends Annotation> a, Method m) {
-        val present = m.isAnnotationPresent(a);
-
-        if (present) {
-            Preconditions.checkArgument(m.getParameterTypes().length <= 1, String.format(
-                    "Method annotated with %s should either have zero or one argument of %s", a, Page.class));
-        }
-        return present;
+                            PreHandle.class, PostHandle.class, Part.class, method, handler.getClass()));
     }
 
     private IPartAdapter<?> getConverter(Class<? extends IPartAdapter<?>> cl) {
@@ -368,38 +366,6 @@ public class FormatManager implements IFormatManager {
         } finally {
             cacheLock.writeLock().unlock();
         }
-    }
-
-    private static void invokeLifecycleMethod(Method m, Page page, Object who) {
-        val args = m.getParameterTypes();
-
-        try {
-
-            if (args.length == 1 && args[0].isAssignableFrom(Page.class)) {
-                m.invoke(who, page);
-            } else {
-                m.invoke(who);
-            }
-        } catch (final Exception e) {
-            log.log(Level.SEVERE, String.format("Failed to invoke method %s for class %s", m, who.getClass()), e);
-            // finish with error!
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void invokeProcessMethod(Method m, Object who, Object arg) {
-
-        try {
-            m.invoke(who, arg);
-        } catch (final Exception e) {
-            log.log(Level.SEVERE, String.format("Failed to invoke method %s for class %s", m, who.getClass()), e);
-            // finish with error!
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static int plusOne(boolean bool) {
-        return bool ? 1 : 0;
     }
 
     private static void checkHandlers(Collection<Object> handlers) {

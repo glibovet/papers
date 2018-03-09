@@ -10,6 +10,10 @@ import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.processor.xml.annotation.Part;
+import ua.com.papers.crawler.core.processor.xml.annotation.PageHandler;
+import ua.com.papers.crawler.core.processor.xml.annotation.PostHandle;
+import ua.com.papers.crawler.core.processor.xml.annotation.PreHandle;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -119,13 +123,13 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
         }
     }
 
-    @Handler(id = 6, converter = UrlAdapter.class)
+    @Part(id = 6, converter = UrlAdapter.class)
     public void onHandleUri(URL link) {
         log.log(Level.INFO, "onHandleUri " + link);
         publicationView.setFile_link(link.toExternalForm());
     }
 
-    @Handler(id = 7)
+    @Part(id = 7)
     public void onHandleAuthors(Element authors) {
         log.log(Level.INFO, "onHandleAuthors " + authors.ownText());
 
@@ -143,7 +147,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
         }
     }
 
-    @Handler(id = 8)
+    @Part(id = 8)
     public void onHandlePublishers(Element publisher) throws Exception {
         log.log(Level.INFO, "onHandlePublisher " + publisher.ownText());
 
@@ -155,7 +159,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
         }
     }
 
-    @Handler(id = 9)
+    @Part(id = 9)
     public void onHandleTitle(Element title) {
         log.log(Level.INFO, "onHandleTitle " + title);
         publicationView.setTitle(title.ownText().trim());

@@ -7,8 +7,8 @@ import ua.com.papers.crawler.core.analyze.AnalyzeManager;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.analyze.IPageAnalyzer;
 import ua.com.papers.crawler.core.analyze.PageAnalyzer;
-import ua.com.papers.crawler.core.format.FormatManagerFactory;
-import ua.com.papers.crawler.core.format.IFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.xml.XmlFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
 import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.core.select.UrlExtractor;
 import ua.com.papers.crawler.core.storage.InMemoryRepo;
@@ -55,7 +55,7 @@ public class SimpleCrawlerFactory extends AbstractCrawlerFactory {
 
     @Override
     protected IFormatManagerFactory createFormatFactory(@NotNull Settings settings) {
-        return new FormatManagerFactory(settings);
+        return new XmlFormatManagerFactory(settings);
     }
 
     @Override

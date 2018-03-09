@@ -1,8 +1,7 @@
-package ua.com.papers.crawler.util;
+package ua.com.papers.crawler.core.processor.xml.annotation;
 
-import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.format.convert.IPartAdapter;
+import ua.com.papers.crawler.core.processor.convert.IPartAdapter;
+import ua.com.papers.crawler.core.processor.convert.SkipAdapter;
 
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.ElementType;
@@ -19,23 +18,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Handler {
-    /**
-     * Just returns element as it was passed without
-     * modifications
-     */
-    class SkipAdapter implements IPartAdapter<Element> {
-
-        public static final SkipAdapter instance = new SkipAdapter();
-
-        private SkipAdapter() {
-        }
-
-        @Override
-        public Element convert(@NotNull Element element, Page page) {
-            return element;
-        }
-    }
+public @interface Part {
 
     int PAGE = 0;
 

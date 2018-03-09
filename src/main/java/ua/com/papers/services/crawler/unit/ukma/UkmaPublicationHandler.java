@@ -9,7 +9,11 @@ import lombok.extern.java.Log;
 import lombok.val;
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.format.convert.StringAdapter;
+import ua.com.papers.crawler.core.processor.xml.annotation.Part;
+import ua.com.papers.crawler.core.processor.xml.annotation.PageHandler;
+import ua.com.papers.crawler.core.processor.xml.annotation.PostHandle;
+import ua.com.papers.crawler.core.processor.xml.annotation.PreHandle;
+import ua.com.papers.crawler.core.processor.convert.StringAdapter;
 import ua.com.papers.services.crawler.BasePublicationHandler;
 import ua.com.papers.services.crawler.IHandlerCallback;
 import ua.com.papers.services.crawler.UrlAdapter;
@@ -87,7 +91,7 @@ public class UkmaPublicationHandler extends BasePublicationHandler {
         log.log(Level.INFO, String.format("#onPageEnd %s, url %s", getClass(), page.getUrl()));
     }
 
-    @Handler(id = 7, group = GROUP_ID)
+    @Part(id = 7, group = GROUP_ID)
     public void onHandleTitle(Element element) {
         log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
 
@@ -99,13 +103,13 @@ public class UkmaPublicationHandler extends BasePublicationHandler {
         publicationView.setTitle(text);
     }
 
-    @Handler(id = 8, converter = StringAdapter.class, group = GROUP_ID)
+    @Part(id = 8, converter = StringAdapter.class, group = GROUP_ID)
     public void onHandleAuthors(String authorsStr) {
         log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authorsStr));
         publicationView.setAuthors_id(getAuthorIdsByNames(authorsStr.trim().replaceAll("\\s*,\\s*", ",").split(",")));
     }
 
-    @Handler(id = 9, converter = UrlAdapter.class, group = GROUP_ID)
+    @Part(id = 9, converter = UrlAdapter.class, group = GROUP_ID)
     public void onHandleUrl(URL url) {
         log.log(Level.INFO, String.format("#onHandleUrl %s, %s", getClass(), url));
 

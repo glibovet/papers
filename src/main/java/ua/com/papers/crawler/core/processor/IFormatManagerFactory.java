@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.format;
+package ua.com.papers.crawler.core.processor;
 
 import org.springframework.validation.annotation.Validated;
 

@@ -2,7 +2,7 @@ package ua.com.papers.crawler.core.domain;
 
 
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.util.PageHandler;
+import ua.com.papers.crawler.core.processor.xml.annotation.PageHandler;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;

@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.format;
+package ua.com.papers.crawler.core.processor.xml;
 
 import org.springframework.validation.annotation.Validated;
 import ua.com.papers.crawler.core.domain.bo.Page;
@@ -19,9 +19,9 @@ public interface IPageFormatter {
      *
      * @param id   page id
      * @param page page to map
-     * @return the list of {@linkplain RawContent}
+     * @return the list of {@linkplain ProcessContent}
      */
     @NotNull
-    List<RawContent> format(@NotNull PageID id, @NotNull Page page);
+    List<ProcessContent> format(@NotNull PageID id, @NotNull Page page);
 
 }
