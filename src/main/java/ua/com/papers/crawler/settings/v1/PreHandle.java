@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.processor.xml.annotation;
+package ua.com.papers.crawler.settings.v1;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -8,14 +8,14 @@ import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.core.processor.IFormatManager;
-import ua.com.papers.crawler.core.processor.convert.IPartAdapter;
+import ua.com.papers.crawler.core.processor.convert.Converter;
 import ua.com.papers.crawler.core.processor.convert.SkipAdapter;
 import ua.com.papers.crawler.core.processor.convert.StringAdapter;
 import ua.com.papers.crawler.core.processor.util.ProcessorUtil;
-import ua.com.papers.crawler.core.processor.xml.annotation.PageHandler;
-import ua.com.papers.crawler.core.processor.xml.annotation.Part;
-import ua.com.papers.crawler.core.processor.xml.annotation.PostHandle;
-import ua.com.papers.crawler.core.processor.xml.annotation.PreHandle;
+import ua.com.papers.crawler.settings.v1.PageHandler;
+import ua.com.papers.crawler.settings.v1.Part;
+import ua.com.papers.crawler.settings.v1.PostHandle;
+import ua.com.papers.crawler.settings.v1.PreHandle;
 import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.crawler.util.Tuple;
 import ua.com.papers.services.crawler.UrlAdapter;
@@ -46,7 +46,7 @@ public class FormatManager implements IFormatManager {
     /**
      * Map of cached converters
      */
-    Map<Class<? extends IPartAdapter<?>>, IPartAdapter<?>> cache;
+    Map<Class<? extends Converter<?>>, Converter<?>> cache;
     ReentrantReadWriteLock cacheLock;
 
     private interface Invoker {
@@ -156,7 +156,7 @@ public class FormatManager implements IFormatManager {
                 );
 
         cacheLock = new ReentrantReadWriteLock();
-        cache = new HashMap<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>() {
+        cache = new HashMap<Class<? extends Converter<?>>, Converter<?>>() {
             {
                 // register default converters
                 put(SkipAdapter.class, SkipAdapter.instance);
@@ -168,15 +168,15 @@ public class FormatManager implements IFormatManager {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void registerAdapter(@NotNull IPartAdapter<?> adapter) {
+    public void registerAdapter(@NotNull Converter<?> adapter) {
         Preconditions.checkNotNull(adapter);
         writeIntoCache(cache -> {
-            cache.put((Class<? extends IPartAdapter<?>>) adapter.getClass(), adapter);
+            cache.put((Class<? extends Converter<?>>) adapter.getClass(), adapter);
         });
     }
 
     @Override
-    public void unregisterAdapter(@NotNull Class<? extends IPartAdapter<?>> cl) {
+    public void unregisterAdapter(@NotNull Class<? extends Converter<?>> cl) {
         Preconditions.checkNotNull(cl);
 
         writeIntoCache(cache -> {
@@ -185,7 +185,7 @@ public class FormatManager implements IFormatManager {
     }
 
     @Override
-    public Set<? extends IPartAdapter<?>> getRegisteredAdapters() {
+    public Set<? extends Converter<?>> getRegisteredAdapters() {
         try {
             cacheLock.readLock().lock();
             return Collections.unmodifiableSet(new HashSet<>(cache.values()));
@@ -330,9 +330,9 @@ public class FormatManager implements IFormatManager {
                             PreHandle.class, PostHandle.class, Part.class, method, handler.getClass()));
     }
 
-    private IPartAdapter<?> getConverter(Class<? extends IPartAdapter<?>> cl) {
+    private Converter<?> getConverter(Class<? extends Converter<?>> cl) {
         return writeIntoCache(cache -> {
-            IPartAdapter<?> cached = cache.get(cl);
+            Converter<?> cached = cache.get(cl);
 
             if (cached == null) {
                 // such converter wasn't found in cache
@@ -350,7 +350,7 @@ public class FormatManager implements IFormatManager {
         });
     }
 
-    private void writeIntoCache(Consumer<Map<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>> function) {
+    private void writeIntoCache(Consumer<Map<Class<? extends Converter<?>>, Converter<?>>> function) {
         try {
             cacheLock.writeLock().lock();
             function.accept(cache);
@@ -359,7 +359,7 @@ public class FormatManager implements IFormatManager {
         }
     }
 
-    private <R> R writeIntoCache(Function<Map<Class<? extends IPartAdapter<?>>, IPartAdapter<?>>, R> function) {
+    private <R> R writeIntoCache(Function<Map<Class<? extends Converter<?>>, Converter<?>>, R> function) {
         try {
             cacheLock.writeLock().lock();
             return function.apply(cache);

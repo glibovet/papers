@@ -64,7 +64,7 @@ final class LoopManager {
         this.props = props;
         this.urls = new LinkedList<>();
         this.acceptedCnt = new AtomicInteger(0);
-        this.crawledUrls = new TreeSet<>((o1, o2) -> o1.toExternalForm().compareTo(o2.toExternalForm()));
+        this.crawledUrls = new TreeSet<>(Comparator.comparing(URL::toExternalForm));
         this.activeLoopers = new AtomicInteger(0);
         this.pendingLoopers = new HashSet<>(props.schedulerSetting.getIndexThreads());
         this.randomizer = new Random();
@@ -98,7 +98,9 @@ final class LoopManager {
     synchronized void stop() {
         try {
             isRunning = false;
-            // drop all pending urls
+            // drop all pending urls if any
+            log.log(Level.INFO, String.format("Dropping %d pending urls", urls.size()));
+
             while (urls.poll() != null) ;
 
             if (executor != null) {
@@ -106,7 +108,7 @@ final class LoopManager {
                 executor.awaitTermination(10, TimeUnit.SECONDS);
             }
         } catch (final InterruptedException e) {
-            log.log(Level.WARNING, "Stopped unexpectedly", e);
+            log.log(Level.INFO, "Looper stopped", e);
         }
     }
 
@@ -114,13 +116,14 @@ final class LoopManager {
     synchronized Optional<URL> pollUrl() {
         var polled = Optional.<URL>empty();
         val pendingUrls = urls.size();
-        val canRun = isRunning && props.predicate.canRun(crawledUrls, acceptedCnt.get())
-                && pendingUrls > 0;
+        val predicate = props.predicate.canRun(crawledUrls, acceptedCnt.get());
 
-        if (canRun) {
+        if (isRunning && predicate && pendingUrls > 0) {
             return Optional.of(urls.get(randomizer.nextInt(pendingUrls)));
         }
 
+        log.log(Level.INFO, String.format("Stopping crawler, pending urls %d, predicate returned %b, running %b",
+                pendingUrls, predicate, isRunning));
         return polled;
     }
 
@@ -171,7 +174,7 @@ final class LoopManager {
 
             analyzeRes.forEach(result -> {
                         // add urls to processing queue
-                        props.urlExtractor.extract(result.getPageID(), page)
+                        props.urlExtractor.extract(result.getId(), page)
                                 .forEach(url -> {
                                     synchronized (LoopManager.this) {
                                         if ( /*log N < N*/ !crawledUrls.contains(url) && !urls.contains(url)) {
@@ -181,9 +184,9 @@ final class LoopManager {
                                 });
 
                         try {
-                            props.formatManager.processPage(result.getPageID(), page);
+                            props.formatManager.processPage(result.getId(), page);
                         } catch (final ProcessException e) {
-
+                            log.log(Level.WARNING, String.format("format manager thrown an exception while handling page %s", page.getUrl()), e);
                         }
                     }
             );

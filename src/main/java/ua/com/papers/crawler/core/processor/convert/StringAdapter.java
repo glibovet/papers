@@ -8,11 +8,16 @@ import javax.validation.constraints.NotNull;
 /**
  * Created by Максим on 1/8/2017.
  */
-public final class StringAdapter implements IPartAdapter<String> {
+public final class StringAdapter implements Converter<String> {
 
     public static final StringAdapter instance = new StringAdapter();
 
     private StringAdapter() {}
+
+    @Override
+    public Class<? extends String> converts() {
+        return String.class;
+    }
 
     @Override
     public String convert(@NotNull Element element, Page page) {

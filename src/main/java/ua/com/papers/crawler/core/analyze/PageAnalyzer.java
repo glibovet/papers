@@ -1,16 +1,19 @@
 package ua.com.papers.crawler.core.analyze;
 
-import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.Value;
 import lombok.experimental.var;
 import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.settings.AnalyzeTemplate;
+import ua.com.papers.crawler.settings.AnalyzeWeight;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * <p>
@@ -22,29 +25,29 @@ import java.util.Collections;
 public class PageAnalyzer implements IPageAnalyzer {
 
     PageID pageID;
-    Collection<? extends AnalyzeTemplate> templates;
-    int minSum;
+    Set<? extends AnalyzeTemplate> templates;
+    AnalyzeWeight minWeight;
 
-    public PageAnalyzer(int minSum, @NotNull PageID pageID, @NotNull Collection<? extends AnalyzeTemplate> templates) {
-
-        if (minSum < 0)
-            throw new IllegalArgumentException(
-                    String.format("min sum < 0, was %d", minSum));
-
-        this.minSum = minSum;
-        this.pageID = Preconditions.checkNotNull(pageID);
-        this.templates = Collections.unmodifiableCollection(Preconditions.checkNotNull(templates));
+    public PageAnalyzer(@NonNull AnalyzeWeight minSum, @NonNull PageID pageID, @NonNull Collection<? extends AnalyzeTemplate> templates) {
+        this.minWeight = minSum;
+        this.pageID = pageID;
+        this.templates = Collections.unmodifiableSet(new HashSet<>(templates));
     }
 
     @Override
     public Result analyze(@NotNull Page page) {
-
         val doc = page.toDocument();
         var weightSum = 0;
+        val matchedRules = new HashSet<AnalyzeTemplate>();
 
         for (val template : templates) {
-            weightSum += doc.select(template.getCssSelector()).size() * template.getWeight();
+            val elements = doc.select(template.getCssSelector());
+
+            if (elements.size() > 0) {
+                matchedRules.add(template);
+                weightSum += elements.size() * template.getWeight();
+            }
         }
-        return new Result(pageID, weightSum);
+        return new Result(pageID, Weight.ofValue(weightSum), minWeight, matchedRules, templates);
     }
 }

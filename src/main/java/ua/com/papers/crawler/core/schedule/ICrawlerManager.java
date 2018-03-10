@@ -2,7 +2,7 @@ package ua.com.papers.crawler.core.schedule;
 
 import ua.com.papers.crawler.core.domain.ICrawler;
 import ua.com.papers.crawler.core.domain.IPageIndexer;
-import ua.com.papers.crawler.core.processor.xml.annotation.PageHandler;
+import ua.com.papers.crawler.settings.v1.PageHandler;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
@@ -14,6 +14,7 @@ import java.util.Collection;
  * </p>
  * Created by Максим on 12/28/2016.
  */
+@Deprecated
 public interface ICrawlerManager {
 
     /**

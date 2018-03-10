@@ -1,6 +1,6 @@
-package ua.com.papers.crawler.core.processor.xml.annotation;
+package ua.com.papers.crawler.settings.v1;
 
-import ua.com.papers.crawler.core.processor.convert.IPartAdapter;
+import ua.com.papers.crawler.core.processor.convert.Converter;
 import ua.com.papers.crawler.core.processor.convert.SkipAdapter;
 
 import javax.validation.constraints.NotNull;
@@ -37,6 +37,6 @@ public @interface Part {
      * into method argument. By default page content part will be returned
      */
     @NotNull
-    Class<? extends IPartAdapter<?>> converter() default SkipAdapter.class;
+    Class<? extends Converter<?>> converter() default SkipAdapter.class;
 
 }

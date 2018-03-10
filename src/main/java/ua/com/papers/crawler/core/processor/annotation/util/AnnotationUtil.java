@@ -2,10 +2,10 @@ package ua.com.papers.crawler.core.processor.annotation.util;
 
 import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.processor.annotation.process.OnHandle;
+import ua.com.papers.crawler.settings.v2.process.AfterPage;
+import ua.com.papers.crawler.settings.v2.process.BeforePage;
+import ua.com.papers.crawler.settings.v2.process.Handles;
 import ua.com.papers.crawler.core.processor.util.ProcessorUtil;
-import ua.com.papers.crawler.core.processor.xml.annotation.PostHandle;
-import ua.com.papers.crawler.core.processor.xml.annotation.PreHandle;
 import ua.com.papers.crawler.util.Preconditions;
 
 import java.lang.reflect.*;
@@ -17,29 +17,35 @@ public final class AnnotationUtil {
         throw new RuntimeException();
     }
 
+    /**
+     * Checks whether given method is valid for later processing.
+     * The method is considered to be a valid if it either annotated with
+     * {@linkplain BeforePage} or {@linkplain AfterPage} and has <= 1 argument of type {@linkplain Page}
+     * or it is annotated with {@linkplain Handles}, has 1 or 2 arguments, one of which is of type {@linkplain Page}
+     */
     public static void checkMethodOrThrow(Method method, Object handler) {
         val argsLen = method.getParameterTypes().length;
         // annotated method doesn't have annotation at all or accepts one or zero arguments
-        val preCond = ProcessorUtil.checkLifecycleMethod(PreHandle.class, method);
-        val postCond = ProcessorUtil.checkLifecycleMethod(PostHandle.class, method);
-        val partCond = method.getAnnotation(OnHandle.class) != null;
+        val preCond = ProcessorUtil.checkLifecycleMethod(BeforePage.class, method);
+        val postCond = ProcessorUtil.checkLifecycleMethod(AfterPage.class, method);
+        val partCond = method.getAnnotation(Handles.class) != null;
 
         Preconditions.checkArgument(!partCond || argsLen == 1 || argsLen == 2,
                 String.format("Method annotated with %s can accept one or two arguments:" +
-                        " void foo(t T, [arg1 %s])", OnHandle.class, Page.class.getName()));
+                        " void foo(t T, [arg1 %s])", Handles.class, Page.class.getName()));
 
         // annotations counter
-        val count = Arrays.stream(new Boolean[]{preCond, postCond, partCond}).map(b -> b ? 1 : 0).count();
+        val count = Arrays.stream(new Boolean[]{preCond, postCond, partCond}).filter(b -> b).count();
 
         if (count > 1) {
             // only one annotation allowed per method!
             throw new IllegalStateException(
                     String.format("two or more annotations %s, %s, %s on method %s in class %s",
-                            PreHandle.class, PostHandle.class, OnHandle.class, method, handler.getClass()));
+                            BeforePage.class, AfterPage.class, Handles.class, method, handler.getClass()));
         }
     }
 
-    public static Class<?> getRawType(Type type) {
+    /*public static Class<?> getRawType(Type type) {
         Preconditions.checkNotNull(type, "type == null");
 
         if (type instanceof Class<?>) {
@@ -70,6 +76,6 @@ public final class AnnotationUtil {
 
         throw new IllegalArgumentException("Expected a Class, ParameterizedType, or "
                 + "GenericArrayType, but <" + type + "> is of type " + type.getClass().getName());
-    }
+    }*/
 
 }

@@ -107,9 +107,9 @@ public class PageIndexer implements IPageIndexer {
                             synchronized (lock) {
                                 indexRes.forEach(result -> {
                                     try {
-                                        formatManager.processPage(result.getPageID(), page);
+                                        formatManager.processPage(result.getId(), page);
                                     } catch (ProcessException e) {
-
+                                        e.printStackTrace();
                                     }
                                 });
                             }

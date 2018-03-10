@@ -4,10 +4,10 @@ import lombok.NonNull;
 import lombok.Value;
 import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.processor.annotation.process.AfterPage;
-import ua.com.papers.crawler.core.processor.annotation.process.BeforePage;
-import ua.com.papers.crawler.core.processor.annotation.process.OnHandle;
-import ua.com.papers.crawler.core.processor.convert.IPartAdapter;
+import ua.com.papers.crawler.settings.v2.process.AfterPage;
+import ua.com.papers.crawler.settings.v2.process.BeforePage;
+import ua.com.papers.crawler.settings.v2.process.Handles;
+import ua.com.papers.crawler.core.processor.convert.Converter;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -20,20 +20,21 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-final class HandlerInvoker implements Invokeable {
-    private final Collection<? extends Invokeable> beforeInvokers;
-    private final Collection<? extends Invokeable> afterInvokers;
+final class HandlerInvoker implements Invoker {
+    private final Collection<? extends Invoker> beforeInvokers;
+    private final Collection<? extends Invoker> afterInvokers;
     private final Map<Integer, ProcessInvokeExecutor> processInvokers;
 
-    HandlerInvoker(@NonNull Object handler, @NonNull Function<Class<?>, IPartAdapter<?>> supplier) {
-        val mapped = mapMethods(handler, supplier);
+    <T> HandlerInvoker(@NonNull Object handler, @NonNull Function<Class<T>, Converter<T>> rawTypeAdapterSupplier,
+                   @NonNull Function<Class<? extends Converter<T>>, Converter<T>> adapterSupplier) {
+        val mapped = mapMethods(handler, rawTypeAdapterSupplier, adapterSupplier);
 
         this.beforeInvokers = mapped.get(BeforePage.class);
         this.afterInvokers = mapped.get(AfterPage.class);
         // cast to process invokers
-        this.processInvokers = mapped.get(OnHandle.class).stream().map(i -> (ProcessInvoker) i)
+        this.processInvokers = mapped.get(Handles.class).stream().map(i -> (ProcessInvoker) i)
                 // Map<Int, List<ProcessInvoker>>
-                .collect(Collectors.groupingBy(i -> i.getOnHandle().group(), Collectors.toList()))
+                .collect(Collectors.groupingBy(i -> i.getHandles().group(), Collectors.toList()))
                 // Map<Int, ProcessInvokeExecutor>
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, v -> new ProcessInvokeExecutor(v.getValue())));
     }
@@ -53,24 +54,27 @@ final class HandlerInvoker implements Invokeable {
         }
     }
 
-    private Map<Class<? extends Annotation>, ? extends Collection<Invokeable>> mapMethods(Object handler, Function<Class<?>, IPartAdapter<?>> supplier) {
-        val map = new HashMap<Class<? extends Annotation>, ArrayList<Invokeable>>() {
+    private <T> Map<Class<? extends Annotation>, ? extends Collection<Invoker>>
+    mapMethods(Object handler, Function<Class<T>, Converter<T>> rawTypeAdapterSupplier,
+               @NonNull Function<Class<? extends Converter<T>>, Converter<T>> adapterSupplier) {
+
+        val map = new HashMap<Class<? extends Annotation>, ArrayList<Invoker>>() {
             {
                 put(BeforePage.class, new ArrayList<>(1));
                 put(AfterPage.class, new ArrayList<>(1));
-                put(OnHandle.class, new ArrayList<>(1));
+                put(Handles.class, new ArrayList<>(1));
             }
         };
 
         @Value
-        class Remapper implements BiFunction<Class<? extends Annotation>, ArrayList<Invokeable>, ArrayList<Invokeable>> {
+        class Remapper implements BiFunction<Class<? extends Annotation>, ArrayList<Invoker>, ArrayList<Invoker>> {
             Method method;
             Object target;
 
             @Override
-            public ArrayList<Invokeable> apply(Class<? extends Annotation> aClass, ArrayList<Invokeable> methods) {
-                if (aClass == OnHandle.class) {
-                    methods.add(new ProcessInvoker(method, target, supplier));
+            public ArrayList<Invoker> apply(Class<? extends Annotation> aClass, ArrayList<Invoker> methods) {
+                if (aClass == Handles.class) {
+                    methods.add(new ProcessInvoker(method, target, rawTypeAdapterSupplier, adapterSupplier));
                 } else {
                     methods.add(new LifecycleInvoker(method, target, aClass));
                 }
@@ -86,8 +90,8 @@ final class HandlerInvoker implements Invokeable {
             } else if (method.isAnnotationPresent(AfterPage.class)) {
                 map.compute(AfterPage.class, new Remapper(method, handler));
 
-            } else if (method.isAnnotationPresent(OnHandle.class)) {
-                map.compute(OnHandle.class, new Remapper(method, handler));
+            } else if (method.isAnnotationPresent(Handles.class)) {
+                map.compute(Handles.class, new Remapper(method, handler));
             }
         }
 

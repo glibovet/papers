@@ -9,12 +9,17 @@ import lombok.val;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.processor.xml.annotation.Part;
-import ua.com.papers.crawler.core.processor.xml.annotation.PageHandler;
-import ua.com.papers.crawler.core.processor.xml.annotation.PostHandle;
-import ua.com.papers.crawler.core.processor.xml.annotation.PreHandle;
-import ua.com.papers.crawler.util.*;
+import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
+import ua.com.papers.crawler.settings.v2.Page;
+import ua.com.papers.crawler.settings.v1.PageHandler;
+import ua.com.papers.crawler.settings.v1.Part;
+import ua.com.papers.crawler.settings.v1.PostHandle;
+import ua.com.papers.crawler.settings.v1.PreHandle;
+import ua.com.papers.crawler.settings.v2.process.AfterPage;
+import ua.com.papers.crawler.settings.v2.process.BeforePage;
+import ua.com.papers.crawler.settings.v2.process.Handles;
+import ua.com.papers.crawler.util.Preconditions;
+import ua.com.papers.crawler.util.TextUtils;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
@@ -34,7 +39,10 @@ import ua.com.papers.utils.ResultCallback;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -45,6 +53,7 @@ import java.util.stream.Collectors;
 @Log
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Component
+@Page(id = 2, analyzers = @ContentAnalyzer(selector = "*"))
 public final class NbuvArticleHandler extends BasePublicationHandler {
 
     IPublisherService publisherService;
@@ -67,7 +76,8 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
     }
 
     @PreHandle
-    public void onPrepare(Page page) throws WrongRestrictionException {
+    @BeforePage
+    public void onPrepare(ua.com.papers.crawler.core.domain.bo.Page page) throws WrongRestrictionException {
         log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
 
         if (titleToId == null) {
@@ -94,7 +104,8 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
     }
 
     @PostHandle
-    public void onPageParsed(Page page) {
+    @AfterPage
+    public void onPageParsed(ua.com.papers.crawler.core.domain.bo.Page page) {
         log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
         // save parsed page link
         publicationView.setLink(page.getUrl().toExternalForm());
@@ -124,12 +135,14 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
     }
 
     @Part(id = 6, converter = UrlAdapter.class)
+    @Handles(group = 6, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > div > div > div.file-link > a")
     public void onHandleUri(URL link) {
         log.log(Level.INFO, "onHandleUri " + link);
         publicationView.setFile_link(link.toExternalForm());
     }
 
     @Part(id = 7)
+    @Handles(group = 7, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.contributor.author)) > td:nth-child(2)")
     public void onHandleAuthors(Element authors) {
         log.log(Level.INFO, "onHandleAuthors " + authors.ownText());
 
@@ -148,6 +161,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
     }
 
     @Part(id = 8)
+    @Handles(group = 8, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.publisher)) > td:nth-child(2)")
     public void onHandlePublishers(Element publisher) throws Exception {
         log.log(Level.INFO, "onHandlePublisher " + publisher.ownText());
 
@@ -160,6 +174,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
     }
 
     @Part(id = 9)
+    @Handles(group = 9, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.title)) > td:nth-child(2)")
     public void onHandleTitle(Element title) {
         log.log(Level.INFO, "onHandleTitle " + title);
         publicationView.setTitle(title.ownText().trim());

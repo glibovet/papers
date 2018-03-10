@@ -18,27 +18,22 @@ import java.util.Collection;
 @Builder(builderClassName = "Builder")
 public final class PageSetting {
 
-    public static final int MIN_WEIGHT = 0;
-    public static final int MAX_WEIGHT = 100;
-    public static final int DEFAULT_WEIGHT = 70;
-
     PageID id;
-    int minWeight;
+    AnalyzeWeight minWeight;
     @Singular
     Collection<? extends AnalyzeTemplate> analyzeTemplates;
     @Singular
+    @Deprecated
     Collection<? extends FormatTemplate> formatTemplates;
     @Singular
     Collection<? extends UrlSelectSetting> selectSettings;
 
-    private PageSetting(PageID id, int minWeight,
+    private PageSetting(PageID id, AnalyzeWeight minWeight,
                         Collection<? extends AnalyzeTemplate> analyzeTemplates,
                         Collection<? extends FormatTemplate> formatTemplates,
                         Collection<? extends UrlSelectSetting> selectSettings) {
 
-        if (minWeight < MIN_WEIGHT || minWeight > MAX_WEIGHT)
-            throw new IllegalArgumentException(
-                    String.format("weight < %d || weight > %d, was %s", MIN_WEIGHT, MAX_WEIGHT, minWeight));
+
 
         if (Preconditions.checkNotNull(analyzeTemplates, "analyze templates == null")
                 .isEmpty())

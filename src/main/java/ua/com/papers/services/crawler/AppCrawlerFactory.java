@@ -10,6 +10,7 @@ import ua.com.papers.crawler.core.domain.IPageIndexer;
 import ua.com.papers.crawler.core.domain.PageIndexer;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.annotation.AnnotationFormatManagerFactory;
 import ua.com.papers.crawler.core.storage.IPageIndexRepository;
 import ua.com.papers.crawler.settings.Settings;
 
@@ -34,6 +35,11 @@ public class AppCrawlerFactory extends SimpleCrawlerFactory {
     @Override
     protected ICrawlerPredicate createRunPredicate() {
         return (visitedUrls, acceptedPages) -> Runtime.getRuntime().freeMemory() > Crawler.getMinFreeMemory();
+    }
+
+    @Override
+    protected IFormatManagerFactory createFormatFactory(Settings settings) {
+        return new AnnotationFormatManagerFactory();
     }
 
     @Override

@@ -112,7 +112,7 @@ public final class XmlCrawlerManagerFactory extends AbstractClasspathXmlCrawlerM
 
             val entry = (Element) nodes.item(i);
             val analyzeParamsEl = ((Element) entry.getElementsByTagName("analyze-params").item(0));
-            val minWeight = XmlHelper.parseInt(analyzeParamsEl, "min-weight", PageSetting.DEFAULT_WEIGHT);
+            val minWeight = AnalyzeWeight.ofValue(XmlHelper.parseInt(analyzeParamsEl, "min-weight", AnalyzeWeight.DEFAULT_WEIGHT));
 
             val builder = PageSetting.builder()
                     .id(new PageID(XmlHelper.parseInt(entry, "id")))

@@ -1,4 +1,7 @@
-package ua.com.papers.crawler.core.processor.annotation.analyze;
+package ua.com.papers.crawler.settings.v2;
+
+import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
+import ua.com.papers.crawler.settings.v2.analyze.UrlAnalyzer;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -13,7 +16,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Handler {
+public @interface Page {
 
     /**
      * Should return unique id, so that
@@ -22,10 +25,14 @@ public @interface Handler {
      */
     int id();
 
+    int minWeight() default 70;
+
     /**
      * Analyze rules to use
      */
-    @NotNull Analyze[] rules();
+    @NotNull ContentAnalyzer[] analyzers();
+
+    @NotNull UrlAnalyzer[] urlSelectors() default {};
 
     /**
      * Base url for links in case their full

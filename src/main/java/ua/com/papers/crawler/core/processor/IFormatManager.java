@@ -2,7 +2,7 @@ package ua.com.papers.crawler.core.processor;
 
 import org.springframework.validation.annotation.Validated;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.processor.convert.IPartAdapter;
+import ua.com.papers.crawler.core.processor.convert.Converter;
 import ua.com.papers.crawler.core.domain.vo.PageID;
 import ua.com.papers.crawler.core.processor.exception.ProcessException;
 
@@ -15,12 +15,12 @@ import java.util.Set;
 @Validated
 public interface IFormatManager {
 
-    void registerAdapter(@NotNull IPartAdapter<?> adapter);
+    void registerAdapter(@NotNull Converter<?> adapter);
 
-    void unregisterAdapter(@NotNull Class<? extends IPartAdapter<?>> cl);
+    void unregisterAdapter(@NotNull Class<? extends Converter<?>> cl);
 
     @NotNull
-    Set<? extends IPartAdapter<?>> getRegisteredAdapters();
+    Set<? extends Converter<?>> getRegisteredAdapters();
 
     void processPage(@NotNull PageID pageID, @NotNull Page page) throws ProcessException;
 

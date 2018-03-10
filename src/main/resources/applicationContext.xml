@@ -35,6 +35,35 @@
         </property>
     </bean>
 
+    <util:set id="handlers">
+        <ref bean="logPage"/>
+        <ref bean="nbuvArticleHandler"/>
+    </util:set>
+
+    <util:set id="startUrls">
+        <bean class="java.net.URL">
+            <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/"/>
+        </bean>
+        <bean class="java.net.URL">
+            <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/handle/123456789/126927?show=full"/>
+        </bean>
+    </util:set>
+
+    <bean id="schedulerSettings" class="ua.com.papers.crawler.settings.SchedulerSetting">
+        <constructor-arg name="indexDelay" value="10000"/>
+        <constructor-arg name="processingThreads" value="3"/>
+        <constructor-arg name="processingDelay" value="10000"/>
+        <constructor-arg name="indexThreads" value="3"/>
+    </bean>
+
+    <bean id="annotationCrawlerFactory"
+          class="ua.com.papers.crawler.core.factory.annotation.AnnotationCrawlerManagerFactory">
+        <constructor-arg name="factory" ref="appCrawlerFactory"/>
+        <constructor-arg name="handlers" ref="handlers"/>
+        <constructor-arg name="startUrls" ref="startUrls"/>
+        <constructor-arg name="schedulerSetting" ref="schedulerSettings"/>
+    </bean>
+
     <bean id="defaultCrawlerFactory" class="ua.com.papers.services.crawler.XmlCrawlerManagerFactory">
         <constructor-arg name="xsdPath" value="${papers.crawler.xsd.location}"/>
         <constructor-arg name="filepath" value="${papers.crawler.location}"/>
@@ -50,13 +79,8 @@
     <!-- Crawl units declaration -->
 
     <bean id="nbuvCrawlUnit" class="ua.com.papers.services.crawler.WebSiteCrawlUnit">
-        <constructor-arg name="handlers">
-            <list>
-                <ref bean="logPage"/>
-                <ref bean="nbuvArticleHandler"/>
-            </list>
-        </constructor-arg>
-        <constructor-arg name="factory" ref="nbuvCrawlerFactory"/>
+        <constructor-arg name="handlers" ref="handlers"/>
+        <constructor-arg name="factory" ref="annotationCrawlerFactory"/>
     </bean>
 
     <bean class="ua.com.papers.services.crawler.CrawlerService">

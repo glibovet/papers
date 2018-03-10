@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
 
 @EqualsAndHashCode
 @ToString
-final class LifecycleInvoker implements Invokeable {
+final class LifecycleInvoker implements Invoker {
     private final Method method;
     private final Object target;
     private boolean isPageRequired;

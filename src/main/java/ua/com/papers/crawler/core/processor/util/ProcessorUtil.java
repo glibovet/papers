@@ -4,8 +4,8 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.processor.xml.annotation.PostHandle;
-import ua.com.papers.crawler.core.processor.xml.annotation.PreHandle;
+import ua.com.papers.crawler.settings.v1.PostHandle;
+import ua.com.papers.crawler.settings.v1.PreHandle;
 import ua.com.papers.crawler.util.Preconditions;
 
 import java.lang.annotation.Annotation;

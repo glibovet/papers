@@ -1,9 +1,8 @@
 package ua.com.papers.crawler.core.processor.convert;
 
+import lombok.NonNull;
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.domain.bo.Page;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * <p>
@@ -11,11 +10,14 @@ import javax.validation.constraints.NotNull;
  * </p>
  * <p>
  * In order to be created via reflection a no-args constructor should be supplied, in another case this adapter should
- * be registered via {@linkplain ua.com.papers.crawler.core.processor.IFormatManager#registerAdapter(IPartAdapter)}
+ * be registered via {@linkplain ua.com.papers.crawler.core.processor.IFormatManager#registerAdapter(Converter)}
  * </p>
  * Created by Максим on 1/8/2017.
  */
-public interface IPartAdapter<T> {
+public interface Converter<T> {
+
+    @NonNull
+    Class<? extends T> converts();
 
     /**
      * Converts {@linkplain Element} into T
@@ -24,7 +26,7 @@ public interface IPartAdapter<T> {
      * @param page    page to format
      * @return transformed instance of T, may be null
      */
-    @NotNull
-    T convert(@NotNull Element element, @NotNull Page page);
+    @NonNull
+    T convert(@NonNull Element element, @NonNull Page page);
 
 }

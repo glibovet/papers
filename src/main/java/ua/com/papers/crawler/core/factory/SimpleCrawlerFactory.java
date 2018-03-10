@@ -71,11 +71,7 @@ public class SimpleCrawlerFactory extends AbstractCrawlerFactory {
 
     @Override
     protected IAnalyzeManager createAnalyzeManager(@NotNull Settings settings) {
-        return new AnalyzeManager(settings
-                .getPageSettings()
-                .stream()
-                .collect(Collectors.toMap(s -> s, this::createPageAnalyzer))
-        );
+        return new AnalyzeManager(settings.getPageSettings().stream().map(this::createPageAnalyzer).collect(Collectors.toList()));
     }
 
     @Override

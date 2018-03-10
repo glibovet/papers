@@ -6,8 +6,6 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.java.Log;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.exception.PageProcessException;
 import ua.com.papers.crawler.util.PageUtils;
 
 import java.io.IOException;
@@ -74,27 +72,20 @@ final class Looper implements Runnable {
         Optional<URL> urlOptional;
 
         while ((urlOptional = loopManager.pollUrl()).isPresent()) {
+
+            log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
+
+            val url = urlOptional.get();
+
             try {
-                log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
-
-                assert urlOptional.isPresent();
-
-                val url = urlOptional.get();
-
                 loopManager.notifyEnteredUrl(url);
-                final Page page;
 
-                try {
-                    page = PageUtils.parsePage(url, parseTimeout);
-                } catch (final IOException e) {
-                    throw new PageProcessException(e, url);
-                }
+                loopManager.notifyPageEntered(PageUtils.parsePage(url, parseTimeout));
 
-                loopManager.notifyPageEntered(page);
                 Thread.sleep(processingDelay);
-            } catch (final PageProcessException e) {
-                log.log(Level.WARNING, String.format("Failed to extract page content for url %s", e.getUrl()), e);
-                loopManager.notifyCrawlException(e.getUrl(), e);
+            } catch (final IOException e) {
+                log.log(Level.WARNING, String.format("Failed to extract page content for url %s", url), e);
+                loopManager.notifyCrawlException(url, e);
             } catch (final InterruptedException e) {
                 log.log(Level.INFO, String.format("Interrupted thread %s", Thread.currentThread()), e);
                 break;
