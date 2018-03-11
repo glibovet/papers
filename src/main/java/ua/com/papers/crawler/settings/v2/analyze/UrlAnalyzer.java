@@ -8,7 +8,7 @@ public @interface UrlAnalyzer {
 
     String selector();
 
-    String attribute();
+    String attribute() default "href";
 
     String baseUrl() default "";
 

@@ -9,12 +9,12 @@ import lombok.val;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
-import ua.com.papers.crawler.settings.v2.Page;
 import ua.com.papers.crawler.settings.v1.PageHandler;
 import ua.com.papers.crawler.settings.v1.Part;
 import ua.com.papers.crawler.settings.v1.PostHandle;
 import ua.com.papers.crawler.settings.v1.PreHandle;
+import ua.com.papers.crawler.settings.v2.Page;
+import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;
 import ua.com.papers.crawler.settings.v2.process.BeforePage;
 import ua.com.papers.crawler.settings.v2.process.Handles;
@@ -53,7 +53,18 @@ import java.util.stream.Collectors;
 @Log
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Component
-@Page(id = 2, analyzers = @ContentAnalyzer(selector = "*"))
+@Page(id = 2,
+        analyzers = {
+                // Has a file link
+                @ContentAnalyzer(weight = 40, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > div > div > div.file-link > a"),
+                // Has authors
+                @ContentAnalyzer(weight = 40, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.contributor.author)"),
+                // Has publishers
+                @ContentAnalyzer(weight = 40, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.publisher)"),
+                // Has title
+                @ContentAnalyzer(weight = 40, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.title)")
+        }
+)
 public final class NbuvArticleHandler extends BasePublicationHandler {
 
     IPublisherService publisherService;

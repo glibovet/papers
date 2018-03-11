@@ -13,6 +13,7 @@ import ua.com.papers.crawler.settings.v2.analyze.UrlAnalyzer;
 import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.crawler.util.TextUtils;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -62,19 +63,26 @@ public final class AnnotationCrawlerManagerFactory implements ICrawlerManagerFac
                 .collect(Collectors.toList());
     }
 
+    @SneakyThrows(MalformedURLException.class)
     private static Collection<? extends UrlSelectSetting> toUrlAnalyzeTemplates(Page page) {
+        val pageBaseUrl = TextUtils.isEmpty(page.baseUrl()) ? null : new URL(page.baseUrl());
+
         return Arrays.stream(page.urlSelectors())
-                .map(AnnotationCrawlerManagerFactory::toUrlAnalyzeTemplates)
+                .map(analyzer -> AnnotationCrawlerManagerFactory.toUrlAnalyzeTemplates(analyzer, pageBaseUrl))
                 .collect(Collectors.toList());
     }
 
     @SneakyThrows(MalformedURLException.class)
-    private static UrlSelectSetting toUrlAnalyzeTemplates(UrlAnalyzer urlAnalyzer) {
-        if (TextUtils.isEmpty(urlAnalyzer.baseUrl())) {
-            return new UrlSelectSetting(urlAnalyzer.selector(), urlAnalyzer.attribute());
+    private static UrlSelectSetting toUrlAnalyzeTemplates(UrlAnalyzer urlAnalyzer, @Nullable URL pageBaseUrl) {
+        final URL url;
+
+        if(TextUtils.isEmpty(urlAnalyzer.baseUrl())) {
+            url = pageBaseUrl;
+        } else {
+            url = new URL(urlAnalyzer.baseUrl());
         }
 
-        return new UrlSelectSetting(urlAnalyzer.selector(), urlAnalyzer.attribute(), new URL(urlAnalyzer.baseUrl()));
+        return new UrlSelectSetting(urlAnalyzer.selector(), urlAnalyzer.attribute(), url);
     }
 
 }

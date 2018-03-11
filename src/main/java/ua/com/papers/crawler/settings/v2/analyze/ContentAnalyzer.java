@@ -1,5 +1,7 @@
 package ua.com.papers.crawler.settings.v2.analyze;
 
+import ua.com.papers.crawler.settings.AnalyzeWeight;
+
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -9,7 +11,7 @@ public @interface ContentAnalyzer {
     /**
      * page weight, should be equal or greater than zero
      */
-    int weight() default 70;
+    int weight() default AnalyzeWeight.DEFAULT_WEIGHT;
 
     /**
      * Any valid css selector

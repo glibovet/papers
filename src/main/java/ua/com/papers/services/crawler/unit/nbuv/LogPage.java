@@ -9,6 +9,7 @@ import ua.com.papers.crawler.settings.v1.PostHandle;
 import ua.com.papers.crawler.settings.v1.PreHandle;
 import ua.com.papers.crawler.settings.v2.Page;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
+import ua.com.papers.crawler.settings.v2.analyze.UrlAnalyzer;
 import ua.com.papers.crawler.settings.v2.process.Handles;
 
 import java.util.logging.Level;
@@ -19,7 +20,17 @@ import java.util.logging.Level;
 @PageHandler(id = 1)
 @Log
 @Component
-@Page(id = 1, analyzers = @ContentAnalyzer(selector = "*"))
+@Page(id = 1,
+        analyzers = @ContentAnalyzer(selector = "*"),
+        baseUrl = "http://dspace.nbuv.gov.ua/",
+        urlSelectors = {
+                @UrlAnalyzer(selector = "#aspect_artifactbrowser_CommunityBrowser_div_comunity-browser > ul > li > ul > li.ds-artifact-item.community > div > div > a"),
+                @UrlAnalyzer(selector = "#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > .artifact-description > .artifact-title > a"),
+                @UrlAnalyzer(selector = "#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > div > div > a"),
+                @UrlAnalyzer(selector = "#aspect_artifactbrowser_CollectionViewer_div_collection-view > div > ul > a"),
+                @UrlAnalyzer(selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > div.item-summary-view-metadata > p > a")
+        }
+)
 public final class LogPage {
 
     @PreHandle
@@ -32,38 +43,44 @@ public final class LogPage {
         log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
     }
 
-    @Part(id = 1)
-    // preview
     @Handles(
-            policy = Handles.CallPolicy.INSIDE,
             selectors = {
                     "#aspect_artifactbrowser_CommunityBrowser_div_comunity-browser > ul > li > ul > li.ds-artifact-item.community > div > div > a",
+                    "#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > .artifact-description > .artifact-title > a",
+                    "#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > div > div > a",
+                    "#aspect_artifactbrowser_CollectionViewer_div_collection-view > div > ul > a",
+                    "#aspect_artifactbrowser_ItemViewer_div_item-view > div.item-summary-view-metadata > p > a"
             }
     )
-    public void onHandleUri1(Element element, ua.com.papers.crawler.core.domain.bo.Page page /*inject page just for test*/) {
+    public void onHandleUri(Element element, ua.com.papers.crawler.core.domain.bo.Page page /*inject page just for test*/) {
+        log.log(Level.INFO, String.format("On handle uri %s of page %s", element.text(), page.getUrl()));
+    }
+
+    @Part(id = 1)
+    public void onHandleUri1(Element element) {
         log("onHandleUri1", element);
     }
 
     @Part(id = 2)
-    @Handles(selectors = "#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > .artifact-description > .artifact-title > a")
+    @Deprecated
     public void onHandleUri2(/*inject page just for test*/ ua.com.papers.crawler.core.domain.bo.Page page, Element element) {
         log("onHandleUri2", element);
     }
 
     @Part(id = 3)
-    @Handles(selectors = "#aspect_artifactbrowser_CommunityViewer_div_community-view > ul > li > div > div > a")
+    @Deprecated
     public void onHandleUri3(Element element) {
         log("onHandleUri3", element);
     }
 
     @Part(id = 4)
-    @Handles(selectors = "#aspect_artifactbrowser_CollectionViewer_div_collection-view > div > ul > a")
+    @Deprecated
     public void onHandleUri4(Element element) {
         log("onHandleUri4", element);
     }
 
     @Part(id = 5)
-    @Handles(selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > div.item-summary-view-metadata > p > a")
+    @Deprecated
     public void onHandleUri5(Element element) {
         log("onHandleUri5", element);
     }
