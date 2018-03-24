@@ -35,7 +35,32 @@
         </property>
     </bean>
 
-    <bean id="defaultCrawlerFactory" class="ua.com.papers.services.crawler.XmlCrawlerManagerFactory">
+    <util:set id="handlers">
+        <ref bean="logPage"/>
+        <ref bean="nbuvArticleHandler"/>
+    </util:set>
+
+    <util:set id="startUrls">
+        <bean class="java.net.URL">
+            <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/"/>
+        </bean>
+        <bean class="java.net.URL">
+            <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/handle/123456789/126927?show=full"/>
+        </bean>
+    </util:set>
+
+    <bean id="schedulerSettings" class="ua.com.papers.crawler.settings.SchedulerSetting">
+        <constructor-arg name="indexDelay" value="10000"/>
+        <constructor-arg name="processingThreads" value="3"/>
+        <constructor-arg name="processingDelay" value="10000"/>
+        <constructor-arg name="indexThreads" value="3"/>
+    </bean>
+
+    <bean id="jobId" class="ua.com.papers.crawler.settings.JobId">
+        <constructor-arg name="jobId" value="nbuv-job"/>
+    </bean>
+
+    <!--<bean id="defaultCrawlerFactory" class="ua.com.papers.services.crawler.XmlCrawlerManagerFactory">
         <constructor-arg name="xsdPath" value="${papers.crawler.xsd.location}"/>
         <constructor-arg name="filepath" value="${papers.crawler.location}"/>
         <constructor-arg name="factory" ref="appCrawlerFactory"/>
@@ -45,24 +70,21 @@
         <constructor-arg name="xsdPath" value="${papers.crawler.xsd.location}"/>
         <constructor-arg name="filepath" value="${papers.crawler.location.nbuv}"/>
         <constructor-arg name="factory" ref="appCrawlerFactory"/>
-    </bean>
+    </bean>-->
 
-    <!-- Crawl units declaration -->
-
-    <bean id="nbuvCrawlUnit" class="ua.com.papers.services.crawler.WebSiteCrawlUnit">
-        <constructor-arg name="handlers">
-            <list>
-                <ref bean="logPage"/>
-                <ref bean="nbuvArticleHandler"/>
-            </list>
-        </constructor-arg>
-        <constructor-arg name="factory" ref="nbuvCrawlerFactory"/>
+    <bean id="annotationCrawlerFactory"
+          class="ua.com.papers.services.crawler.AnnotationCrawlerFactoryImp">
+        <constructor-arg name="jobId" ref="jobId"/>
+        <constructor-arg name="handlers" ref="handlers"/>
+        <constructor-arg name="startUrls" ref="startUrls"/>
+        <constructor-arg name="schedulerSetting" ref="schedulerSettings"/>
+        <constructor-arg name="urlsRepository" ref="jpaUrlsRepository"/>
     </bean>
 
     <bean class="ua.com.papers.services.crawler.CrawlerService">
-        <constructor-arg name="crawlUnits">
-            <list value-type="ua.com.papers.services.crawler.WebSiteCrawlUnit">
-                <ref bean="nbuvCrawlUnit"/>
+        <constructor-arg name="factories">
+            <list value-type="ua.com.papers.crawler.core.factory.ICrawlerFactory">
+                <ref bean="annotationCrawlerFactory"/>
             </list>
         </constructor-arg>
     </bean>
@@ -110,8 +132,7 @@
         </property>
     </bean>
 
-    <bean id="entityManagerFactory"
-          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="mainDataSource"/>
         <property name="packagesToScan" value="ua.com.papers.pojo.entities, ua.com.papers.services.crawler.unit.repo"/>
         <property name="jpaVendorAdapter">

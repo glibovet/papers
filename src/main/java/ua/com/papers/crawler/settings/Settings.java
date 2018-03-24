@@ -1,12 +1,11 @@
 package ua.com.papers.crawler.settings;
 
-import lombok.Builder;
+import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
 
 import java.net.URL;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * <p>
@@ -16,19 +15,21 @@ import java.util.List;
  * Created by Максим on 11/27/2016.
  */
 @Value
-@Builder(builderClassName = "Builder")
 public final class Settings {
 
+    JobId id;
     SchedulerSetting schedulerSetting;
     @Singular
-    List<URL> startUrls;
+    Collection<? extends URL> startUrls;
     @Singular
-    Collection<PageSetting> pageSettings;
+    Collection<? extends PageSetting> pageSettings;
 
-    private Settings(SchedulerSetting schedulerSetting,
-                     List<URL> startUrls,
-                     Collection<PageSetting> pageSettings) {
+    public Settings(@NonNull JobId id,
+                    @NonNull SchedulerSetting schedulerSetting,
+                    @NonNull Collection<? extends URL> startUrls,
+                    @NonNull Collection<? extends PageSetting> pageSettings) {
         this.schedulerSetting = schedulerSetting;
+        this.id = id;
         this.startUrls = startUrls;
         this.pageSettings = pageSettings;
     }

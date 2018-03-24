@@ -4,14 +4,13 @@ package ua.com.papers.storage.impl;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.async.LaunchEmptyResult;
 import com.dropbox.core.v2.files.*;
+import lombok.NonNull;
 import lombok.experimental.var;
 import lombok.extern.java.Log;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.pojo.storage.FileData;
 import ua.com.papers.pojo.storage.FileItem;
@@ -21,9 +20,14 @@ import ua.com.papers.utils.ResultCallback;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /**
@@ -33,120 +37,70 @@ import java.util.logging.Level;
 @Log
 public class StorageImpl implements IStorage {
 
-    private static final class UploadJob {
-        private final List<UploadSessionFinishArg> uploadArgs;
-        private final Map<File, ResultCallback<File>> callbacks;
-        private long lastInsertTimestamp;
-        private LaunchEmptyResult batchUploadResult;
-        private final DbxClientV2 clientV2;
-
-        private UploadJob(DbxClientV2 clientV2) {
-            this.lastInsertTimestamp = 0L;
-            this.uploadArgs = new ArrayList<>();
-            this.callbacks = new HashMap<>();
-            this.clientV2 = clientV2;
-        }
-
-        void appendFile(File src, File to, ResultCallback<File> callback) throws DbxException, IOException {
-
-            try (val inputStream = new FileInputStream(src)) {
-                // start upload session
-                val sessionId = clientV2.files().uploadSessionStart(true).uploadAndFinish(inputStream).getSessionId();
-                val cursor = new UploadSessionCursor(sessionId, src.length());
-
-                clientV2.files().uploadSessionAppendV2(cursor, true);
-
-                val uploadArg = new UploadSessionFinishArg(cursor, new CommitInfo(to.getPath().replaceAll("\\\\", "/"), WriteMode.OVERWRITE, true, new Date(System.currentTimeMillis()), true));
-
-                uploadArgs.add(uploadArg);
-                callbacks.put(src, callback);
-                lastInsertTimestamp = System.currentTimeMillis();
-            }
-        }
-
-        long getLastInsertTimestamp() {
-            return lastInsertTimestamp;
-        }
-
-        int getBatchSize() {
-            return uploadArgs.size();
-        }
-
-        boolean isUploading() {
-            return batchUploadResult != null && !batchUploadResult.isComplete();
-        }
-
-        private void upload(Runnable end) {
-
-            try {
-                batchUploadResult = clientV2.files().uploadSessionFinishBatch(uploadArgs);
-
-                log.log(Level.INFO, String.format("starting batch upload, thread %s, job %s, files size %d",
-                        Thread.currentThread(), batchUploadResult.getAsyncJobIdValue(), uploadArgs.size()));
-                var isCompleted = false;
-
-                while (!isCompleted) {
-                    try {
-                        val checkResult = clientV2.files().uploadSessionFinishBatchCheck(batchUploadResult.getAsyncJobIdValue());
-
-                        isCompleted = checkResult.isComplete();
-
-                        log.log(Level.INFO, String.format("job %s is uploading, status %s",
-                                batchUploadResult.getAsyncJobIdValue(), checkResult.toStringMultiline()));
-                        Thread.sleep(1000L);
-                    } catch (final InterruptedException e) {
-                        log.log(Level.INFO, String.format("thread %s was interrupted", Thread.currentThread()), e);
-                    }
-                }
-                log.log(Level.INFO, String.format("job %s has completed", batchUploadResult.getAsyncJobIdValue()));
-                notifySuccess();
-            } catch (final DbxException e) {
-                log.log(Level.SEVERE, "db exception occurred", e);
-                notifyException(e);
-            } finally {
-                if (end != null) {
-                    end.run();
-                }
-            }
-        }
-
-       /* private boolean shouldUpload() {
-            val currentTime = System.currentTimeMillis();
-            return !isUploading() && (uploadArgs.size() >= StorageImpl.MAX_BATCH_SIZE
-                    || currentTime - lastInsertTimestamp >= StorageImpl.MAX_IDLE_AWAIT_TIMEOUT);
-        }*/
-
-        private void notifySuccess() {
-            for (val entry : callbacks.entrySet()) {
-                entry.getValue().onResult(entry.getKey());
-            }
-        }
-
-        private void notifyException(Exception e) {
-            for (val callback : callbacks.values()) {
-                callback.onException(e);
-            }
-        }
-    }
 
     private final ExecutorService executorService;
     private final Queue<UploadJob> uploadJobs;
 
+    private final Object lock = new Object();
+
+    private ScheduledThreadPoolExecutor scheduledExecutorService;
+    private final CheckCallback checkCallback;
+
+    private final class CheckCallback implements Runnable {
+
+        @Override
+        public void run() {
+            log.log(Level.INFO, "Checking upload job queue");
+
+            synchronized (lock) {
+                val it = uploadJobs.iterator();
+
+                while (it.hasNext()) {
+                    val job = it.next();
+
+                    if (shouldUpload(job)) {
+                        it.remove();
+                        job.upload(null);
+                    }
+                }
+
+                if (uploadJobs.isEmpty()) {
+                    log.log(Level.INFO, "No pending upload jobs, shutting down");
+                    shutdown();
+                }
+            }
+        }
+
+        private void shutdown() {
+            scheduledExecutorService.shutdownNow();
+            try {
+                scheduledExecutorService.awaitTermination(1, TimeUnit.SECONDS);
+            } catch (final InterruptedException e) {
+                log.log(Level.INFO, "Shutdown exception", e);
+            } finally {
+                scheduledExecutorService = null;
+            }
+        }
+
+    }
+
     public StorageImpl() {
         this.uploadJobs = new LinkedList<>();
-        this.executorService = Executors.newWorkStealingPool();
+        this.executorService = Executors.newFixedThreadPool(2);
+        this.checkCallback = new CheckCallback();
     }
 
     @Override
     public void upload(@NotNull File from, @NotNull File to, @NotNull ResultCallback<File> callback) {
-        executorService.submit(() -> {
-            try {
-                doUpload(from, to, callback);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        synchronized (lock) {
+            prepareJob(from, to, callback);
 
-        });
+            if (scheduledExecutorService == null) {
+                log.log(Level.INFO, "Starting scheduler service");
+                scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
+                scheduledExecutorService.scheduleWithFixedDelay(checkCallback, maxIdleAwaitTimeout, maxIdleAwaitTimeout, TimeUnit.MILLISECONDS);
+            }
+        }
     }
 
     @Override
@@ -238,74 +192,77 @@ public class StorageImpl implements IStorage {
         }
     }
 
-    private void doUpload(File from, File to, ResultCallback<File> callback) {
-        Preconditions.checkNotNullAll(from, to, callback);
-        final UploadJob lastJob;
+    /*private void postJob(@NonNull UploadJob job) {
+        synchronized (lock) {
+            if (shouldUpload(job)) {
+                val isRemoved = uploadJobs.remove(job);
 
-        synchronized (uploadJobs) {
-            var job = uploadJobs.peek();
-            var isNeedNewJob = job == null;
+                job.upload(this::runNextJob);
+                lock.notifyAll();
 
-            if (!isNeedNewJob) {
-                synchronized (job) {
-                    isNeedNewJob = job.isUploading();
+                if (!isRemoved) {
+                    log.log(Level.WARNING, String.format("failed to remove job %s from queue of size %d", job, uploadJobs.size()));
                 }
-            }
-
-            if (isNeedNewJob) {
-                job = new UploadJob(client());
-                uploadJobs.add(job);
-                log.log(Level.INFO, String.format("inserting a new upload job, queue size %d", uploadJobs.size()));
-            }
-            lastJob = job;
-        }
-
-        synchronized (lastJob) {
-            val shouldUpload = shouldUpload(lastJob);
-
-            if (shouldUpload) {
-                log.log(Level.INFO, "Start upload");
-                synchronized (uploadJobs) {
-                    uploadJobs.remove(lastJob);
-                }
-                lastJob.upload(this::runNextJob);
             } else {
+                // run timer
                 try {
-                    log.log(Level.INFO, String.format("Appending files %s, %s", from, to));
-                    lastJob.appendFile(from, to, callback);
-                } catch (final DbxException | IOException e) {
-                    callback.onException(new StorageException(e));
-                } finally {
-                    lastJob.notifyAll();
-                }
-
-                try {
-                    lastJob.wait(maxIdleAwaitTimeout);
+                    lock.wait(maxIdleAwaitTimeout);
                 } catch (final InterruptedException e) {
                     log.log(Level.INFO, "Interrupted upload wait lock", e);
+                    return;
                 }
 
-                if (shouldUpload(lastJob)) {
-                    lastJob.upload(this::runNextJob);
+                if (shouldUpload(job)) {
+                    job.upload(this::runNextJob);
+                    lock.notifyAll();
+                } else {
+                    runNextJob();
                 }
             }
         }
-    }
+    }*/
 
-    private void runNextJob() {
-        synchronized (uploadJobs) {
-            val job = uploadJobs.peek();
+    private UploadJob prepareJob(@NonNull File from, @NonNull File to, @NonNull ResultCallback<File> callback) {
+        val args = new UploadJob.UploadArgs(from, to, callback);
 
-            if (job != null && shouldUpload(job)) {
-                uploadJobs.remove(job);
-                job.upload(this::runNextJob);
+        synchronized (lock) {
+            var job = uploadJobs.peek();
+
+            if (job == null || job.isUploading() || job.isUploaded()) {
+                job = new UploadJob(client(), args);
+
+                uploadJobs.add(job);
+                log.log(Level.INFO, String.format("inserting a new job %s, queue size %d", job, uploadJobs.size()));
+            } else {
+                job.append(args);
             }
+
+            return job;
         }
     }
+
+    /*private void runNextJob() {
+        UploadJob job;
+
+        synchronized (lock) {
+            job = uploadJobs.peek();
+
+            while (job != null && (job.isUploading() || job.isUploaded())) {
+                uploadJobs.poll();
+            }
+        }
+
+        if (job == null) {
+            log.log(Level.INFO, "Empty upload queue");
+        } else {
+            log.log(Level.INFO, String.format("Posting next job %s", job));
+            postJob(job);
+        }
+    }*/
 
     private boolean shouldUpload(UploadJob job) {
-        return !job.isUploading() && job.getBatchSize() > 0 && (job.getBatchSize() >= maxBatchSize
-                || System.currentTimeMillis() - job.getLastInsertTimestamp() > maxIdleAwaitTimeout);
+        return !job.isUploading() && !job.isUploaded() && (System.currentTimeMillis() - job.getLastInsertTimestamp() >= maxIdleAwaitTimeout
+                || job.getBatchSize() >= maxBatchSize);
     }
 
     private String fullPath(String name, String folder) {

@@ -35,10 +35,24 @@ public final class Preconditions {
         return t;
     }
 
+    public static <T> T checkNotNull(T t, String message, Object...args) {
+
+        if (t == null)
+            throw new NullPointerException(String.format(message, args));
+
+        return t;
+    }
+
     public static void checkArgument(boolean condition, String message) {
 
         if (!condition)
             throw new IllegalArgumentException(message);
+    }
+
+    public static void checkArgument(boolean condition, String message, Object...args) {
+
+        if (!condition)
+            throw new IllegalArgumentException(String.format(message, args));
     }
 
     public static void checkArgument(boolean condition) {

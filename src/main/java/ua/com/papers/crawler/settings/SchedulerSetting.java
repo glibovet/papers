@@ -16,7 +16,7 @@ public class SchedulerSetting {
     long processingDelay;
 
     @lombok.Builder(builderClassName = "Builder")
-    private SchedulerSetting(int processingThreads, int indexThreads, long indexDelay, long processingDelay) {
+    public SchedulerSetting(int processingThreads, int indexThreads, long indexDelay, long processingDelay) {
         Conditions.checkArgument(processingThreads >= 1,
                 String.format("invalid processing threads num, was %d", processingThreads));
         Conditions.checkArgument(indexThreads >= 1,

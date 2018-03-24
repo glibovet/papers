@@ -5,11 +5,11 @@ import lombok.Getter;
 import lombok.val;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import ua.com.papers.crawler.core.creator.ICrawlerFactory;
-import ua.com.papers.crawler.core.creator.ICrawlerManagerFactory;
-import ua.com.papers.crawler.core.creator.xml.AbstractClasspathXmlCrawlerManagerFactory;
-import ua.com.papers.crawler.core.creator.xml.XmlHelper;
-import ua.com.papers.crawler.core.domain.vo.PageID;
+import ua.com.papers.crawler.core.factory.ICrawlerFactory;
+import ua.com.papers.crawler.core.factory.ICrawlerManagerFactory;
+import ua.com.papers.crawler.core.factory.xml.AbstractClasspathXmlCrawlerManagerFactory;
+import ua.com.papers.crawler.core.factory.xml.XmlHelper;
+import ua.com.papers.crawler.core.main.vo.PageID;
 import ua.com.papers.crawler.settings.*;
 
 import javax.validation.constraints.NotNull;
@@ -57,11 +57,11 @@ public final class XmlCrawlerManagerFactory extends AbstractClasspathXmlCrawlerM
     protected Settings parseDocument(@NotNull Document document) {
         val rootElem = document.getDocumentElement();
 
-        return Settings.builder()
-                .schedulerSetting(parseSchedulerSettings(rootElem))
-                .pageSettings(parsePageSettings(rootElem))
-                .startUrls(parseStartUrls(rootElem))
-                .build();
+        return new Settings(
+                parseJobId(rootElem),
+                parseSchedulerSettings(rootElem),
+                parseStartUrls(rootElem),
+                parsePageSettings(rootElem));
     }
 
     /**
@@ -81,6 +81,10 @@ public final class XmlCrawlerManagerFactory extends AbstractClasspathXmlCrawlerM
         }
 
         return Collections.unmodifiableList(result);
+    }
+
+    private JobId parseJobId(Element root) {
+        return new JobId(root.getAttribute("job"));
     }
 
     /**
@@ -112,7 +116,7 @@ public final class XmlCrawlerManagerFactory extends AbstractClasspathXmlCrawlerM
 
             val entry = (Element) nodes.item(i);
             val analyzeParamsEl = ((Element) entry.getElementsByTagName("analyze-params").item(0));
-            val minWeight = XmlHelper.parseInt(analyzeParamsEl, "min-weight", PageSetting.DEFAULT_WEIGHT);
+            val minWeight = AnalyzeWeight.ofValue(XmlHelper.parseInt(analyzeParamsEl, "min-weight", AnalyzeWeight.DEFAULT_WEIGHT));
 
             val builder = PageSetting.builder()
                     .id(new PageID(XmlHelper.parseInt(entry, "id")))
