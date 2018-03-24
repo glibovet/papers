@@ -13,4 +13,8 @@ public final class TextUtils {
         return str == null || str.length() == 0;
     }
 
+    public static boolean isNonEmpty(String str) {
+        return !isEmpty(str);
+    }
+
 }

@@ -1,53 +1,52 @@
 package ua.com.papers.services.crawler.unit.repo;
 
 import lombok.SneakyThrows;
-import lombok.Value;
+import lombok.extern.java.Log;
 import lombok.val;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ua.com.papers.crawler.core.storage.IPageIndexRepository;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Date;
 import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * Created by Максим on 2/12/2017.
  */
+@Log
 @Repository
-@Value
 public final class IndexRepository implements IPageIndexRepository {
 
-    JpaRepository<IndexEntity, String> repository;
+    private final JpaIndexRepository indexRepository;
+
     @Autowired
-    public IndexRepository(JpaRepository<IndexEntity, String> repository) {
-        this.repository = repository;
+    public IndexRepository(JpaIndexRepository indexRepository) {
+        this.indexRepository = indexRepository;
     }
 
     @Override
     public boolean isIndexed(@NotNull URL url) {
-        return repository.findOne(url.toExternalForm()) != null;
+        return indexRepository.findOne(url.toExternalForm()) != null;
     }
 
-    @Nullable
     @Override
-    public Index getIndex(@NotNull URL url) {
-        return IndexRepository.toIndex(repository.findOne(url.toExternalForm()));
+    public Optional<Index> getIndex(@NotNull URL url) {
+        return Optional.ofNullable(indexRepository.findOne(url.toExternalForm())).map(IndexRepository::toIndex);
     }
 
     @Override
     public void store(@NotNull Index index) {
-        repository.saveAndFlush(IndexRepository.toEntity(index));
+        indexRepository.saveAndFlush(IndexRepository.toEntity(index));
     }
 
     @Override
-    public Iterator<Index> getIndexedPages() {
-        val it = repository.findAll().iterator();
+    public Iterator<Index> indexedPagesIterator() {
+        val it = indexRepository.findAll().iterator();
         return new Iterator<Index>() {
 
             @Override

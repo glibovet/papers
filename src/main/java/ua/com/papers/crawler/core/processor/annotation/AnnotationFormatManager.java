@@ -3,8 +3,11 @@ package ua.com.papers.crawler.core.processor.annotation;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.vo.PageID;
-import ua.com.papers.crawler.core.processor.IFormatManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import ua.com.papers.crawler.core.main.vo.PageID;
+import ua.com.papers.crawler.core.processor.OutFormatter;
 import ua.com.papers.crawler.settings.v2.Page;
 import ua.com.papers.crawler.core.processor.convert.Converter;
 import ua.com.papers.crawler.core.processor.convert.SkipAdapter;
@@ -19,12 +22,14 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 @Log
-public final class AnnotationFormatManager implements IFormatManager {
+@Component
+public final class AnnotationFormatManager implements OutFormatter {
 
     private final Map<Class<?>, Converter<?>> adapters;
     private final Map<PageID, ? extends Collection<HandlerInvoker>> idToHandlers;
 
-    public AnnotationFormatManager(@NonNull Collection<Object> handlers) {
+    @Autowired
+    public AnnotationFormatManager(@NonNull @Qualifier("handlers") Collection<?> handlers) {
         Preconditions.checkArgument(!handlers.isEmpty());
         this.adapters = new HashMap<>();
         // register default converters
@@ -58,7 +63,7 @@ public final class AnnotationFormatManager implements IFormatManager {
     }
 
     @Override
-    public void processPage(PageID pageID, ua.com.papers.crawler.core.domain.bo.Page page) throws ProcessException {
+    public void formatPage(PageID pageID, ua.com.papers.crawler.core.main.bo.Page page) throws ProcessException {
         val handlers = idToHandlers.get(pageID);
 
         if (handlers != null && !handlers.isEmpty()) {
@@ -74,13 +79,13 @@ public final class AnnotationFormatManager implements IFormatManager {
         }
     }
 
-    private void processPage(ua.com.papers.crawler.core.domain.bo.Page page, Iterable<HandlerInvoker> invokers) throws InvocationTargetException, IllegalAccessException {
+    private void processPage(ua.com.papers.crawler.core.main.bo.Page page, Iterable<HandlerInvoker> invokers) throws InvocationTargetException, IllegalAccessException {
         for (val handler : invokers) {
             handler.invoke(page);
         }
     }
 
-    private Map<PageID, ? extends Collection<HandlerInvoker>> mapToHandlers(Collection<Object> handlers) {
+    private Map<PageID, ? extends Collection<HandlerInvoker>> mapToHandlers(Collection<?> handlers) {
         return handlers.stream().collect(
                 Collectors.groupingBy(
                         AnnotationFormatManager::extractPageId,

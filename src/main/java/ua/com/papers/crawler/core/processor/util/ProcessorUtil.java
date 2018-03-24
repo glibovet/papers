@@ -3,7 +3,7 @@ package ua.com.papers.crawler.core.processor.util;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.settings.v1.PostHandle;
 import ua.com.papers.crawler.settings.v1.PreHandle;
 import ua.com.papers.crawler.util.Preconditions;

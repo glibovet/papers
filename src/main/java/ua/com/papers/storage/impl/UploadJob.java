@@ -86,7 +86,7 @@ final class UploadJob {
     }
 
     void append(@NonNull UploadArgs args) {
-        if (uploadArgs.contains(args)) {
+        if (uploadArgs.stream().anyMatch(a -> a.src.equals(args.src))) {
             log.log(Level.INFO, "no new args were supplied, skipping");
             return;
         }

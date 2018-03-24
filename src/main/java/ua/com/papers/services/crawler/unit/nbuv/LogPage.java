@@ -10,6 +10,8 @@ import ua.com.papers.crawler.settings.v1.PreHandle;
 import ua.com.papers.crawler.settings.v2.Page;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
 import ua.com.papers.crawler.settings.v2.analyze.UrlAnalyzer;
+import ua.com.papers.crawler.settings.v2.process.AfterPage;
+import ua.com.papers.crawler.settings.v2.process.BeforePage;
 import ua.com.papers.crawler.settings.v2.process.Handles;
 
 import java.util.logging.Level;
@@ -34,12 +36,14 @@ import java.util.logging.Level;
 public final class LogPage {
 
     @PreHandle
-    public void onPrepare(ua.com.papers.crawler.core.domain.bo.Page page) {
+    @BeforePage
+    public void onPrepare(ua.com.papers.crawler.core.main.bo.Page page) {
         log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
     }
 
     @PostHandle
-    public void onPageParsed(ua.com.papers.crawler.core.domain.bo.Page page) {
+    @AfterPage
+    public void onPageParsed(ua.com.papers.crawler.core.main.bo.Page page) {
         log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
     }
 
@@ -52,7 +56,7 @@ public final class LogPage {
                     "#aspect_artifactbrowser_ItemViewer_div_item-view > div.item-summary-view-metadata > p > a"
             }
     )
-    public void onHandleUri(Element element, ua.com.papers.crawler.core.domain.bo.Page page /*inject page just for test*/) {
+    public void onHandleUri(Element element, ua.com.papers.crawler.core.main.bo.Page page /*inject page just for test*/) {
         log.log(Level.INFO, String.format("On handle uri %s of page %s", element.text(), page.getUrl()));
     }
 
@@ -63,7 +67,7 @@ public final class LogPage {
 
     @Part(id = 2)
     @Deprecated
-    public void onHandleUri2(/*inject page just for test*/ ua.com.papers.crawler.core.domain.bo.Page page, Element element) {
+    public void onHandleUri2(/*inject page just for test*/ ua.com.papers.crawler.core.main.bo.Page page, Element element) {
         log("onHandleUri2", element);
     }
 

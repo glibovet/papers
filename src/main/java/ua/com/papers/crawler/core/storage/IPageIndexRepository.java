@@ -5,10 +5,10 @@ import lombok.Value;
 import org.joda.time.DateTime;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * <p>
@@ -60,8 +60,7 @@ public interface IPageIndexRepository {
      * if repository contains such indexed page url and null
      * in another case
      */
-    @Nullable
-    Index getIndex(@NotNull URL url);
+    Optional<Index> getIndex(@NotNull URL url);
 
     /**
      * Stores index result in repository
@@ -70,6 +69,6 @@ public interface IPageIndexRepository {
      */
     void store(@NotNull Index index);
 
-    Iterator<Index> getIndexedPages();
+    Iterator<Index> indexedPagesIterator();
 
 }

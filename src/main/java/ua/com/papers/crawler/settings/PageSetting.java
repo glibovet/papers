@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
-import ua.com.papers.crawler.core.domain.vo.PageID;
+import ua.com.papers.crawler.core.main.vo.PageID;
 
 import java.util.Collection;
 

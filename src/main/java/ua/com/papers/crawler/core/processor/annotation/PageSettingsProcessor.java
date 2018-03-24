@@ -1,52 +1,39 @@
-package ua.com.papers.crawler.core.factory.annotation;
+package ua.com.papers.crawler.core.processor.annotation;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.vo.PageID;
-import ua.com.papers.crawler.core.factory.ICrawlerFactory;
-import ua.com.papers.crawler.core.factory.ICrawlerManagerFactory;
-import ua.com.papers.crawler.core.schedule.ICrawlerManager;
-import ua.com.papers.crawler.settings.*;
+import ua.com.papers.crawler.core.main.vo.PageID;
+import ua.com.papers.crawler.settings.AnalyzeTemplate;
+import ua.com.papers.crawler.settings.AnalyzeWeight;
+import ua.com.papers.crawler.settings.PageSetting;
+import ua.com.papers.crawler.settings.UrlSelectSetting;
 import ua.com.papers.crawler.settings.v2.Page;
 import ua.com.papers.crawler.settings.v2.analyze.UrlAnalyzer;
 import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.crawler.util.TextUtils;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
-public final class AnnotationCrawlerManagerFactory implements ICrawlerManagerFactory {
-    private final Set<?> handlers;
-    private final Settings setting;
-    private final ICrawlerFactory crawlerFactory;
+public final class PageSettingsProcessor {
+    private final Collection<?> source;
 
-    public AnnotationCrawlerManagerFactory(@NonNull SchedulerSetting schedulerSetting, @NonNull Set<? extends URL> startUrls,
-                                           @NonNull Set<?> handlers, @NotNull ICrawlerFactory factory) {
-        val pageSettings = handlers.stream()
-                .map(h -> Preconditions.checkNotNull(h.getClass().getAnnotation(Page.class), "Missing %s annotation for %s", Page.class, h))
-                .map(AnnotationCrawlerManagerFactory::toPageSettings)
-                .collect(Collectors.toList());
-
-        this.setting = Settings.builder()
-                .schedulerSetting(schedulerSetting)
-                .startUrls(startUrls)
-                .pageSettings(pageSettings)
-                .build();
-
-        this.handlers = handlers;
-        this.crawlerFactory = factory;
+    public PageSettingsProcessor(@NonNull Collection<?> source) {
+        this.source = new ArrayList<>(source);
     }
 
-    @Override
-    public ICrawlerManager create() {
-        return crawlerFactory.create(setting);
+    public List<PageSetting> process() {
+        return source.stream()
+                .map(h -> Preconditions.checkNotNull(h.getClass().getAnnotation(Page.class), "Missing %s annotation for %s", Page.class, h))
+                .map(PageSettingsProcessor::toPageSettings)
+                .collect(Collectors.toList());
     }
 
     private static PageSetting toPageSettings(Page page) {
@@ -68,7 +55,7 @@ public final class AnnotationCrawlerManagerFactory implements ICrawlerManagerFac
         val pageBaseUrl = TextUtils.isEmpty(page.baseUrl()) ? null : new URL(page.baseUrl());
 
         return Arrays.stream(page.urlSelectors())
-                .map(analyzer -> AnnotationCrawlerManagerFactory.toUrlAnalyzeTemplates(analyzer, pageBaseUrl))
+                .map(analyzer -> PageSettingsProcessor.toUrlAnalyzeTemplates(analyzer, pageBaseUrl))
                 .collect(Collectors.toList());
     }
 

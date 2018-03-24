@@ -1,7 +1,7 @@
 package ua.com.papers.crawler.core.schedule;
 
-import ua.com.papers.crawler.core.domain.ICrawler;
-import ua.com.papers.crawler.core.domain.IPageIndexer;
+import ua.com.papers.crawler.core.main.ICrawler;
+import ua.com.papers.crawler.core.main.IPageIndexer;
 import ua.com.papers.crawler.settings.v1.PageHandler;
 
 import javax.validation.constraints.NotNull;

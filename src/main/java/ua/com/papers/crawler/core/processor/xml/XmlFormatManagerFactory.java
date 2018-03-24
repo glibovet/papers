@@ -1,7 +1,7 @@
 package ua.com.papers.crawler.core.processor.xml;
 
 import lombok.Value;
-import ua.com.papers.crawler.core.processor.IFormatManager;
+import ua.com.papers.crawler.core.processor.OutFormatter;
 import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
 import ua.com.papers.crawler.settings.FormatTemplate;
 import ua.com.papers.crawler.settings.PageSetting;
@@ -35,7 +35,7 @@ public class XmlFormatManagerFactory implements IFormatManagerFactory {
 
     @Override
     @NotNull
-    public IFormatManager create(@NotNull Collection<Object> handlers) {
-        return new FormatManager(handlers, new PageFormatter(templates));
+    public OutFormatter create(@NotNull Collection<?> handlers) {
+        return new XmlFormatManager(handlers, new PageFormatter(templates));
     }
 }

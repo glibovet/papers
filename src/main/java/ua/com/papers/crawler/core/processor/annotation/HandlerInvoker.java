@@ -3,7 +3,7 @@ package ua.com.papers.crawler.core.processor.annotation;
 import lombok.NonNull;
 import lombok.Value;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;
 import ua.com.papers.crawler.settings.v2.process.BeforePage;
 import ua.com.papers.crawler.settings.v2.process.Handles;

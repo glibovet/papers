@@ -1,19 +1,18 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.main.v1;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.experimental.var;
 import lombok.extern.java.Log;
-import lombok.val;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.processor.IFormatManager;
+import ua.com.papers.crawler.core.main.ICrawler;
+import ua.com.papers.crawler.core.main.ICrawlerPredicate;
+import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.processor.OutFormatter;
 import ua.com.papers.crawler.core.processor.exception.ProcessException;
 import ua.com.papers.crawler.core.select.IUrlExtractor;
-import ua.com.papers.crawler.settings.SchedulerSetting;
+import ua.com.papers.crawler.settings.Settings;
 import ua.com.papers.crawler.util.Preconditions;
 
 import javax.validation.constraints.NotNull;
@@ -30,6 +29,8 @@ import java.util.logging.Level;
  */
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Log
+// todo should be actually crawler running state
+@Deprecated
 final class LoopManager {
 
     LinkedList<URL> urls;
@@ -47,14 +48,15 @@ final class LoopManager {
     @Builder
     @Value
     static class Props {
+        @NonNull
         ICrawlerPredicate predicate;
+        @NonNull
         ICrawler.Callback callback;
-        Collection<Object> handlers;
-        Collection<URL> urlsColl;
-        IAnalyzeManager analyzeManager;
-        IUrlExtractor urlExtractor;
-        IFormatManager formatManager;
-        SchedulerSetting schedulerSetting;
+        @NonNull Settings settings;
+        @NonNull IAnalyzeManager analyzeManager;
+        @NonNull IUrlExtractor urlExtractor;
+        @NonNull
+        OutFormatter formatManager;
         int parseTimeout;
     }
 
@@ -66,7 +68,7 @@ final class LoopManager {
         this.acceptedCnt = new AtomicInteger(0);
         this.crawledUrls = new TreeSet<>(Comparator.comparing(URL::toExternalForm));
         this.activeLoopers = new AtomicInteger(0);
-        this.pendingLoopers = new HashSet<>(props.schedulerSetting.getIndexThreads());
+        this.pendingLoopers = new HashSet<>(props.settings.getSchedulerSetting().getIndexThreads());
         this.randomizer = new Random();
     }
 
@@ -75,14 +77,14 @@ final class LoopManager {
 
         props.callback.onStart();
 
-        executor = LoopManager.createThreadFactory(props.schedulerSetting.getIndexThreads(), props.callback);
+        executor = LoopManager.createThreadFactory(props.settings.getSchedulerSetting().getIndexThreads(), props.callback);
 
-        val processingDelay = props.schedulerSetting.getIndexDelay();
-        val threads = props.schedulerSetting.getIndexThreads();
+        val processingDelay = props.settings.getSchedulerSetting().getIndexDelay();
+        val threads = props.settings.getSchedulerSetting().getIndexThreads();
 
         isRunning = true;
         pendingLoopers.clear();
-        urls.addAll(props.urlsColl);
+        urls.addAll(props.getSettings().getStartUrls());
         activeLoopers.set(threads);
 
         for (var i = Looper.START_LOOPER_ID; i < threads; ++i) {
@@ -139,7 +141,7 @@ final class LoopManager {
         props.callback.onUrlEntered(url);
 
         synchronized (this) {
-            if (urls.size() >= props.schedulerSetting.getIndexThreads()) {
+            if (urls.size() >= props.settings.getSchedulerSetting().getIndexThreads()) {
                 for (val looper : pendingLoopers) {
                     //noinspection SynchronizationOnLocalVariableOrMethodParameter
                     synchronized (looper) {// oh common, Intellij, I know what I'm doing
@@ -184,7 +186,7 @@ final class LoopManager {
                                 });
 
                         try {
-                            props.formatManager.processPage(result.getId(), page);
+                            props.formatManager.formatPage(result.getId(), page);
                         } catch (final ProcessException e) {
                             log.log(Level.WARNING, String.format("format manager thrown an exception while handling page %s", page.getUrl()), e);
                         }

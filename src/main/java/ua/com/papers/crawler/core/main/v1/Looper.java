@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.main.v1;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;

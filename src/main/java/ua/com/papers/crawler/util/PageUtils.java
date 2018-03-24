@@ -5,7 +5,7 @@ import lombok.val;
 import org.joda.time.DateTime;
 import org.jsoup.Connection;
 import org.jsoup.helper.HttpConnection;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;

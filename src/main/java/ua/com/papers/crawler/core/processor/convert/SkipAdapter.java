@@ -1,7 +1,7 @@
 package ua.com.papers.crawler.core.processor.convert;
 
 import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 
 import javax.validation.constraints.NotNull;
 

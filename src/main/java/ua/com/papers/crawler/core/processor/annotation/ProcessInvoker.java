@@ -5,7 +5,7 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.var;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.settings.v2.process.Handles;
 import ua.com.papers.crawler.core.processor.annotation.util.AnnotationUtil;
 import ua.com.papers.crawler.core.processor.convert.Converter;

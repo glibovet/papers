@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.main;
 
 import com.google.common.base.Preconditions;
 import lombok.*;
@@ -6,7 +6,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import org.joda.time.DateTimeZone;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
 import ua.com.papers.crawler.core.processor.exception.ProcessException;
 import ua.com.papers.crawler.core.storage.IPageIndexRepository;
@@ -78,7 +78,7 @@ public class PageIndexer implements IPageIndexer {
         // iterator implementation, for example, can be
         // just an ArrayList iterator for a relatively small repositories
         // or it can be database cursor
-        val iterator = repository.getIndexedPages();
+        val iterator = repository.indexedPagesIterator();
         val formatManager = formatManagerFactory.create(handlers);
         val lock = new Object();
         callback.onStart();
@@ -107,7 +107,7 @@ public class PageIndexer implements IPageIndexer {
                             synchronized (lock) {
                                 indexRes.forEach(result -> {
                                     try {
-                                        formatManager.processPage(result.getId(), page);
+                                        formatManager.formatPage(result.getId(), page);
                                     } catch (ProcessException e) {
                                         e.printStackTrace();
                                     }

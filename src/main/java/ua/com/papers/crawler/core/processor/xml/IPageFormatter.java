@@ -1,8 +1,8 @@
 package ua.com.papers.crawler.core.processor.xml;
 
 import org.springframework.validation.annotation.Validated;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.vo.PageID;
+import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.vo.PageID;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;

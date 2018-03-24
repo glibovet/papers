@@ -11,6 +11,7 @@ import ua.com.papers.crawler.core.schedule.ICrawlerManager;
  * </p>
  * Created by Максим on 1/9/2017.
  */
+@Deprecated
 public interface ICrawlerManagerFactory {
 
     /**

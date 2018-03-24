@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.main;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;

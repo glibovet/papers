@@ -1,7 +1,7 @@
 package ua.com.papers.crawler.core.analyze;
 
 import lombok.Value;
-import ua.com.papers.crawler.core.domain.vo.PageID;
+import ua.com.papers.crawler.core.main.vo.PageID;
 import ua.com.papers.crawler.settings.AnalyzeTemplate;
 import ua.com.papers.crawler.settings.AnalyzeWeight;
 

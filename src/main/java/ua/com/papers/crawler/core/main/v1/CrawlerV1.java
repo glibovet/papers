@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.main.v1;
 
 
 import lombok.AccessLevel;
@@ -8,11 +8,14 @@ import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.ICrawler;
+import ua.com.papers.crawler.core.main.ICrawlerPredicate;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
 import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.settings.Conditions;
 import ua.com.papers.crawler.settings.SchedulerSetting;
+import ua.com.papers.crawler.settings.Settings;
 import ua.com.papers.crawler.util.Preconditions;
 
 import javax.annotation.Nullable;
@@ -29,13 +32,14 @@ import java.util.logging.Level;
 @Log
 @Value
 @Getter(value = AccessLevel.NONE)
-public class Crawler implements ICrawler {
+@Deprecated
+public class CrawlerV1 implements ICrawler {
 
     /**
      * This predicate takes into count only available free memory
      */
     static ICrawlerPredicate DEFAULT_PREDICATE =
-            (visitedUrls, acceptedPages) -> Runtime.getRuntime().freeMemory() > Crawler.getMinFreeMemory();
+            (visitedUrls, acceptedPages) -> Runtime.getRuntime().freeMemory() > CrawlerV1.getMinFreeMemory();
 
     @NonFinal
     static int parsePageTimeout = 5_000;// millis
@@ -58,7 +62,7 @@ public class Crawler implements ICrawler {
 
     public static void setMinFreeMemory(long bytes) {
         Preconditions.checkArgument(bytes > 0, "bytes < 0");
-        Crawler.minFreeMemory = bytes;
+        CrawlerV1.minFreeMemory = bytes;
     }
 
     public static int getParsePageTimeout() {
@@ -67,7 +71,7 @@ public class Crawler implements ICrawler {
 
     public static void setParsePageTimeout(int parsePageTimeout) {
         Preconditions.checkArgument(parsePageTimeout > 0, "timeout < 0");
-        Crawler.parsePageTimeout = parsePageTimeout;
+        CrawlerV1.parsePageTimeout = parsePageTimeout;
     }
 
     @Value
@@ -115,9 +119,9 @@ public class Crawler implements ICrawler {
     }
 
     @lombok.Builder(builderClassName = "Builder")
-    private Crawler(@NotNull IAnalyzeManager analyzeManager,
-                    @NotNull IUrlExtractor urlExtractor, @NotNull IFormatManagerFactory formatManagerFactory,
-                    @Nullable ICrawlerPredicate predicate, @NotNull SchedulerSetting schedulerSetting) {
+    private CrawlerV1(@NotNull IAnalyzeManager analyzeManager,
+                      @NotNull IUrlExtractor urlExtractor, @NotNull IFormatManagerFactory formatManagerFactory,
+                      @Nullable ICrawlerPredicate predicate, @NotNull SchedulerSetting schedulerSetting) {
 
         this.analyzeManager = Conditions.isNotNull(analyzeManager, "analyze manager == null");
         this.urlExtractor = Conditions.isNotNull(urlExtractor, "url extractor == null");
@@ -127,21 +131,29 @@ public class Crawler implements ICrawler {
     }
 
     @Override
-    public void start(@NotNull Callback callback, @NotNull Collection<Object> handlers,
-                      @NotNull Collection<URL> urlsColl) {
+    public Settings getSettings() {
+        return null;
+    }
 
-        Crawler.checkPreConditions(callback, handlers, urlsColl);
+    @Override
+    public void start(Callback callback) {
+
+    }
+
+    @Override
+    public void start(@NotNull Callback callback, @NotNull Collection<?> handlers,
+                      @NotNull Collection<? extends URL> urlsColl) {
+
+        CrawlerV1.checkPreConditions(callback, handlers, urlsColl);
         stop();
 
         val props = LoopManager.Props.builder()
                 .callback(new IgnoreErrorCallback(callback))
-                .handlers(handlers)
-                .urlsColl(urlsColl)
                 .analyzeManager(analyzeManager)
                 .urlExtractor(urlExtractor)
                 .formatManager(formatManagerFactory.create(handlers))
-                .schedulerSetting(schedulerSetting)
-                .parseTimeout(Crawler.parsePageTimeout)
+                .parseTimeout(CrawlerV1.parsePageTimeout)
+                .settings(getSettings())
                 .predicate(predicate)
                 .build();
 
@@ -161,7 +173,7 @@ public class Crawler implements ICrawler {
      * Checks method preconditions; if preconditions aren't satisfied, then instance of
      * {@linkplain IllegalArgumentException} will be thrown
      */
-    private static void checkPreConditions(Callback callback, Collection<Object> handlers, Collection<URL> urlsColl) {
+    private static void checkPreConditions(Callback callback, Collection<?> handlers, Collection<? extends URL> urlsColl) {
 
         Conditions.isNotNull(callback, "callback == null");
 

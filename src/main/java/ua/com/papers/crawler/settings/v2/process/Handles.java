@@ -1,7 +1,8 @@
 package ua.com.papers.crawler.settings.v2.process;
 
 import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.processor.OutFormatter;
 import ua.com.papers.crawler.core.processor.convert.Converter;
 
 import javax.validation.constraints.NotNull;
@@ -42,7 +43,7 @@ public @interface Handles {
      * created via default constructor using reflection
      * </p>
      * <p>If {@linkplain Stub} is used, then acceptable converter will be searched among
-     * registered adapters by the corresponding {@linkplain ua.com.papers.crawler.core.processor.IFormatManager}.
+     * registered adapters by the corresponding {@linkplain OutFormatter}.
      * If no acceptable converter is found - error is raised
      * </p>
      */

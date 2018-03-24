@@ -5,9 +5,9 @@ import lombok.Getter;
 import lombok.Value;
 import lombok.extern.java.Log;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.vo.PageID;
-import ua.com.papers.crawler.core.processor.IFormatManager;
+import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.vo.PageID;
+import ua.com.papers.crawler.core.processor.OutFormatter;
 import ua.com.papers.crawler.core.processor.convert.Converter;
 import ua.com.papers.crawler.core.processor.convert.SkipAdapter;
 import ua.com.papers.crawler.core.processor.convert.StringAdapter;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @Log
 @Getter(value = AccessLevel.NONE)
 // TODO: 1/14/2018 Deduce adapter type from handler arg
-public class FormatManager implements IFormatManager {
+public class XmlFormatManager implements OutFormatter {
 
     private static final int DEFAULT_LIFECYCLE_METHODS_CNT = 2;
 
@@ -145,9 +145,9 @@ public class FormatManager implements IFormatManager {
         }
     }
 
-    public FormatManager(@NotNull Collection<Object> handlers, IPageFormatter pageFormatter) {
+    public XmlFormatManager(@NotNull Collection<?> handlers, IPageFormatter pageFormatter) {
         this.pageFormatter = Preconditions.checkNotNull(pageFormatter);
-        FormatManager.checkHandlers(handlers);
+        XmlFormatManager.checkHandlers(handlers);
 
         this.idToHandlers = Preconditions.checkNotNull(handlers)
                 .stream()
@@ -195,7 +195,7 @@ public class FormatManager implements IFormatManager {
     }
 
     @Override
-    public void processPage(@NotNull PageID pageID, @NotNull Page page) {
+    public void formatPage(@NotNull PageID pageID, @NotNull Page page) {
         val handlers = idToHandlers.get(pageID);
 
         if (handlers != null && !handlers.isEmpty()) {
@@ -224,7 +224,7 @@ public class FormatManager implements IFormatManager {
 
         for (val m : h.getClass().getMethods()) {
 
-            FormatManager.checkMethod(m, h);
+            XmlFormatManager.checkMethod(m, h);
             // global lifecycle method
             val preCond = m.isAnnotationPresent(PreHandle.class)
                     && m.getAnnotation(PreHandle.class).group() == PreHandle.PAGE;
@@ -242,7 +242,7 @@ public class FormatManager implements IFormatManager {
 
         for (val m : h.getClass().getMethods()) {
 
-            FormatManager.checkMethod(m, h);
+            XmlFormatManager.checkMethod(m, h);
             // global lifecycle method
             val postCond = m.isAnnotationPresent(PostHandle.class)
                     && m.getAnnotation(PostHandle.class).group() == PostHandle.PAGE;
@@ -260,7 +260,7 @@ public class FormatManager implements IFormatManager {
 
         for (val m : h.getClass().getMethods()) {
 
-            FormatManager.checkMethod(m, h);
+            XmlFormatManager.checkMethod(m, h);
             // annotated method doesn't have annotation at all or accepts one or zero arguments
             val pre = m.getAnnotation(PreHandle.class);
             val post = m.getAnnotation(PostHandle.class);
@@ -368,7 +368,7 @@ public class FormatManager implements IFormatManager {
         }
     }
 
-    private static void checkHandlers(Collection<Object> handlers) {
+    private static void checkHandlers(Collection<?> handlers) {
 
         if (Preconditions.checkNotNull(handlers, "handlers == null").isEmpty())
             throw new IllegalArgumentException("handlers weren't specified");

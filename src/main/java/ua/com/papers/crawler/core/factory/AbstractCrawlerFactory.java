@@ -1,9 +1,9 @@
 package ua.com.papers.crawler.core.factory;
 
 import lombok.val;
-import ua.com.papers.crawler.core.domain.Crawler;
-import ua.com.papers.crawler.core.domain.ICrawlerPredicate;
-import ua.com.papers.crawler.core.domain.IPageIndexer;
+import ua.com.papers.crawler.core.main.v1.CrawlerV1;
+import ua.com.papers.crawler.core.main.ICrawlerPredicate;
+import ua.com.papers.crawler.core.main.IPageIndexer;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
 import ua.com.papers.crawler.core.schedule.CrawlerManager;
@@ -38,7 +38,7 @@ public abstract class AbstractCrawlerFactory implements ICrawlerFactory {
 
         val analyzeManager = createAnalyzeManager(settings);
         val formatFactory = createFormatFactory(settings);
-        val crawler = Crawler.builder()
+        val crawler = CrawlerV1.builder()
                 .schedulerSetting(settings.getSchedulerSetting())
                 .analyzeManager(analyzeManager)
                 .formatManagerFactory(formatFactory)

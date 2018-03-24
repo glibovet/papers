@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /**
@@ -39,21 +41,66 @@ public class StorageImpl implements IStorage {
     private final ExecutorService executorService;
     private final Queue<UploadJob> uploadJobs;
 
+    private final Object lock = new Object();
+
+    private ScheduledThreadPoolExecutor scheduledExecutorService;
+    private final CheckCallback checkCallback;
+
+    private final class CheckCallback implements Runnable {
+
+        @Override
+        public void run() {
+            log.log(Level.INFO, "Checking upload job queue");
+
+            synchronized (lock) {
+                val it = uploadJobs.iterator();
+
+                while (it.hasNext()) {
+                    val job = it.next();
+
+                    if (shouldUpload(job)) {
+                        it.remove();
+                        job.upload(null);
+                    }
+                }
+
+                if (uploadJobs.isEmpty()) {
+                    log.log(Level.INFO, "No pending upload jobs, shutting down");
+                    shutdown();
+                }
+            }
+        }
+
+        private void shutdown() {
+            scheduledExecutorService.shutdownNow();
+            try {
+                scheduledExecutorService.awaitTermination(1, TimeUnit.SECONDS);
+            } catch (final InterruptedException e) {
+                log.log(Level.INFO, "Shutdown exception", e);
+            } finally {
+                scheduledExecutorService = null;
+            }
+        }
+
+    }
+
     public StorageImpl() {
         this.uploadJobs = new LinkedList<>();
-        this.executorService = Executors.newWorkStealingPool();
+        this.executorService = Executors.newFixedThreadPool(2);
+        this.checkCallback = new CheckCallback();
     }
 
     @Override
     public void upload(@NotNull File from, @NotNull File to, @NotNull ResultCallback<File> callback) {
-        executorService.submit(() -> {
-            try {
-                postJob(prepareJob(from, to, callback));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        synchronized (lock) {
+            prepareJob(from, to, callback);
 
-        });
+            if (scheduledExecutorService == null) {
+                log.log(Level.INFO, "Starting scheduler service");
+                scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
+                scheduledExecutorService.scheduleWithFixedDelay(checkCallback, maxIdleAwaitTimeout, maxIdleAwaitTimeout, TimeUnit.MILLISECONDS);
+            }
+        }
     }
 
     @Override
@@ -145,23 +192,21 @@ public class StorageImpl implements IStorage {
         }
     }
 
-    private void postJob(@NonNull UploadJob job) {
-        synchronized (job) {
+    /*private void postJob(@NonNull UploadJob job) {
+        synchronized (lock) {
             if (shouldUpload(job)) {
-                synchronized (uploadJobs) {
-                    val isRemoved = uploadJobs.remove(job);
-
-                    if (!isRemoved) {
-                        log.log(Level.WARNING, String.format("failed to remove job %s from queue of size %d", job, uploadJobs.size()));
-                    }
-                }
+                val isRemoved = uploadJobs.remove(job);
 
                 job.upload(this::runNextJob);
-                job.notifyAll();
+                lock.notifyAll();
+
+                if (!isRemoved) {
+                    log.log(Level.WARNING, String.format("failed to remove job %s from queue of size %d", job, uploadJobs.size()));
+                }
             } else {
                 // run timer
                 try {
-                    job.wait(maxIdleAwaitTimeout);
+                    lock.wait(maxIdleAwaitTimeout);
                 } catch (final InterruptedException e) {
                     log.log(Level.INFO, "Interrupted upload wait lock", e);
                     return;
@@ -169,21 +214,21 @@ public class StorageImpl implements IStorage {
 
                 if (shouldUpload(job)) {
                     job.upload(this::runNextJob);
-                    job.notifyAll();
+                    lock.notifyAll();
                 } else {
                     runNextJob();
                 }
             }
         }
-    }
+    }*/
 
     private UploadJob prepareJob(@NonNull File from, @NonNull File to, @NonNull ResultCallback<File> callback) {
         val args = new UploadJob.UploadArgs(from, to, callback);
 
-        synchronized (uploadJobs) {
+        synchronized (lock) {
             var job = uploadJobs.peek();
 
-            if (job == null || job.isUploading()) {
+            if (job == null || job.isUploading() || job.isUploaded()) {
                 job = new UploadJob(client(), args);
 
                 uploadJobs.add(job);
@@ -196,20 +241,15 @@ public class StorageImpl implements IStorage {
         }
     }
 
-    private void runNextJob() {
+    /*private void runNextJob() {
         UploadJob job;
 
-        synchronized (uploadJobs) {
-            boolean drain;
+        synchronized (lock) {
+            job = uploadJobs.peek();
 
-            do {
-                job = uploadJobs.peek();
-                drain = job != null && (job.isUploaded() || job.isUploading());
-
-                if (drain) {
-                    uploadJobs.poll();
-                }
-            } while (drain);
+            while (job != null && (job.isUploading() || job.isUploaded())) {
+                uploadJobs.poll();
+            }
         }
 
         if (job == null) {
@@ -218,7 +258,7 @@ public class StorageImpl implements IStorage {
             log.log(Level.INFO, String.format("Posting next job %s", job));
             postJob(job);
         }
-    }
+    }*/
 
     private boolean shouldUpload(UploadJob job) {
         return !job.isUploading() && !job.isUploaded() && (System.currentTimeMillis() - job.getLastInsertTimestamp() >= maxIdleAwaitTimeout

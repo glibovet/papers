@@ -4,8 +4,8 @@ import com.google.common.base.Preconditions;
 import lombok.Value;
 import lombok.val;
 import org.jsoup.select.Elements;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.vo.PageID;
+import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.vo.PageID;
 import ua.com.papers.crawler.settings.FormatTemplate;
 
 import javax.validation.constraints.NotNull;

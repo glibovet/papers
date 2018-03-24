@@ -1,7 +1,7 @@
 package ua.com.papers.crawler.core.processor.annotation.util;
 
 import lombok.val;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;
 import ua.com.papers.crawler.settings.v2.process.BeforePage;
 import ua.com.papers.crawler.settings.v2.process.Handles;

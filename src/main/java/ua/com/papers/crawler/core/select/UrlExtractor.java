@@ -6,8 +6,8 @@ import lombok.Value;
 import lombok.extern.java.Log;
 import lombok.val;
 import org.elasticsearch.common.collect.Tuple;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.vo.PageID;
+import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.vo.PageID;
 import ua.com.papers.crawler.settings.UrlSelectSetting;
 import ua.com.papers.crawler.util.PageUtils;
 

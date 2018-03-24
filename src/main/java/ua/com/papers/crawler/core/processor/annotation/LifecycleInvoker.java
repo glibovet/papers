@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.core.processor.annotation.util.AnnotationUtil;
 import ua.com.papers.crawler.util.Preconditions;
 

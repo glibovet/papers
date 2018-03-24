@@ -88,7 +88,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
 
     @PreHandle
     @BeforePage
-    public void onPrepare(ua.com.papers.crawler.core.domain.bo.Page page) throws WrongRestrictionException {
+    public void onPrepare(ua.com.papers.crawler.core.main.bo.Page page) throws WrongRestrictionException {
         log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
 
         if (titleToId == null) {
@@ -116,7 +116,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
 
     @PostHandle
     @AfterPage
-    public void onPageParsed(ua.com.papers.crawler.core.domain.bo.Page page) {
+    public void onPageParsed(ua.com.papers.crawler.core.main.bo.Page page) {
         log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
         // save parsed page link
         publicationView.setLink(page.getUrl().toExternalForm());
@@ -127,7 +127,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
                 && publisherView.getId() != null;
 
         if (isValid) {
-            log.log(Level.INFO, String.format("trying to save publication %s", publicationView.getLink()));
+            log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
 
             publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
                 @Override

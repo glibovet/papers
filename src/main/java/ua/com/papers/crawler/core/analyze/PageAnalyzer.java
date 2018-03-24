@@ -4,8 +4,8 @@ import lombok.NonNull;
 import lombok.Value;
 import lombok.experimental.var;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.vo.PageID;
+import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.vo.PageID;
 import ua.com.papers.crawler.settings.AnalyzeTemplate;
 import ua.com.papers.crawler.settings.AnalyzeWeight;
 

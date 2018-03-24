@@ -1,6 +1,6 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.main;
 
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
@@ -64,28 +64,6 @@ public interface IPageIndexer {
         }
 
     }
-
-    public static final Callback DEFAULT_CALLBACK = new Callback() {
-        @Override
-        public void onIndexed(Page page) {
-
-        }
-
-        @Override
-        public void onUpdated(Page page) {
-
-        }
-
-        @Override
-        public void onLost(Page page) {
-
-        }
-
-        @Override
-        public void onIndexException(URL url, Throwable th) {
-
-        }
-    };
 
     /**
      * Adds page to indexer storage

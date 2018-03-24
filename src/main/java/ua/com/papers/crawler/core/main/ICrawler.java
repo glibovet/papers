@@ -1,7 +1,8 @@
-package ua.com.papers.crawler.core.domain;
+package ua.com.papers.crawler.core.main;
 
 
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.settings.Settings;
 import ua.com.papers.crawler.settings.v1.PageHandler;
 
 import javax.annotation.Nullable;
@@ -70,12 +71,10 @@ public interface ICrawler {
 
     }
 
-    public static final Callback DEFAULT_CALLBACK = new Callback() {
-        @Override
-        public void onPageAccepted(Page page) {
+    @NotNull
+    Settings getSettings();
 
-        }
-    };
+    void start(@NotNull Callback callback);
 
     /**
      * This method starts crawler
@@ -85,11 +84,12 @@ public interface ICrawler {
      * @param callback callback to monitor progress status
      * @param urls     start urls to process
      */
-    void start(@NotNull Callback callback, @NotNull Collection<Object> handlers, @NotNull Collection<URL> urls);
+    @Deprecated
+    void start(@NotNull Callback callback, @NotNull Collection<?> handlers, @NotNull Collection<? extends URL> urls);
 
     /**
      * Stops crawler. <i>Note, that invocation of this method doesn't guarantee that crawler
-     * will be shutdown instantly</i>
+     * will shutdown instantly</i>
      */
     void stop();
 

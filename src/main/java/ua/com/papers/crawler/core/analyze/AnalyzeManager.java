@@ -2,7 +2,7 @@ package ua.com.papers.crawler.core.analyze;
 
 import lombok.NonNull;
 import lombok.Value;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.util.PageUtils;
 
 import javax.validation.constraints.NotNull;

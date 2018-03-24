@@ -12,6 +12,6 @@ import java.util.Collection;
 public interface IFormatManagerFactory {
 
     @NotNull
-    IFormatManager create(@NotNull Collection<Object> handlers);
+    OutFormatter create(@NotNull Collection<?> handlers);
 
 }

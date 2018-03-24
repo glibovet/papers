@@ -5,9 +5,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
 import lombok.extern.java.Log;
-import ua.com.papers.crawler.core.domain.ICrawler;
-import ua.com.papers.crawler.core.domain.IPageIndexer;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.ICrawler;
+import ua.com.papers.crawler.core.main.IPageIndexer;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.util.Preconditions;
 
 import javax.validation.constraints.NotNull;
@@ -27,7 +27,7 @@ public class CrawlerManager implements ICrawlerManager {
 
     IPageIndexer indexer;
     ICrawler crawler;
-    Collection<URL> startUrls;
+    Collection<? extends URL> startUrls;
 
     CrawlProxy crawlProxy;
     IndexProxy indexProxy;
@@ -111,7 +111,7 @@ public class CrawlerManager implements ICrawlerManager {
 
     @lombok.Builder(builderClassName = "Builder")
     private CrawlerManager(@NotNull ICrawler crawler, @NotNull IPageIndexer indexer,
-                           @NotNull Collection<URL> startUrls) {
+                           @NotNull Collection<? extends URL> startUrls) {
 
         if (Preconditions.checkNotNull(startUrls, "startUrls == null").isEmpty())
             throw new IllegalArgumentException("no start urls passed");

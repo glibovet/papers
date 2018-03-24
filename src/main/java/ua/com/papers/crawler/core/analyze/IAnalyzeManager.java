@@ -1,6 +1,6 @@
 package ua.com.papers.crawler.core.analyze;
 
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 
 import javax.validation.constraints.NotNull;
 import java.util.Set;

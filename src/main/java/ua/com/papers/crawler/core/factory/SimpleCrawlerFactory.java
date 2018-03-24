@@ -1,17 +1,14 @@
 package ua.com.papers.crawler.core.factory;
 
-import ua.com.papers.crawler.core.domain.ICrawlerPredicate;
-import ua.com.papers.crawler.core.domain.IPageIndexer;
-import ua.com.papers.crawler.core.domain.PageIndexer;
 import ua.com.papers.crawler.core.analyze.AnalyzeManager;
 import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
 import ua.com.papers.crawler.core.analyze.IPageAnalyzer;
 import ua.com.papers.crawler.core.analyze.PageAnalyzer;
-import ua.com.papers.crawler.core.processor.xml.XmlFormatManagerFactory;
+import ua.com.papers.crawler.core.main.ICrawlerPredicate;
 import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.xml.XmlFormatManagerFactory;
 import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.core.select.UrlExtractor;
-import ua.com.papers.crawler.core.storage.InMemoryRepo;
 import ua.com.papers.crawler.settings.PageSetting;
 import ua.com.papers.crawler.settings.Settings;
 import ua.com.papers.crawler.settings.UrlSelectSetting;
@@ -32,7 +29,7 @@ import java.util.stream.Collectors;
  * </p>
  * Created by Максим on 11/27/2016.
  */
-public class SimpleCrawlerFactory extends AbstractCrawlerFactory {
+public abstract class SimpleCrawlerFactory extends AbstractCrawlerFactory {
 
     /**
      * Default url selection criteria; all &lt;a&gt; tags with 'href' attribute will be extracted
@@ -72,13 +69,6 @@ public class SimpleCrawlerFactory extends AbstractCrawlerFactory {
     @Override
     protected IAnalyzeManager createAnalyzeManager(@NotNull Settings settings) {
         return new AnalyzeManager(settings.getPageSettings().stream().map(this::createPageAnalyzer).collect(Collectors.toList()));
-    }
-
-    @Override
-    protected IPageIndexer createPageIndexer(@NotNull Settings settings, @NotNull IFormatManagerFactory formatFactory,
-                                             @NotNull IAnalyzeManager analyzeManager) {
-        // creates page indexer that holds indexed pages in RAM!
-        return new PageIndexer(InMemoryRepo.getInstance(), formatFactory, analyzeManager, settings.getSchedulerSetting());
     }
 
     private IPageAnalyzer createPageAnalyzer(PageSetting setting) {

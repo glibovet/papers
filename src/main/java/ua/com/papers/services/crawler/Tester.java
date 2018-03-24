@@ -1,10 +1,8 @@
 package ua.com.papers.services.crawler;
 
-import lombok.val;
-import org.jsoup.Jsoup;
-import ua.com.papers.crawler.core.domain.ICrawler;
-import ua.com.papers.crawler.core.domain.IPageIndexer;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.ICrawler;
+import ua.com.papers.crawler.core.main.IPageIndexer;
+import ua.com.papers.crawler.core.main.bo.Page;
 
 import javax.validation.constraints.NotNull;
 import java.io.File;
