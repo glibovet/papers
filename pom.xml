@@ -195,6 +195,44 @@
           <version>2.2.2</version>
       </dependency>
 
+      <!-- Apache PdfBox-->
+
+      <dependency>
+          <groupId>org.apache.pdfbox</groupId>
+          <artifactId>pdfbox</artifactId>
+          <version>1.8.10</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.pdfbox</groupId>
+          <artifactId>fontbox</artifactId>
+          <version>1.8.10</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.pdfbox</groupId>
+          <artifactId>jempbox</artifactId>
+          <version>1.8.10</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.pdfbox</groupId>
+          <artifactId>xmpbox</artifactId>
+          <version>1.8.10</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.pdfbox</groupId>
+          <artifactId>preflight</artifactId>
+          <version>1.8.10</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.pdfbox</groupId>
+          <artifactId>pdfbox-tools</artifactId>
+          <version>1.8.10</version>
+      </dependency>
+
       <!-- Apache lang utils -->
       <dependency>
           <groupId>commons-lang</groupId>
