@@ -45,7 +45,7 @@ public class Document {
         return tfIdfItems;
     }
 
-    public void addTfIdfItems(TfIdfItem item) {
+    public void addTfIdfItem(TfIdfItem item) {
         this.tfIdfItems.add(item);
     }
 }
