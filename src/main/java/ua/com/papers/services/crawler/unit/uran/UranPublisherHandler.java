@@ -6,8 +6,12 @@ import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
+import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.settings.v1.Part;
+import ua.com.papers.crawler.settings.v1.PageHandlerV1;
+import ua.com.papers.crawler.settings.v1.PostHandle;
+import ua.com.papers.crawler.settings.v1.PreHandle;
+import ua.com.papers.crawler.core.processor.convert.StringAdapter;
 import ua.com.papers.services.crawler.IHandlerCallback;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
@@ -29,7 +33,7 @@ import java.util.stream.Collectors;
  * Created by Максим on 2/6/2017.
  */
 @Log
-@PageHandler(id = 2)
+@PageHandlerV1(id = 2)
 @Value
 @Getter(AccessLevel.NONE)
 public class UranPublisherHandler {
@@ -84,7 +88,7 @@ public class UranPublisherHandler {
 
                 try {
                     PublisherEntity entity = publisherService.findPublisherByTitle(publisherView.getTitle());
-                    if (entity==null)
+                    if (entity == null)
                         id = publisherService.createPublisher(publisherView);
                     else id = entity.getId();
                     titleToId.put(publisherView.getTitle(), id);
@@ -102,7 +106,7 @@ public class UranPublisherHandler {
         }
     }
 
-    @Handler(id = 4, converter = StringAdapter.class)
+    @Part(id = 4, converter = StringAdapter.class)
     public void onHandlePubisherTitle(String title) {
         log.log(Level.INFO, String.format("#onHandlePubHouseTitle %s, %s", getClass(), title));
 

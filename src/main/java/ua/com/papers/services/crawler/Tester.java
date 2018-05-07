@@ -1,24 +1,32 @@
 package ua.com.papers.services.crawler;
 
 import lombok.val;
-import org.jsoup.Jsoup;
-import ua.com.papers.crawler.core.domain.ICrawler;
-import ua.com.papers.crawler.core.domain.IPageIndexer;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.ICrawler;
+import ua.com.papers.crawler.core.main.PageIndexer;
+import ua.com.papers.crawler.core.main.bo.Page;
 
 import javax.validation.constraints.NotNull;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public class Tester {
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println(Arrays.toString("Боков, В.А.".trim().split(", ")));
+        val str = "(Oleksandr Aghyppo) Ажиппо Олександр Юрійович,\t(Tatyana Dorofeeva) Дорофєєва Тетяна Іванівна,\t(Yaroslavna Puhach) Пугач Ярославна Ігорівна,\t(Galina Artem’yeva) Артем’єва Галина Павлівна,\t(Mariia Nechytailo) Нечитайло Марія Валеріївна,\t(Valeriy Druz) Друзь Валерій Анатолійович";
 
-        System.out.println(new File("/home/max/IdeaProjects/papers/src/main/resources/crawler/crawler-settings.xml").exists());
+
+        val p = Pattern.compile("\\(.*?\\)");
+
+        System.out.println("(Oleksandr Aghyppo) Ажиппо Олександр Юрійович,\t(Tatyana Dorofeeva) Дорофєєва Тетяна Іванівна".replaceAll(p.pattern(), ""));
+
+
+        System.out.println("xfooxxxxxxfoo".replaceAll(".*foo", "1"));
+
+       // System.out.println(Arrays.toString("Боков, В.А.".trim().split(", ")));
+
+     //   System.out.println(new File("/home/max/IdeaProjects/papers/src/main/resources/crawler/crawler-settings.xml").exists());
 
        // val doc = Jsoup.parse("<a href=\"/handle/123456789/6537\"> <span class=\"Z3988\">Кримський науковий центр</span> </a>", "");
 
@@ -46,8 +54,8 @@ public class Tester {
         // scheduler.stop();
     }
 
-    private static IPageIndexer.Callback indexCall() {
-        return new IPageIndexer.Callback() {
+    private static PageIndexer.Callback indexCall() {
+        return new PageIndexer.Callback() {
 
             @Override
             public void onStart() {

@@ -15,6 +15,7 @@
                 <xs:element name="scheduler-params" type="scheduler-params"
                             minOccurs="0"/>
             </xs:all>
+            <xs:attribute name="job" type="non-empty-string" use="required"/>
         </xs:complexType>
     </xs:element>
     <!-- end of crawler tag -->

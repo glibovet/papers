@@ -170,7 +170,14 @@ public class PublicationServiceImpl implements IPublicationService {
 
     @Override
     public void savePublicationFromRobot(@NotNull PublicationView publication, @Nullable ResultCallback<PublicationEntity> callback) {
-        executorService.submit(() -> doSavePublicationFromRobot(publication, callback));
+        /*executorService.submit(() -> {
+            try {*/
+                doSavePublicationFromRobot(publication, callback);
+            /*} catch (Throwable t) {
+                t.printStackTrace();
+            }
+
+        });*/
     }
 
     @Override
@@ -322,15 +329,18 @@ public class PublicationServiceImpl implements IPublicationService {
                 : String.format("wrong assertion - %s, %s", exception, entity);
 
         if (exception.isPresent()) {
+            log.log(Level.INFO, "Can't save the publication", exception.get());
             PublicationServiceImpl.notifyExceptionIfNotNull(callback, exception.get());
 
         } else {
-            assert entity.isPresent();// make intellij happy
             val entityVal = entity.get();
             val needUpload = (!entityVal.isInIndex() || entityVal.getUploadStatus() != UploadStatus.UPLOADED)
                     && (!TextUtils.isEmpty(publication.getFile_link()) || !TextUtils.isEmpty(entityVal.getFileLink()));
 
+            log.log(Level.INFO, String.format("Publication entity %s", entityVal));
+
             if (needUpload) {
+                log.log(Level.INFO, "Insert publication for upload");
                 storageService.uploadPaper(entityVal, new ResultCallback<File>() {
 
                     @Override
@@ -359,6 +369,7 @@ public class PublicationServiceImpl implements IPublicationService {
                 });
             } else {
                 // publication was already indexed, proceed
+                log.log(Level.INFO, "Publication was already processed, skipping");
                 PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
             }
         }

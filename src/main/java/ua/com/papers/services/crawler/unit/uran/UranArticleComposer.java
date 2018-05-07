@@ -6,11 +6,11 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import lombok.val;
-import ua.com.papers.crawler.core.domain.bo.Page;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.services.crawler.IHandlerCallback;
-import ua.com.papers.crawler.util.PageHandler;
-import ua.com.papers.crawler.util.PostHandle;
-import ua.com.papers.crawler.util.PreHandle;
+import ua.com.papers.crawler.settings.v1.PageHandlerV1;
+import ua.com.papers.crawler.settings.v1.PostHandle;
+import ua.com.papers.crawler.settings.v1.PreHandle;
 import ua.com.papers.pojo.entities.AuthorEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.view.PublicationView;
@@ -34,7 +34,7 @@ import java.util.logging.Level;
 @Log
 @Value
 @Getter(AccessLevel.NONE)
-@PageHandler(id = 2)
+@PageHandlerV1(id = 2)
 public final class UranArticleComposer {
 
     IAuthorService authorService;

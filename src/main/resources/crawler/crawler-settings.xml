@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<crawler>
+<crawler job="default">
 
     <urls>
         <url>http://journals.uran.ua/index.php/1991-0177/issue/archive</url>

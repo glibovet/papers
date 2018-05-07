@@ -35,34 +35,14 @@
         </property>
     </bean>
 
-    <bean id="defaultCrawlerFactory" class="ua.com.papers.services.crawler.XmlCrawlerManagerFactory">
-        <constructor-arg name="xsdPath" value="${papers.crawler.xsd.location}"/>
-        <constructor-arg name="filepath" value="${papers.crawler.location}"/>
-        <constructor-arg name="factory" ref="appCrawlerFactory"/>
-    </bean>
+    <import resource="nbuvConfig.xml" />
+    <import resource="uranConfig.xml" />
 
-    <bean id="nbuvCrawlerFactory" class="ua.com.papers.services.crawler.XmlCrawlerManagerFactory">
-        <constructor-arg name="xsdPath" value="${papers.crawler.xsd.location}"/>
-        <constructor-arg name="filepath" value="${papers.crawler.location.nbuv}"/>
-        <constructor-arg name="factory" ref="appCrawlerFactory"/>
-    </bean>
-
-    <!-- Crawl units declaration -->
-
-    <bean id="nbuvCrawlUnit" class="ua.com.papers.services.crawler.WebSiteCrawlUnit">
-        <constructor-arg name="handlers">
-            <list>
-                <ref bean="logPage"/>
-                <ref bean="nbuvArticleHandler"/>
-            </list>
-        </constructor-arg>
-        <constructor-arg name="factory" ref="nbuvCrawlerFactory"/>
-    </bean>
-
-    <bean class="ua.com.papers.services.crawler.CrawlerService">
-        <constructor-arg name="crawlUnits">
-            <list value-type="ua.com.papers.services.crawler.WebSiteCrawlUnit">
-                <ref bean="nbuvCrawlUnit"/>
+    <bean id="crawlerService" class="ua.com.papers.services.crawler.CrawlerService">
+        <constructor-arg name="factories">
+            <list value-type="ua.com.papers.crawler.core.factory.ICrawlerFactory">
+                <ref bean="nbuvFactory"/>
+                <!--<ref bean="uranFactory"/>-->
             </list>
         </constructor-arg>
     </bean>
@@ -110,8 +90,7 @@
         </property>
     </bean>
 
-    <bean id="entityManagerFactory"
-          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="mainDataSource"/>
         <property name="packagesToScan" value="ua.com.papers.pojo.entities, ua.com.papers.services.crawler.unit.repo"/>
         <property name="jpaVendorAdapter">
