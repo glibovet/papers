@@ -480,10 +480,10 @@
           <plugin>
                     <groupId>com.jelastic</groupId>
                     <artifactId>jelastic-maven-plugin</artifactId>
-                    <version>1.8</version>
+                    <version>1.8.4</version>
                     <configuration>
-                        <email>${jelastic.login}</email>
-                        <password>${jelastic.pass}</password>
+                        <email>andriy@glybovets.com.ua</email>
+                        <password>qdc9MI5OBx0z</password>
 						<context>papers</context>
 						<environment>papaers-server</environment>
                         <api_hoster>app.mircloud.host</api_hoster>
