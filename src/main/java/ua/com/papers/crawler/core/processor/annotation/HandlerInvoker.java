@@ -4,39 +4,38 @@ import lombok.NonNull;
 import lombok.Value;
 import lombok.val;
 import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.processor.convert.Converter;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;
 import ua.com.papers.crawler.settings.v2.process.BeforePage;
 import ua.com.papers.crawler.settings.v2.process.Handles;
-import ua.com.papers.crawler.core.processor.convert.Converter;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 final class HandlerInvoker implements Invoker {
+
     private final Collection<? extends Invoker> beforeInvokers;
     private final Collection<? extends Invoker> afterInvokers;
-    private final Map<Integer, ProcessInvokeExecutor> processInvokers;
+    private final Collection<? extends SingleGroupInvoker> groupInvokers;
 
     <T> HandlerInvoker(@NonNull Object handler, @NonNull Function<Class<T>, Converter<T>> rawTypeAdapterSupplier,
-                   @NonNull Function<Class<? extends Converter<T>>, Converter<T>> adapterSupplier) {
-        val mapped = mapMethods(handler, rawTypeAdapterSupplier, adapterSupplier);
+                       @NonNull Function<Class<? extends Converter<T>>, Converter<T>> adapterSupplier) {
 
-        this.beforeInvokers = mapped.get(BeforePage.class);
-        this.afterInvokers = mapped.get(AfterPage.class);
-        // cast to process invokers
-        this.processInvokers = mapped.get(Handles.class).stream().map(i -> (ProcessInvoker) i)
+        val mapper = new Mapper<T>(handler, rawTypeAdapterSupplier, adapterSupplier);
+
+        this.beforeInvokers = mapper.getBeforeInvokers();
+        this.afterInvokers = mapper.getAfterInvokers();
+        this.groupInvokers = mapper.getProcessInvokers().stream()
                 // Map<Int, List<ProcessInvoker>>
                 .collect(Collectors.groupingBy(i -> i.getHandles().group(), Collectors.toList()))
-                // Map<Int, ProcessInvokeExecutor>
-                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, v -> new ProcessInvokeExecutor(v.getValue())));
+                // Map<Int, SingleMethodExecutor>
+                .entrySet().stream()
+                .map(e -> new SingleGroupInvoker(e.getValue()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -45,8 +44,8 @@ final class HandlerInvoker implements Invoker {
             before.invoke(page);
         }
 
-        for (val entry : processInvokers.entrySet()) {
-            entry.getValue().invoke(page);
+        for (val invoker : groupInvokers) {
+            invoker.invoke(page);
         }
 
         for (val after : afterInvokers) {
@@ -54,49 +53,38 @@ final class HandlerInvoker implements Invoker {
         }
     }
 
-    private <T> Map<Class<? extends Annotation>, ? extends Collection<Invoker>>
-    mapMethods(Object handler, Function<Class<T>, Converter<T>> rawTypeAdapterSupplier,
-               @NonNull Function<Class<? extends Converter<T>>, Converter<T>> adapterSupplier) {
+}
 
-        val map = new HashMap<Class<? extends Annotation>, ArrayList<Invoker>>() {
-            {
-                put(BeforePage.class, new ArrayList<>(1));
-                put(AfterPage.class, new ArrayList<>(1));
-                put(Handles.class, new ArrayList<>(1));
-            }
-        };
 
-        @Value
-        class Remapper implements BiFunction<Class<? extends Annotation>, ArrayList<Invoker>, ArrayList<Invoker>> {
-            Method method;
-            Object target;
+@Value
+final class Mapper<T> {
 
-            @Override
-            public ArrayList<Invoker> apply(Class<? extends Annotation> aClass, ArrayList<Invoker> methods) {
-                if (aClass == Handles.class) {
-                    methods.add(new ProcessInvoker(method, target, rawTypeAdapterSupplier, adapterSupplier));
-                } else {
-                    methods.add(new LifecycleInvoker(method, target, aClass));
-                }
-                return methods;
-            }
-        }
+    private final Collection<Invoker> beforeInvokers;
+    private final Collection<Invoker> afterInvokers;
+    private final Collection<ProcessInvoker> processInvokers;
+
+    Mapper(Object handler, Function<Class<T>, Converter<T>> rawTypeAdapterSupplier,
+           @NonNull Function<Class<? extends Converter<T>>, Converter<T>> adapterSupplier) {
+
+        val beforeInvokers = new ArrayList<Invoker>(1);
+        val afterInvokers = new ArrayList<Invoker>(1);
+        val processInvokers = new ArrayList<ProcessInvoker>(1);
 
         for (val method : handler.getClass().getMethods()) {
 
             if (method.isAnnotationPresent(BeforePage.class)) {
-                map.compute(BeforePage.class, new Remapper(method, handler));
+                beforeInvokers.add(new LifecycleInvoker(method, handler, BeforePage.class));
 
             } else if (method.isAnnotationPresent(AfterPage.class)) {
-                map.compute(AfterPage.class, new Remapper(method, handler));
+                afterInvokers.add(new LifecycleInvoker(method, handler, AfterPage.class));
 
             } else if (method.isAnnotationPresent(Handles.class)) {
-                map.compute(Handles.class, new Remapper(method, handler));
+                processInvokers.add(new ProcessInvoker(method, handler, rawTypeAdapterSupplier, adapterSupplier));
             }
         }
 
-        map.values().forEach(ArrayList::trimToSize);
-        return map;
+        this.beforeInvokers = Collections.unmodifiableCollection(beforeInvokers);
+        this.afterInvokers = Collections.unmodifiableCollection(afterInvokers);
+        this.processInvokers = Collections.unmodifiableCollection(processInvokers);
     }
-
 }

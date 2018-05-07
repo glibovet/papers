@@ -5,16 +5,19 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.var;
 import lombok.val;
+import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.main.bo.Page;
-import ua.com.papers.crawler.settings.v2.process.Handles;
 import ua.com.papers.crawler.core.processor.annotation.util.AnnotationUtil;
 import ua.com.papers.crawler.core.processor.convert.Converter;
+import ua.com.papers.crawler.settings.v2.process.Handles;
 import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.crawler.util.TextUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -24,7 +27,7 @@ import java.util.stream.Collectors;
  */
 @EqualsAndHashCode
 @ToString
-public final class ProcessInvoker implements Invoker {
+public final class ProcessInvoker {
 
     private final Method method;
     private final Object target;
@@ -91,17 +94,13 @@ public final class ProcessInvoker implements Invoker {
         return handles;
     }
 
-    @Override
-    public void invoke(@NonNull Page page) throws InvocationTargetException, IllegalAccessException {
-        for (val css : handles.selectors()) {
+    @NonNull
+    public List<? extends Element> extractNodes(@NonNull Page page) {
+        return Arrays.stream(handles.selectors()).flatMap(css -> page.toDocument().select(css).stream()).collect(Collectors.toList());
+    }
 
-            val elements = page.toDocument().select(css).stream()
-                    .map(e -> converter.convert(e, page)).collect(Collectors.toList());
-
-            for (val arg : elements) {
-                method.invoke(target, wrapArgs(arg, page));
-            }
-        }
+    public void invoke(@NonNull Page page, @NonNull Element element) throws InvocationTargetException, IllegalAccessException {
+        method.invoke(target, wrapArgs(converter.convert(element, page), page));
     }
 
     private Object[] wrapArgs(Object mainArg, Page page) {

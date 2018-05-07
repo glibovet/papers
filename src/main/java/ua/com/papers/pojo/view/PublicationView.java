@@ -132,7 +132,7 @@ public class PublicationView {
         return !TextUtils.isEmpty(getLink())
                 && !TextUtils.isEmpty(getTitle())
                 && getAuthors_id() != null && !getAuthors_id().isEmpty()
-                && getId() != null && getPublisher_id() != null;
+                && getPublisher_id() != null;
     }
 
     public void reset() {

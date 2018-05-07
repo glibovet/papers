@@ -10,6 +10,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Comparator;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -51,18 +52,31 @@ public @interface Handles {
     Class<? extends Converter<?>> converter() default Stub.class;
 
     enum CallPolicy {
+
         /**
          * Denotes this method should be invoked before other methods within same group
          */
-        BEFORE,
+        BEFORE(0),
         /**
          * Denotes this method should be invoked together with other methods within same group
          */
-        INSIDE,
+        INSIDE(1),
         /**
          * Denotes this method should be invoked after other methods within same group
          */
-        AFTER
+        AFTER(2);
+
+        private final int position;
+
+        CallPolicy(int position) {
+            this.position = position;
+        }
+
+        public int getPosition() {
+            return position;
+        }
+
+        public static final Comparator<CallPolicy> DEFAULT_COMPARATOR = Comparator.comparingInt(o -> o.position);
     }
 
     final class Stub implements Converter<Object> {

@@ -10,6 +10,7 @@ import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;
 import ua.com.papers.crawler.settings.v2.process.BeforePage;
+import ua.com.papers.crawler.settings.v2.process.Binding;
 import ua.com.papers.crawler.settings.v2.process.Handles;
 import ua.com.papers.crawler.util.TextUtils;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
@@ -109,7 +110,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
             group = PUBLICATION_GROUP,
             selectors = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a"
     )
-    public void onHandleFileLink(URL link) {
+    public void onHandleFileLink(@Binding(selectors = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a") URL link) {
         log.log(Level.INFO, String.format("On handle file link %s", link));
 
         var strLink = link.toExternalForm();
@@ -123,6 +124,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
 
     @Handles(
             group = PUBLICATION_GROUP,
+            policy = Handles.CallPolicy.BEFORE,
             selectors = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a"
     )
     public void onHandleTitle(String title) {
