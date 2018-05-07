@@ -329,7 +329,7 @@ public class PublicationServiceImpl implements IPublicationService {
                 : String.format("wrong assertion - %s, %s", exception, entity);
 
         if (exception.isPresent()) {
-            log.log(Level.INFO, "Can't save the publication", exception.get());
+            //log.log(Level.INFO, "Can't save the publication", exception.get());
             PublicationServiceImpl.notifyExceptionIfNotNull(callback, exception.get());
 
         } else {
@@ -337,10 +337,10 @@ public class PublicationServiceImpl implements IPublicationService {
             val needUpload = (!entityVal.isInIndex() || entityVal.getUploadStatus() != UploadStatus.UPLOADED)
                     && (!TextUtils.isEmpty(publication.getFile_link()) || !TextUtils.isEmpty(entityVal.getFileLink()));
 
-            log.log(Level.INFO, String.format("Publication entity %s", entityVal));
+            //log.log(Level.INFO, String.format("Publication entity %s", entityVal));
 
             if (needUpload) {
-                log.log(Level.INFO, "Insert publication for upload");
+                //log.log(Level.INFO, "Insert publication for upload");
                 storageService.uploadPaper(entityVal, new ResultCallback<File>() {
 
                     @Override
@@ -369,7 +369,7 @@ public class PublicationServiceImpl implements IPublicationService {
                 });
             } else {
                 // publication was already indexed, proceed
-                log.log(Level.INFO, "Publication was already processed, skipping");
+                //log.log(Level.INFO, "Publication was already processed, skipping");
                 PublicationServiceImpl.notifyIfNotNull(callback, entityVal);
             }
         }

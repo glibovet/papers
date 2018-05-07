@@ -82,7 +82,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
 
     @BeforePage
     public void onPrepare(ua.com.papers.crawler.core.main.bo.Page page) throws WrongRestrictionException {
-        log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
 
         if (titleToId == null) {
             // load all data
@@ -109,7 +109,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
 
     @AfterPage
     public void onPageParsed(ua.com.papers.crawler.core.main.bo.Page page) {
-        log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
         // save parsed page link
         publicationView.setLink(page.getUrl().toExternalForm());
 
@@ -119,12 +119,12 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
                 && publisherView.getId() != null;
 
         if (isValid) {
-            log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
+            //log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
 
             publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
                 @Override
                 public void onResult(@NotNull PublicationEntity publicationEntity) {
-                    log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
+                    //log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
                 }
 
                 @Override
@@ -139,13 +139,13 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
 
     @Handles(group = 6, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > div > div > div.file-link > a")
     public void onHandleUri(URL link) {
-        log.log(Level.INFO, "onHandleUri " + link);
+        //log.log(Level.INFO, "onHandleUri " + link);
         publicationView.setFile_link(link.toExternalForm());
     }
 
     @Handles(group = 7, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.contributor.author)) > td:nth-child(2)")
     public void onHandleAuthors(Element authors) {
-        log.log(Level.INFO, "onHandleAuthors " + authors.ownText());
+        //log.log(Level.INFO, "onHandleAuthors " + authors.ownText());
 
         var ids = publicationView.getAuthors_id();
 
@@ -163,7 +163,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
 
     @Handles(group = 8, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.publisher)) > td:nth-child(2)")
     public void onHandlePublishers(Element publisher) throws Exception {
-        log.log(Level.INFO, "onHandlePublisher " + publisher.ownText());
+        //log.log(Level.INFO, "onHandlePublisher " + publisher.ownText());
 
         if (TextUtils.isEmpty(publisher.ownText())) {
             log.log(Level.WARNING, String.format("failed to parse title, %s", publisher));
@@ -175,7 +175,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
 
     @Handles(group = 9, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.title)) > td:nth-child(2)")
     public void onHandleTitle(Element title) {
-        log.log(Level.INFO, "onHandleTitle " + title);
+        //log.log(Level.INFO, "onHandleTitle " + title);
         publicationView.setTitle(title.ownText().trim());
     }
 
@@ -187,7 +187,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
         var id = titleToId.get(title);
 
         if (id == null) {
-            log.log(Level.INFO, "Title" + publisherView.getTitle());
+            //log.log(Level.INFO, "Title" + publisherView.getTitle());
             val entity = publisherService.findPublisherByTitle(publisherView.getTitle());
 
             if (entity == null) {

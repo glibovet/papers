@@ -37,13 +37,13 @@ final class Looper implements Runnable {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> crawler.notifyCrawlUncaughtException(e, Looper.this));
 
         try {
-            log.log(Level.INFO, String.format("#entering loop for thread %s", Thread.currentThread()));
+            //log.log(Level.INFO, String.format("#entering loop for thread %s", Thread.currentThread()));
 
             Optional<URL> urlOptional;
             // runs url processing loop
             while ((urlOptional = crawler.pollUrl()).isPresent()) {
 
-                log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
+                //log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
 
                 val url = urlOptional.get();
 
@@ -57,15 +57,15 @@ final class Looper implements Runnable {
                     log.log(Level.WARNING, String.format("Failed to extract page content for url %s", url), e);
                     crawler.notifyCrawlException(url, e);
                 } catch (final InterruptedException e) {
-                    log.log(Level.INFO, String.format("Interrupted thread %s", Thread.currentThread()), e);
+                    //log.log(Level.INFO, String.format("Interrupted thread %s", Thread.currentThread()), e);
                     break;
                 }
             }
 
-            log.log(Level.INFO, String.format("#Thread %s is successfully exiting the loop", Thread.currentThread()));
+            //log.log(Level.INFO, String.format("#Thread %s is successfully exiting the loop", Thread.currentThread()));
 
         } finally {
-            log.log(Level.INFO, String.format("#Thread %s finished job", Thread.currentThread()));
+            //log.log(Level.INFO, String.format("#Thread %s finished job", Thread.currentThread()));
             crawler.notifyLooperFinished();
         }
     }

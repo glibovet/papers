@@ -83,7 +83,7 @@ public final class UkmaArticleComposer {
             publicationService.savePublicationFromRobot(publication, new ResultCallback<PublicationEntity>() {
                 @Override
                 public void onResult(@NotNull PublicationEntity publicationEntity) {
-                    log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
+                    //log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
                 }
 
                 @Override

@@ -74,10 +74,10 @@ public class UranPublicationHandler extends BasePublicationHandler {
 
     @PreHandle
     public void onPrepare(Page page) throws WrongRestrictionException {
-        log.log(Level.INFO, String.format("#onPrepare %s, url %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPrepare %s, url %s", getClass(), page.getUrl()));
 
         if (fullNameToId == null || fullNameToId.get() == null) {
-            log.log(Level.INFO, "saving authors into cache");
+            //log.log(Level.INFO, "saving authors into cache");
 
             val cache = new HashMap<String, Integer>();
             fullNameToId = new SoftReference<>(cache);
@@ -109,12 +109,12 @@ public class UranPublicationHandler extends BasePublicationHandler {
 
     @PostHandle
     public void onPageEnd(Page page) {
-        log.log(Level.INFO, String.format("#onPageEnd %s, url %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPageEnd %s, url %s", getClass(), page.getUrl()));
     }
 
     @Part(id = 1, group = GROUP_ID, converter = UrlAdapter.class)
     public void onHandleUrl(URL url) {
-        log.log(Level.INFO, String.format("#onHandleUrl %s, %s", getClass(), url));
+        //log.log(Level.INFO, String.format("#onHandleUrl %s, %s", getClass(), url));
 
         if (url == null) {
             log.log(Level.WARNING, "Failed to parse document url");
@@ -125,19 +125,19 @@ public class UranPublicationHandler extends BasePublicationHandler {
 
     @Part(id = 2, group = GROUP_ID, converter = StringAdapter.class)
     public void onHandleTitle(String title) {
-        log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
+        //log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
         publicationView.setTitle(title);
     }
 
     @Part(id = 3, group = GROUP_ID, converter = StringAdapter.class)
     public void onHandleAuthors(String authors) {
-        log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authors));
+        //log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authors));
         publicationView.setAuthors_id(getAuthorIdsByNames(authors.trim().replaceAll("\\s*,\\s*", ",").split(",")));
     }
 
     @PreHandle(group = GROUP_ID)
     public void prePublication() {
-        log.log(Level.INFO, String.format("#prePublication %s", getClass()));
+        //log.log(Level.INFO, String.format("#prePublication %s", getClass()));
         this.publicationView = new PublicationView();
         this.publicationView.setStatus(PublicationStatusEnum.ACTIVE);
         this.publicationView.setType(PublicationTypeEnum.ARTICLE);
@@ -145,7 +145,7 @@ public class UranPublicationHandler extends BasePublicationHandler {
 
     @PostHandle(group = GROUP_ID)
     public void postPublication() {
-        log.log(Level.INFO, String.format("#postPublication %s", getClass()));
+        //log.log(Level.INFO, String.format("#postPublication %s", getClass()));
 
         val isValid = !TextUtils.isEmpty(publicationView.getLink())
                 && !TextUtils.isEmpty(publicationView.getTitle())
@@ -153,7 +153,7 @@ public class UranPublicationHandler extends BasePublicationHandler {
 
         if (isValid) {
             callback.onPublicationReady(publicationView);
-            log.log(Level.INFO, String.format("publication were processed successfully, %s", publicationView.getLink()));
+            //log.log(Level.INFO, String.format("publication were processed successfully, %s", publicationView.getLink()));
         } else {
             log.log(Level.WARNING, "failed to process publication");
         }
@@ -165,7 +165,7 @@ public class UranPublicationHandler extends BasePublicationHandler {
         Integer id = null;
 
         for (final String fullName : fullNames) {
-            log.log(Level.INFO, String.format("full name %s", fullName));
+            //log.log(Level.INFO, String.format("full name %s", fullName));
 
             Map<String, Integer> cached = fullNameToId.get();
 

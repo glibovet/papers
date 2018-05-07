@@ -84,7 +84,7 @@ public final class StartedState implements ICrawler {
 
     @Override
     public void start(Callback callback) {
-        log.log(Level.INFO, "Crawler is already started, skipping request");
+        //log.log(Level.INFO, "Crawler is already started, skipping request");
     }
 
     @Override
@@ -99,7 +99,7 @@ public final class StartedState implements ICrawler {
             executor.shutdownNow();
             executor.awaitTermination(1, TimeUnit.SECONDS);
         } catch (final InterruptedException e) {
-            log.log(Level.INFO, "Crawler stopped", e);
+            //log.log(Level.INFO, "Crawler stopped", e);
         } finally {
             context.toStoppedState();
             callback.onStop();
@@ -115,9 +115,9 @@ public final class StartedState implements ICrawler {
                 return polled;
             }
 
-            log.log(Level.INFO, "Stopping crawler because of external request");
+            //log.log(Level.INFO, "Stopping crawler because of external request");
         } else {
-            log.log(Level.INFO, "Stopping crawler, no urls to poll");
+            //log.log(Level.INFO, "Stopping crawler, no urls to poll");
         }
 
         return Optional.empty();
@@ -145,10 +145,10 @@ public final class StartedState implements ICrawler {
             // analyzed page 'weight' doesn't satisfies any specified one in
             // the analyze settings; NOTE that only pages with text content types
             // can be analyzed by the crawler
-            log.log(Level.INFO, String.format("Rejected page: url %s", page.getUrl()));
+            //log.log(Level.INFO, String.format("Rejected page: url %s", page.getUrl()));
             callback.onPageRejected(page);
         } else {
-            log.log(Level.INFO, String.format("Accepted page: url %s", page.getUrl()));
+            //log.log(Level.INFO, String.format("Accepted page: url %s", page.getUrl()));
 
             callback.onPageAccepted(page);
             results.stream().filter(Result::isMatching).forEach(result -> processResult(page, result));

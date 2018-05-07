@@ -87,13 +87,13 @@ final class UploadJob {
 
     void append(@NonNull UploadArgs args) {
         if (uploadArgs.stream().anyMatch(a -> a.src.equals(args.src))) {
-            log.log(Level.INFO, "no new args were supplied, skipping");
+            //log.log(Level.INFO, "no new args were supplied, skipping");
             return;
         }
 
         uploadArgs.add(args);
         lastInsertTimestamp = System.currentTimeMillis();
-        log.log(Level.INFO, String.format("new args were supplied, %s", args));
+        //log.log(Level.INFO, String.format("new args were supplied, %s", args));
     }
 
     long getLastInsertTimestamp() {
@@ -114,7 +114,7 @@ final class UploadJob {
 
     void upload(@Nullable Runnable end) {
         Preconditions.checkArgument(!isUploaded, "Create a new job instead");
-        log.log(Level.INFO, String.format("Starting upload %s", this));
+        //log.log(Level.INFO, String.format("Starting upload %s", this));
         isUploading = true;
 
         try {
@@ -138,7 +138,7 @@ final class UploadJob {
 
         batchUploadResult = clientV2.files().uploadSessionFinishBatch(uploadSessionArgs);
 
-        log.log(Level.INFO, String.format("starting batch upload, thread %s, job %s, files size %d",
+        //log.log(Level.INFO, String.format("starting batch upload, thread %s, job %s, files size %d",
                 Thread.currentThread(), batchUploadResult.getAsyncJobIdValue(), uploadSessionArgs.size()));
 
         var isCompleted = false;
@@ -150,16 +150,16 @@ final class UploadJob {
 
                 isCompleted = checkResult.isComplete();
 
-                log.log(Level.INFO, String.format("job %s is uploading, status %s",
+                //log.log(Level.INFO, String.format("job %s is uploading, status %s",
                         batchUploadResult.getAsyncJobIdValue(), checkResult.toStringMultiline()));
 
                 Thread.sleep(1000L);
             } catch (final InterruptedException e) {
-                log.log(Level.INFO, String.format("thread %s was interrupted", Thread.currentThread()), e);
+                //log.log(Level.INFO, String.format("thread %s was interrupted", Thread.currentThread()), e);
             }
         }
 
-        log.log(Level.INFO, String.format("job %s has completed", batchUploadResult.getAsyncJobIdValue()));
+        //log.log(Level.INFO, String.format("job %s has completed", batchUploadResult.getAsyncJobIdValue()));
         notifySuccess();
     }
 

@@ -91,7 +91,7 @@ public class PageIndexerImp implements PageIndexer {
                 IPageIndexRepository.Index index;
 
                 while (!Thread.currentThread().isInterrupted() && (index = next()) != null) {
-                    log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
+                    //log.log(Level.INFO, String.format("Looping thread %s", Thread.currentThread()));
 
                     try {
 
@@ -121,11 +121,11 @@ public class PageIndexerImp implements PageIndexer {
                     } catch (final IOException e) {
                         log.log(Level.WARNING, String.format("Failed to index %s", index));
                     } catch (final InterruptedException e) {
-                        log.log(Level.INFO, String.format("#Interrupted thread %s", Thread.currentThread()), e);
+                        //log.log(Level.INFO, String.format("#Interrupted thread %s", Thread.currentThread()), e);
                         break;
                     }
                 }
-                log.log(Level.INFO, String.format("#Thread %s finished job", Thread.currentThread()));
+                //log.log(Level.INFO, String.format("#Thread %s finished job", Thread.currentThread()));
             }
 
             private IPageIndexRepository.Index next() {

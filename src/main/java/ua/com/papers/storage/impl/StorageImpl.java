@@ -50,7 +50,7 @@ public class StorageImpl implements IStorage {
 
         @Override
         public void run() {
-            log.log(Level.INFO, "Checking upload job queue");
+            //log.log(Level.INFO, "Checking upload job queue");
 
             synchronized (lock) {
                 val it = uploadJobs.iterator();
@@ -65,7 +65,7 @@ public class StorageImpl implements IStorage {
                 }
 
                 if (uploadJobs.isEmpty()) {
-                    log.log(Level.INFO, "No pending upload jobs, shutting down");
+                    //log.log(Level.INFO, "No pending upload jobs, shutting down");
                     shutdown();
                 }
             }
@@ -76,7 +76,7 @@ public class StorageImpl implements IStorage {
             try {
                 scheduledExecutorService.awaitTermination(1, TimeUnit.SECONDS);
             } catch (final InterruptedException e) {
-                log.log(Level.INFO, "Shutdown exception", e);
+                //log.log(Level.INFO, "Shutdown exception", e);
             } finally {
                 scheduledExecutorService = null;
             }
@@ -96,7 +96,7 @@ public class StorageImpl implements IStorage {
             prepareJob(from, to, callback);
 
             if (scheduledExecutorService == null) {
-                log.log(Level.INFO, "Starting scheduler service");
+                //log.log(Level.INFO, "Starting scheduler service");
                 scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
                 scheduledExecutorService.scheduleWithFixedDelay(checkCallback, maxIdleAwaitTimeout, maxIdleAwaitTimeout, TimeUnit.MILLISECONDS);
             }
@@ -208,7 +208,7 @@ public class StorageImpl implements IStorage {
                 try {
                     lock.wait(maxIdleAwaitTimeout);
                 } catch (final InterruptedException e) {
-                    log.log(Level.INFO, "Interrupted upload wait lock", e);
+                    //log.log(Level.INFO, "Interrupted upload wait lock", e);
                     return;
                 }
 
@@ -232,7 +232,7 @@ public class StorageImpl implements IStorage {
                 job = new UploadJob(client(), args);
 
                 uploadJobs.add(job);
-                log.log(Level.INFO, String.format("inserting a new job %s, queue size %d", job, uploadJobs.size()));
+                //log.log(Level.INFO, String.format("inserting a new job %s, queue size %d", job, uploadJobs.size()));
             } else {
                 job.append(args);
             }
@@ -253,9 +253,9 @@ public class StorageImpl implements IStorage {
         }
 
         if (job == null) {
-            log.log(Level.INFO, "Empty upload queue");
+            //log.log(Level.INFO, "Empty upload queue");
         } else {
-            log.log(Level.INFO, String.format("Posting next job %s", job));
+            //log.log(Level.INFO, String.format("Posting next job %s", job));
             postJob(job);
         }
     }*/

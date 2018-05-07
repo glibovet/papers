@@ -76,10 +76,10 @@ public class UkmaPublicationHandler extends BasePublicationHandler {
 
     @PreHandle
     public void onPrepare(Page page) throws WrongRestrictionException {
-        log.log(Level.INFO, String.format("#onPrepare %s, url %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPrepare %s, url %s", getClass(), page.getUrl()));
 
         if (fullNameToId == null || fullNameToId.get() == null) {
-            log.log(Level.INFO, "saving authors into cache");
+            //log.log(Level.INFO, "saving authors into cache");
 
             val cache = new HashMap<String, Integer>();
             fullNameToId = new SoftReference<>(cache);
@@ -88,12 +88,12 @@ public class UkmaPublicationHandler extends BasePublicationHandler {
 
     @PostHandle
     public void onPageEnd(Page page) {
-        log.log(Level.INFO, String.format("#onPageEnd %s, url %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPageEnd %s, url %s", getClass(), page.getUrl()));
     }
 
     @Part(id = 7, group = GROUP_ID)
     public void onHandleTitle(Element element) {
-        log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
+        //log.log(Level.INFO, String.format("#onHandleTitle %s", getClass()));
 
         element.select("strong").remove();
         element.getElementsByTag("a").remove();
@@ -105,13 +105,13 @@ public class UkmaPublicationHandler extends BasePublicationHandler {
 
     @Part(id = 8, converter = StringAdapter.class, group = GROUP_ID)
     public void onHandleAuthors(String authorsStr) {
-        log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authorsStr));
+        //log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authorsStr));
         publicationView.setAuthors_id(getAuthorIdsByNames(authorsStr.trim().replaceAll("\\s*,\\s*", ",").split(",")));
     }
 
     @Part(id = 9, converter = UrlAdapter.class, group = GROUP_ID)
     public void onHandleUrl(URL url) {
-        log.log(Level.INFO, String.format("#onHandleUrl %s, %s", getClass(), url));
+        //log.log(Level.INFO, String.format("#onHandleUrl %s, %s", getClass(), url));
 
         if (url == null) {
             log.log(Level.WARNING, "Failed to parse document url");
@@ -122,7 +122,7 @@ public class UkmaPublicationHandler extends BasePublicationHandler {
 
     @PreHandle(group = GROUP_ID)
     public void prePublication() {
-        log.log(Level.INFO, String.format("#prePublication %s", getClass()));
+        //log.log(Level.INFO, String.format("#prePublication %s", getClass()));
         this.publicationView = new PublicationView();
         this.publicationView.setStatus(PublicationStatusEnum.ACTIVE);
         this.publicationView.setType(PublicationTypeEnum.ARTICLE);
@@ -130,7 +130,7 @@ public class UkmaPublicationHandler extends BasePublicationHandler {
 
     @PostHandle(group = GROUP_ID)
     public void postPublication(Page page) {
-        log.log(Level.INFO, String.format("#postPublication %s", getClass()));
+        //log.log(Level.INFO, String.format("#postPublication %s", getClass()));
 
         // save parsed page link
         publicationView.setLink(page.getUrl().toExternalForm());
@@ -141,7 +141,7 @@ public class UkmaPublicationHandler extends BasePublicationHandler {
 
         if (isValid) {
             callback.onPublicationReady(publicationView);
-            log.log(Level.INFO, String.format("publication were processed successfully, %s", publicationView.getLink()));
+            //log.log(Level.INFO, String.format("publication were processed successfully, %s", publicationView.getLink()));
         } else {
             log.log(Level.WARNING, "failed to process publication");
         }
@@ -153,7 +153,7 @@ public class UkmaPublicationHandler extends BasePublicationHandler {
         Integer id = null;
 
         for (final String fullName : fullNames) {
-            log.log(Level.INFO, String.format("full name %s", fullName));
+            //log.log(Level.INFO, String.format("full name %s", fullName));
 
             Map<String, Integer> cached = fullNameToId.get();
 

@@ -64,11 +64,13 @@ public class StorageServiceImpl implements IStorageService {
              val output = new FileOutputStream(serverFile)) {
             IOUtils.copy(input, output);
         } catch (final IOException e) {
-            try {
-                serverFile.delete();
-            } catch (final Exception e1) {
+            e.printStackTrace();
+
+            //try {
+            //   serverFile.delete();
+            //} catch (final Exception e1) {
                 exception = Optional.of(new StorageException(e));
-            }
+            //}
         }
 
         if (exception.isPresent()) {
