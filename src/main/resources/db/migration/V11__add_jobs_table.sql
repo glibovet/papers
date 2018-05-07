@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS `papers`.`pending_jobs` (`url` VARCHAR(320) NOT NULL PRIMARY KEY, `inserted_at` TIMESTAMP NOT NULL, `status` VARCHAR (32) NOT NULL, `job` VARCHAR(320) NOT NULL);

@@ -1,7 +1,6 @@
 package ua.com.papers.crawler.core.analyze;
 
 import lombok.NonNull;
-import lombok.Value;
 import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.util.PageUtils;
 
@@ -15,12 +14,11 @@ import java.util.stream.Collectors;
 /**
  * Created by Максим on 12/18/2016.
  */
-@Value
-public class AnalyzeManager implements IAnalyzeManager {
+public final class AnalyzerImp implements Analyzer {
 
-    Collection<? extends IPageAnalyzer> analyzers;
+    private final Collection<? extends IPageAnalyzer> analyzers;
 
-    public AnalyzeManager(@NonNull Collection<? extends IPageAnalyzer> analyzers) {
+    public AnalyzerImp(@NonNull Collection<? extends IPageAnalyzer> analyzers) {
         this.analyzers = Collections.unmodifiableCollection(new ArrayList<>(analyzers));
     }
 

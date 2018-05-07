@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Page {
+public @interface PageHandler {
 
     /**
      * Should return unique id, so that
@@ -32,6 +32,9 @@ public @interface Page {
      */
     @NotNull ContentAnalyzer[] analyzers();
 
+    /**
+     * Urls selectors to use
+     */
     @NotNull UrlAnalyzer[] urlSelectors() default {};
 
     /**

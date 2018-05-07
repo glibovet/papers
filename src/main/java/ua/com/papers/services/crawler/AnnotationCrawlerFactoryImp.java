@@ -1,13 +1,13 @@
 package ua.com.papers.services.crawler;
 
 import lombok.NonNull;
-import ua.com.papers.crawler.core.analyze.AnalyzeManager;
-import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
+import ua.com.papers.crawler.core.analyze.AnalyzerImp;
+import ua.com.papers.crawler.core.analyze.Analyzer;
 import ua.com.papers.crawler.core.analyze.IPageAnalyzer;
 import ua.com.papers.crawler.core.analyze.PageAnalyzer;
 import ua.com.papers.crawler.core.factory.annotation.AnnotationCrawlerFactory;
-import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
-import ua.com.papers.crawler.core.processor.annotation.AnnotationFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.FormatterFactory;
+import ua.com.papers.crawler.core.processor.annotation.AnnotationFormatterFactoryImp;
 import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.core.select.UrlExtractor;
 import ua.com.papers.crawler.core.storage.UrlsRepository;
@@ -36,8 +36,8 @@ public final class AnnotationCrawlerFactoryImp extends AnnotationCrawlerFactory 
         this.urlsRepository = urlsRepository;
     }
 
-    protected IFormatManagerFactory createFormatFactory(@NotNull Settings settings) {
-        return new AnnotationFormatManagerFactory();
+    protected FormatterFactory createFormatFactory(@NotNull Settings settings) {
+        return new AnnotationFormatterFactoryImp();
     }
 
     protected IUrlExtractor createUrlExtractor(@NotNull Settings settings) {
@@ -50,8 +50,8 @@ public final class AnnotationCrawlerFactoryImp extends AnnotationCrawlerFactory 
         );
     }
 
-    protected IAnalyzeManager createAnalyzeManager(@NotNull Settings settings) {
-        return new AnalyzeManager(settings.getPageSettings().stream().map(this::createPageAnalyzer).collect(Collectors.toList()));
+    protected Analyzer createAnalyzeManager(@NotNull Settings settings) {
+        return new AnalyzerImp(settings.getPageSettings().stream().map(this::createPageAnalyzer).collect(Collectors.toList()));
     }
 
     protected UrlsRepository createUrlsRepository(@NotNull Settings settings) {

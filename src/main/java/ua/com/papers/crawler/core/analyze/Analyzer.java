@@ -11,14 +11,13 @@ import java.util.Set;
  * </p>
  * Created by Максим on 12/18/2016.
  */
-public interface IAnalyzeManager {
+public interface Analyzer {
 
     /**
-     * Analyzes page
+     * Analyzes page and returns set of analyze results
      *
      * @param page page to analyze
-     * @return instance of {@linkplain Result} if web page matches criteria, or null
-     * in another case
+     * @return set of {@linkplain Result}
      */
     @NotNull
     Set<Result> analyze(@NotNull Page page);

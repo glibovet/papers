@@ -7,7 +7,7 @@ import lombok.NonNull;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import lombok.val;
-import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
+import ua.com.papers.crawler.core.analyze.Analyzer;
 import ua.com.papers.crawler.core.main.ICrawler;
 import ua.com.papers.crawler.core.main.util.ErrorIgnoringDecorator;
 import ua.com.papers.crawler.core.processor.OutFormatter;
@@ -27,7 +27,7 @@ import java.util.Collection;
 @Getter(value = AccessLevel.NONE)
 public final class CrawlerV2 implements ICrawler {
 
-    private final IAnalyzeManager analyzeManager;
+    private final Analyzer analyzer;
     private final IUrlExtractor urlExtractor;
     private final OutFormatter formatManager;
     private final Settings settings;
@@ -37,11 +37,11 @@ public final class CrawlerV2 implements ICrawler {
     @NonNull
     private ICrawler state;
 
-    public CrawlerV2(@NotNull IAnalyzeManager analyzeManager, @NonNull Settings settings,
+    public CrawlerV2(@NotNull Analyzer analyzer, @NonNull Settings settings,
                      @NotNull IUrlExtractor urlExtractor, @NotNull OutFormatter formatManager,
                      @NonNull UrlsRepository urlsRepository) {
 
-        this.analyzeManager = analyzeManager;
+        this.analyzer = analyzer;
         this.urlExtractor = urlExtractor;
         this.formatManager = formatManager;
         this.urlsRepository = urlsRepository;
@@ -71,7 +71,7 @@ public final class CrawlerV2 implements ICrawler {
     }
 
     synchronized void toStartedState(Callback callback) {
-        val properties = new StartedState.Properties(settings, urlsRepository, formatManager, analyzeManager, urlExtractor);
+        val properties = new StartedState.Properties(settings, urlsRepository, formatManager, analyzer, urlExtractor);
 
         this.state = new StartedState(properties, this, callback);
     }
