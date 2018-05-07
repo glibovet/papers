@@ -17,14 +17,11 @@
 
     <util:set id="startUrls">
         <bean class="java.net.URL">
-            <constructor-arg name="spec" value="http://dspaceua/"/>
-        </bean>
-        <!--<bean class="java.net.URL">
-            <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/"/>
-        </bean>
-        <bean class="java.net.URL">
-            <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/handle/123456789/126927?show=full"/>
-        </bean>-->
+           <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/"/>
+       </bean>
+       <bean class="java.net.URL">
+           <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/handle/123456789/126927?show=full"/>
+       </bean>
     </util:set>
 
     <bean id="nbuvJobId" class="ua.com.papers.crawler.settings.JobId">
