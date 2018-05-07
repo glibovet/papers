@@ -1,11 +1,10 @@
-package ua.com.papers.services.crawler;
+package ua.com.papers.crawler.core.processor.convert;
 
 import lombok.SneakyThrows;
 import lombok.experimental.var;
 import lombok.val;
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.main.bo.Page;
-import ua.com.papers.crawler.core.processor.convert.Converter;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;

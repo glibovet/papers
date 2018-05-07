@@ -8,7 +8,7 @@ import ua.com.papers.crawler.settings.AnalyzeTemplate;
 import ua.com.papers.crawler.settings.AnalyzeWeight;
 import ua.com.papers.crawler.settings.PageSetting;
 import ua.com.papers.crawler.settings.UrlSelectSetting;
-import ua.com.papers.crawler.settings.v2.Page;
+import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.analyze.UrlAnalyzer;
 import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.crawler.util.TextUtils;
@@ -31,12 +31,12 @@ public final class PageSettingsProcessor {
 
     public List<PageSetting> process() {
         return source.stream()
-                .map(h -> Preconditions.checkNotNull(h.getClass().getAnnotation(Page.class), "Missing %s annotation for %s", Page.class, h))
+                .map(h -> Preconditions.checkNotNull(h.getClass().getAnnotation(PageHandler.class), "Missing %s annotation for %s", PageHandler.class, h))
                 .map(PageSettingsProcessor::toPageSettings)
                 .collect(Collectors.toList());
     }
 
-    private static PageSetting toPageSettings(Page page) {
+    private static PageSetting toPageSettings(PageHandler page) {
         return PageSetting.builder()
                 .id(new PageID(page.id()))
                 .minWeight(AnalyzeWeight.ofValue(page.minWeight()))
@@ -45,13 +45,13 @@ public final class PageSettingsProcessor {
                 .build();
     }
 
-    private static Collection<? extends AnalyzeTemplate> toAnalyzeTemplates(Page page) {
+    private static Collection<? extends AnalyzeTemplate> toAnalyzeTemplates(PageHandler page) {
         return Arrays.stream(page.analyzers()).map(a -> new AnalyzeTemplate(a.selector(), a.weight()))
                 .collect(Collectors.toList());
     }
 
     @SneakyThrows(MalformedURLException.class)
-    private static Collection<? extends UrlSelectSetting> toUrlAnalyzeTemplates(Page page) {
+    private static Collection<? extends UrlSelectSetting> toUrlAnalyzeTemplates(PageHandler page) {
         val pageBaseUrl = TextUtils.isEmpty(page.baseUrl()) ? null : new URL(page.baseUrl());
 
         return Arrays.stream(page.urlSelectors())

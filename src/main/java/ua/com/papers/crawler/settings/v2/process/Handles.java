@@ -52,15 +52,15 @@ public @interface Handles {
 
     enum CallPolicy {
         /**
-         * Denotes that this method should be invoked before other methods within same group
+         * Denotes this method should be invoked before other methods within same group
          */
         BEFORE,
         /**
-         * Denotes that this method should be invoked together with other methods within same group
+         * Denotes this method should be invoked together with other methods within same group
          */
         INSIDE,
         /**
-         * Denotes that this method should be invoked after other methods within same group
+         * Denotes this method should be invoked after other methods within same group
          */
         AFTER
     }

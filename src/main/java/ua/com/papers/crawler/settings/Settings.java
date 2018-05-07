@@ -17,7 +17,7 @@ import java.util.Collection;
 @Value
 public final class Settings {
 
-    JobId id;
+    JobId job;
     SchedulerSetting schedulerSetting;
     @Singular
     Collection<? extends URL> startUrls;
@@ -29,7 +29,7 @@ public final class Settings {
                     @NonNull Collection<? extends URL> startUrls,
                     @NonNull Collection<? extends PageSetting> pageSettings) {
         this.schedulerSetting = schedulerSetting;
-        this.id = id;
+        this.job = id;
         this.startUrls = startUrls;
         this.pageSettings = pageSettings;
     }

@@ -9,13 +9,13 @@ import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.settings.v1.Part;
-import ua.com.papers.crawler.settings.v1.PageHandler;
+import ua.com.papers.crawler.settings.v1.PageHandlerV1;
 import ua.com.papers.crawler.settings.v1.PostHandle;
 import ua.com.papers.crawler.settings.v1.PreHandle;
 import ua.com.papers.crawler.core.processor.convert.StringAdapter;
 import ua.com.papers.services.crawler.BasePublicationHandler;
 import ua.com.papers.services.crawler.IHandlerCallback;
-import ua.com.papers.services.crawler.UrlAdapter;
+import ua.com.papers.crawler.core.processor.convert.UrlAdapter;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -45,7 +45,7 @@ import java.util.logging.Level;
 @Log
 @Value
 @Getter(AccessLevel.NONE)
-@PageHandler(id = 2)
+@PageHandlerV1(id = 2)
 public class UranPublicationHandler extends BasePublicationHandler {
 
     private static final int GROUP_ID = 1;

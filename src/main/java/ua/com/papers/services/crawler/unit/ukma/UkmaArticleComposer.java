@@ -8,7 +8,7 @@ import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.services.crawler.IHandlerCallback;
-import ua.com.papers.crawler.settings.v1.PageHandler;
+import ua.com.papers.crawler.settings.v1.PageHandlerV1;
 import ua.com.papers.crawler.settings.v1.PostHandle;
 import ua.com.papers.crawler.settings.v1.PreHandle;
 import ua.com.papers.pojo.entities.AuthorEntity;
@@ -34,7 +34,7 @@ import java.util.logging.Level;
 @Log
 @Value
 @Getter(AccessLevel.NONE)
-@PageHandler(id = 5)
+@PageHandlerV1(id = 5)
 public final class UkmaArticleComposer {
 
     IAuthorService authorService;

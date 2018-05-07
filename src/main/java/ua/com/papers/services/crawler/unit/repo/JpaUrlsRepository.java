@@ -13,6 +13,6 @@ import java.util.List;
 @Transactional(propagation = Propagation.REQUIRED)
 public interface JpaUrlsRepository extends JpaRepository<JobEntity, String> {
 
-    List<JobEntity> findFirstByStatus(JobStatus status, Pageable limit);
+    List<JobEntity> findFirstByStatusAndJob(JobStatus status, String job, Pageable limit);
 
 }

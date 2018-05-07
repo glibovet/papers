@@ -5,7 +5,7 @@ import lombok.Value;
 import lombok.experimental.var;
 import lombok.extern.java.Log;
 import lombok.val;
-import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
+import ua.com.papers.crawler.core.analyze.Analyzer;
 import ua.com.papers.crawler.core.analyze.Result;
 import ua.com.papers.crawler.core.main.ICrawler;
 import ua.com.papers.crawler.core.main.bo.Page;
@@ -40,7 +40,7 @@ public final class StartedState implements ICrawler {
     private final UrlsRepository repository;
     private final Iterator<URL> urlsIterator;
     private final OutFormatter formatManager;
-    private final IAnalyzeManager analyzeManager;
+    private final Analyzer analyzer;
     private final IUrlExtractor urlExtractor;
     private final Callback callback;
 
@@ -51,7 +51,7 @@ public final class StartedState implements ICrawler {
         Settings settings;
         UrlsRepository repository;
         OutFormatter formatManager;
-        IAnalyzeManager analyzeManager;
+        Analyzer analyzer;
         IUrlExtractor urlExtractor;
     }
 
@@ -61,17 +61,17 @@ public final class StartedState implements ICrawler {
         this.repository = properties.repository;
         this.settings = properties.settings;
         this.formatManager = properties.formatManager;
-        this.analyzeManager = properties.analyzeManager;
+        this.analyzer = properties.analyzer;
         this.urlExtractor = properties.urlExtractor;
         this.parsedUrls = new AtomicInteger(0);
 
         val indexThreads = properties.settings.getSchedulerSetting().getIndexThreads();
 
-        repository.storePending(settings.getStartUrls());
+        repository.storePending(settings.getStartUrls(), settings.getJob());
 
         this.activeLoopers = new AtomicInteger(indexThreads);
         this.pendingLoopers = new HashSet<>(Math.max(indexThreads - 1, 1));
-        this.urlsIterator = properties.repository.pendingUrlsIterator();
+        this.urlsIterator = properties.repository.pendingUrlsIterator(settings.getJob());
         this.executor = createThreadFactory(indexThreads, callback);
 
         crawl();
@@ -136,10 +136,10 @@ public final class StartedState implements ICrawler {
     }
 
     void notifyPageEntered(Page page) {
-        repository.storeProcessing(page.getUrl());
+        repository.storeProcessing(page.getUrl(), settings.getJob());
         callback.onUrlEntered(page.getUrl());
 
-        val results = analyzeManager.analyze(page);
+        val results = analyzer.analyze(page);
 
         if (results.isEmpty()) {
             // analyzed page 'weight' doesn't satisfies any specified one in
@@ -183,7 +183,7 @@ public final class StartedState implements ICrawler {
                     startPendingLoopers();
                 }
             }
-            repository.storePending(url);
+            repository.storePending(url, settings.getJob());
         });
 
         try {

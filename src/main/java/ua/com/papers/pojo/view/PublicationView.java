@@ -1,10 +1,14 @@
 package ua.com.papers.pojo.view;
 
+import lombok.NonNull;
 import lombok.ToString;
+import ua.com.papers.crawler.util.Preconditions;
+import ua.com.papers.crawler.util.TextUtils;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
 
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,6 +36,25 @@ public class PublicationView {
     private List<Integer> authors_id;
 
     private String file_link;
+
+    public static PublicationView copy(@NonNull PublicationView who) {
+        return new PublicationView(who);
+    }
+
+    public PublicationView() {}
+
+    public PublicationView(@NonNull PublicationView from) {
+        Preconditions.checkNotNull(from);
+        id = from.id;
+        title = from.title;
+        annotation = from.annotation;
+        type = from.type;
+        link = from.link;
+        publisher_id = from.publisher_id;
+        status = from.status;
+        authors_id = new ArrayList<>(from.getAuthors_id());
+        file_link = from.file_link;
+    }
 
     public Integer getId() {
         return id;
@@ -105,5 +128,23 @@ public class PublicationView {
         this.file_link = file_link;
     }
 
+    public boolean isValid() {
+        return !TextUtils.isEmpty(getLink())
+                && !TextUtils.isEmpty(getTitle())
+                && getAuthors_id() != null && !getAuthors_id().isEmpty()
+                && getId() != null && getPublisher_id() != null;
+    }
+
+    public void reset() {
+        setId(null);
+        setTitle(null);
+        setAnnotation(null);
+        setType(null);
+        setLink(null);
+        setPublisher_id(null);
+        setStatus(null);
+        setAuthors_id(null);
+        setFile_link(null);
+    }
 
 }

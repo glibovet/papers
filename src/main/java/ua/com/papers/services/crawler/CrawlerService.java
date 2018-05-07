@@ -2,11 +2,9 @@ package ua.com.papers.services.crawler;
 
 import lombok.extern.java.Log;
 import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import ua.com.papers.crawler.core.factory.ICrawlerFactory;
 import ua.com.papers.crawler.core.main.ICrawler;
-import ua.com.papers.crawler.core.main.IPageIndexer;
+import ua.com.papers.crawler.core.main.PageIndexer;
 import ua.com.papers.crawler.core.main.bo.Page;
 
 import javax.annotation.Nullable;
@@ -22,13 +20,11 @@ import java.util.stream.Collectors;
  * </p>
  * Created by Максим on 6/8/2017.
  */
-@Service
 @Log
-public final class CrawlerService implements ICrawlerService, ICrawler.Callback, IPageIndexer.Callback {
+public final class CrawlerService implements ICrawlerService, ICrawler.Callback, PageIndexer.Callback {
 
     private final Collection<? extends ICrawler> crawlers;
 
-    @Autowired
     public CrawlerService(Collection<? extends ICrawlerFactory> factories) {
         this.crawlers = factories.stream().map(ICrawlerFactory::create).collect(Collectors.toList());
     }

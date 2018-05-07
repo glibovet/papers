@@ -64,6 +64,15 @@ public class PublisherView {
         this.address = address;
     }
 
+    public void reset() {
+        setId(null);
+        setTitle(null);
+        setDescription(null);
+        setUrl(null);
+        setContacts(null);
+        setAddress(null);
+    }
+
     @Override
     public String toString() {
         return "PublisherView{" +

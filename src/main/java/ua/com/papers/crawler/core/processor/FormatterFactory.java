@@ -9,7 +9,7 @@ import java.util.Collection;
  * Created by Максим on 12/19/2016.
  */
 @Validated
-public interface IFormatManagerFactory {
+public interface FormatterFactory {
 
     @NotNull
     OutFormatter create(@NotNull Collection<?> handlers);

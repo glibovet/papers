@@ -2,13 +2,12 @@ package ua.com.papers.crawler.core.factory.annotation;
 
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import ua.com.papers.crawler.core.analyze.IAnalyzeManager;
+import ua.com.papers.crawler.core.analyze.Analyzer;
 import ua.com.papers.crawler.core.factory.ICrawlerFactory;
 import ua.com.papers.crawler.core.main.ICrawler;
 import ua.com.papers.crawler.core.main.v2.CrawlerV2;
-import ua.com.papers.crawler.core.processor.IFormatManagerFactory;
+import ua.com.papers.crawler.core.processor.FormatterFactory;
 import ua.com.papers.crawler.core.processor.annotation.PageSettingsProcessor;
-import ua.com.papers.crawler.core.schedule.ICrawlerManager;
 import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.core.storage.UrlsRepository;
 import ua.com.papers.crawler.settings.JobId;
@@ -33,21 +32,16 @@ public abstract class AnnotationCrawlerFactory implements ICrawlerFactory {
     }
 
     @Override
-    public final ICrawlerManager create(Settings settings) {
-        throw new RuntimeException("Not supported");
-    }
-
-    @Override
     public final ICrawler create() {
         return new CrawlerV2(createAnalyzeManager(setting), setting, createUrlExtractor(setting),
                 createFormatFactory(setting).create(handlers), createUrlsRepository(setting));
     }
 
-    protected abstract IFormatManagerFactory createFormatFactory(@NotNull Settings settings);
+    protected abstract FormatterFactory createFormatFactory(@NotNull Settings settings);
 
     protected abstract IUrlExtractor createUrlExtractor(@NotNull Settings settings);
 
-    protected abstract IAnalyzeManager createAnalyzeManager(@NotNull Settings settings);
+    protected abstract Analyzer createAnalyzeManager(@NotNull Settings settings);
 
     protected abstract UrlsRepository createUrlsRepository(@NotNull Settings settings);
 }
