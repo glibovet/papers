@@ -1,0 +1,1 @@
+git checkout prod && git merge master && mvn clean package flyway:migrate jelastic:deploy && git checkout master
