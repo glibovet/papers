@@ -9,7 +9,7 @@ import java.util.Set;
 
 /**
  * <p>
- * Page analyze result
+ * Page analyze result. Contains page identifier, calculated match weight and matching rules
  * </p>
  * Created by Максим on 12/18/2016.
  */

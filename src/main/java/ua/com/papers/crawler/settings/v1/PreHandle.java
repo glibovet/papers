@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * <p>
  * Method, marked with this annotation should be invoked before other methods
- * in the class, marked with {@linkplain PageHandler} annotation
+ * in the class, marked with {@linkplain PageHandlerV1} annotation
  * </p>
  * Created by Максим on 11/27/2016.
  */

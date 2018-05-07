@@ -3,7 +3,7 @@ package ua.com.papers.crawler.core.main;
 
 import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.settings.Settings;
-import ua.com.papers.crawler.settings.v1.PageHandler;
+import ua.com.papers.crawler.settings.v1.PageHandlerV1;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -80,7 +80,7 @@ public interface ICrawler {
      * This method starts crawler
      *
      * @param handlers to process page parts, each handler should be annotated with
-     *                 {@linkplain PageHandler} or {@linkplain IllegalArgumentException} will be raised
+     *                 {@linkplain PageHandlerV1} or {@linkplain IllegalArgumentException} will be raised
      * @param callback callback to monitor progress status
      * @param urls     start urls to process
      */

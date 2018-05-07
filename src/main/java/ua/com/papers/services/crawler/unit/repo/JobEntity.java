@@ -23,6 +23,9 @@ public class JobEntity {
     @Enumerated(EnumType.STRING)
     JobStatus status;
 
+    @Column(name = "job")
+    String job;
+
     public JobEntity() {
     }
 

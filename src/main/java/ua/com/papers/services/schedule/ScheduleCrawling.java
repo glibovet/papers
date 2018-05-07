@@ -35,7 +35,7 @@ public class ScheduleCrawling {
     private ICrawler crawler;
 
     @Autowired
-    public ScheduleCrawling(@Qualifier("annotationCrawlerFactory") ICrawlerFactory creator) {
+    public ScheduleCrawling(@Qualifier("nbuvFactory") ICrawlerFactory creator) {
         this.crawler = creator.create();
     }
 

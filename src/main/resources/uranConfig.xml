@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <tx:annotation-driven/>
+
+    <context:component-scan base-package="ua.com.papers.services.crawler.unit"/>
+    <!-- Process annotations on registered beans like @Autowired... -->
+    <context:annotation-config/>
+
+    <bean id="uranFactory"
+          class="ua.com.papers.services.crawler.AnnotationCrawlerFactoryImp">
+        <constructor-arg name="jobId">
+            <bean class="ua.com.papers.crawler.settings.JobId">
+                <constructor-arg name="jobId" value="uran-job"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="handlers">
+            <util:set id="handlers">
+                <ref bean="uranUrlWalker"/>
+                <ref bean="uranArticleHandler"/>
+            </util:set>
+        </constructor-arg>
+        <constructor-arg name="startUrls">
+            <util:set>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/index.php/1991-0177/issue/archive"/>
+                </bean>
+            </util:set>
+        </constructor-arg>
+        <constructor-arg name="schedulerSetting">
+            <bean class="ua.com.papers.crawler.settings.SchedulerSetting">
+                <constructor-arg name="indexDelay" value="10000"/>
+                <constructor-arg name="processingThreads" value="3"/>
+                <constructor-arg name="processingDelay" value="10000"/>
+                <constructor-arg name="indexThreads" value="3"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="urlsRepository" ref="jpaUrlsRepository"/>
+    </bean>
+
+</beans>

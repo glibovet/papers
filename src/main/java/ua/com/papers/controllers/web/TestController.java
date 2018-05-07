@@ -58,7 +58,7 @@ public class TestController {
         // .createQuery("").setLockMode().getSingleResult()find()getCriteriaBuilder().createQuery().se
 
         for (int i = 0; i < 10; ++i) {
-            entityManager.persist(new JobEntity("www.example.com" + i, new Date(System.currentTimeMillis()), JobStatus.PENDING));
+            //entityManager.persist(new JobEntity("www.example.com" + i, new Date(System.currentTimeMillis()), JobStatus.PENDING));
             //jobsRepository.save(new JobEntity("www.example.com" + i, new Date(System.currentTimeMillis()), JobStatus.PENDING));
         }
     }
@@ -121,7 +121,7 @@ public class TestController {
     public String reIndex() {
         /*crawler.startIndexing(
                 composer.asHandlers(),
-                IPageIndexer.DEFAULT_CALLBACK
+                PageIndexer.DEFAULT_CALLBACK
         );*/
 
         return "redirect:/";

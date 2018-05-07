@@ -8,13 +8,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ua.com.papers.crawler.core.main.vo.PageID;
 import ua.com.papers.crawler.core.processor.OutFormatter;
-import ua.com.papers.crawler.settings.v2.Page;
+import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.core.processor.convert.Converter;
 import ua.com.papers.crawler.core.processor.convert.SkipAdapter;
 import ua.com.papers.crawler.core.processor.convert.StringAdapter;
 import ua.com.papers.crawler.core.processor.exception.ProcessException;
 import ua.com.papers.crawler.util.Preconditions;
-import ua.com.papers.services.crawler.UrlAdapter;
+import ua.com.papers.crawler.core.processor.convert.UrlAdapter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
 
 @Log
 @Component
-public final class AnnotationFormatManager implements OutFormatter {
+public final class AnnotationOutFormatterImp implements OutFormatter {
 
     private final Map<Class<?>, Converter<?>> adapters;
     private final Map<PageID, ? extends Collection<HandlerInvoker>> idToHandlers;
 
     @Autowired
-    public AnnotationFormatManager(@NonNull @Qualifier("handlers") Collection<?> handlers) {
+    public AnnotationOutFormatterImp(@NonNull @Qualifier("handlers") Collection<?> handlers) {
         Preconditions.checkArgument(!handlers.isEmpty());
         this.adapters = new HashMap<>();
         // register default converters
@@ -88,7 +88,7 @@ public final class AnnotationFormatManager implements OutFormatter {
     private Map<PageID, ? extends Collection<HandlerInvoker>> mapToHandlers(Collection<?> handlers) {
         return handlers.stream().collect(
                 Collectors.groupingBy(
-                        AnnotationFormatManager::extractPageId,
+                        AnnotationOutFormatterImp::extractPageId,
                         Collectors.mapping(o -> new HandlerInvoker(o, this::getRawTypeConverter, this::getAdapter), Collectors.toList()))
         );
     }
@@ -107,7 +107,7 @@ public final class AnnotationFormatManager implements OutFormatter {
 
             return found.map(adapter -> (Converter<T>) adapter)
                     .orElseGet(() -> {
-                        val newAdapter = AnnotationFormatManager.<T>constructAdapter(cl);
+                        val newAdapter = AnnotationOutFormatterImp.<T>constructAdapter(cl);
 
                         registerAdapter(newAdapter);
                         return newAdapter;
@@ -126,8 +126,8 @@ public final class AnnotationFormatManager implements OutFormatter {
     }
 
     private static PageID extractPageId(Object o) {
-        val handler = Preconditions.checkNotNull(o.getClass().getAnnotation(Page.class),
-                String.format("No %s annotation was found for class %s", o.getClass().getName(), Page.class.getName()));
+        val handler = Preconditions.checkNotNull(o.getClass().getAnnotation(PageHandler.class),
+                String.format("No %s annotation was found for class %s", PageHandler.class.getName(), o.getClass().getName()));
 
         return new PageID(handler.id());
     }

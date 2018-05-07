@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface PageHandler {
+public @interface PageHandlerV1 {
 
     /**
      * Page id to handle
