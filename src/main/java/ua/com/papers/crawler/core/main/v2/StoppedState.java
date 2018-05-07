@@ -37,6 +37,6 @@ public final class StoppedState implements ICrawler {
 
     @Override
     public void stop() {
-        log.log(Level.INFO, "Crawler is already stopped, skipping request");
+        //log.log(Level.INFO, "Crawler is already stopped, skipping request");
     }
 }

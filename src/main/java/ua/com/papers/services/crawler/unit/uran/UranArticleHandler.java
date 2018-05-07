@@ -70,7 +70,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
 
     @BeforePage
     public void onPrepare(ua.com.papers.crawler.core.main.bo.Page page) throws WrongRestrictionException {
-        log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
 
         if (titleToId == null) {
             // load all data
@@ -91,7 +91,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
 
     @AfterPage
     public void onPageParsed(Page page) {
-        log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
 
         for (val view : publicationViews) {
 
@@ -110,7 +110,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
             selectors = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a"
     )
     public void onHandleFileLink(URL link) {
-        log.log(Level.INFO, String.format("On handle file link %s", link));
+        //log.log(Level.INFO, String.format("On handle file link %s", link));
 
         var strLink = link.toExternalForm();
 
@@ -126,7 +126,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
             selectors = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a"
     )
     public void onHandleTitle(String title) {
-        log.log(Level.INFO, String.format("#onHandleTitle %s", title));
+        //log.log(Level.INFO, String.format("#onHandleTitle %s", title));
         publicationView.setTitle(title);
     }
 
@@ -136,7 +136,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
             selectors = "#content > table > tbody > tr:nth-child(2) > td.tocAuthors"
     )
     public void onHandleAuthors(String authors, Page page) {
-        log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authors));
+        //log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authors));
 
         val ids = Arrays.stream(authors.replaceAll(FULL_NAME_PATTERN.pattern(), "").split(","))
                 .map(fullName -> findAuthorIdByName(fullName.trim()))
@@ -155,7 +155,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
             selectors = "#headerTitle > h1"
     )
     public void onHandlePublisher(String publisher) {
-        log.log(Level.INFO, String.format("#onHandlePublisher %s, %s", getClass(), publisher));
+        //log.log(Level.INFO, String.format("#onHandlePublisher %s, %s", getClass(), publisher));
 
         publisherView = createPublisherView(publisher);
     }
@@ -213,18 +213,18 @@ public final class UranArticleHandler extends BasePublicationHandler {
         }
 
         publisherView.setId(id);
-        log.log(Level.INFO, String.format("publisher was proceeded successfully %s", publisherView.getTitle()));
+        //log.log(Level.INFO, String.format("publisher was proceeded successfully %s", publisherView.getTitle()));
 
         return publisherView;
     }
 
     private void upload(PublicationView publicationView) {
-        log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
+        //log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
 
         publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
             @Override
             public void onResult(@NotNull PublicationEntity publicationEntity) {
-                log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
+                //log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
             }
 
             @Override

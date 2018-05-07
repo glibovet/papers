@@ -39,7 +39,7 @@ public final class LogPage {
             }
     )
     public void onHandleUri(Element element, Page page) {
-        log.log(Level.INFO, String.format("On handle uri %s of page %s", element.text(), page.getUrl()));
+        //log.log(Level.INFO, String.format("On handle uri %s of page %s", element.text(), page.getUrl()));
     }
 
 }

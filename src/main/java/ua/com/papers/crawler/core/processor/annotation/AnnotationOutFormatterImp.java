@@ -75,7 +75,7 @@ public final class AnnotationOutFormatterImp implements OutFormatter {
                 throw new ProcessException(e);
             }
         } else {
-            log.log(Level.INFO, String.format("Not found corresponding handler for the page with id %s", pageID));
+            //log.log(Level.INFO, String.format("Not found corresponding handler for the page with id %s", pageID));
         }
     }
 
