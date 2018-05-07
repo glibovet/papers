@@ -139,7 +139,7 @@ final class UploadJob {
         batchUploadResult = clientV2.files().uploadSessionFinishBatch(uploadSessionArgs);
 
         //log.log(Level.INFO, String.format("starting batch upload, thread %s, job %s, files size %d",
-                Thread.currentThread(), batchUploadResult.getAsyncJobIdValue(), uploadSessionArgs.size()));
+        //        Thread.currentThread(), batchUploadResult.getAsyncJobIdValue(), uploadSessionArgs.size()));
 
         var isCompleted = false;
 
@@ -151,7 +151,7 @@ final class UploadJob {
                 isCompleted = checkResult.isComplete();
 
                 //log.log(Level.INFO, String.format("job %s is uploading, status %s",
-                        batchUploadResult.getAsyncJobIdValue(), checkResult.toStringMultiline()));
+                //       batchUploadResult.getAsyncJobIdValue(), checkResult.toStringMultiline()));
 
                 Thread.sleep(1000L);
             } catch (final InterruptedException e) {
