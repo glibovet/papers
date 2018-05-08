@@ -86,10 +86,12 @@ public final class AnnotationOutFormatterImp implements OutFormatter {
     }
 
     private Map<PageID, ? extends Collection<HandlerInvoker>> mapToHandlers(Collection<?> handlers) {
+        val context = new Context(adapters);
+
         return handlers.stream().collect(
                 Collectors.groupingBy(
                         AnnotationOutFormatterImp::extractPageId,
-                        Collectors.mapping(o -> new HandlerInvoker(o, this::getRawTypeConverter, this::getAdapter), Collectors.toList()))
+                        Collectors.mapping(o -> new HandlerInvoker(o, context), Collectors.toList()))
         );
     }
 

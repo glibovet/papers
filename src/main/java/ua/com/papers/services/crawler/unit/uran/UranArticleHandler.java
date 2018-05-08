@@ -106,11 +106,41 @@ public final class UranArticleHandler extends BasePublicationHandler {
         }
     }
 
-    @Handles(
+    public void onHandleArticle(
+            @Binding(selectors = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a") URL link,
+            @Binding(selectors = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a") String title,
+            @Binding(selectors = "#content > table > tbody > tr:nth-child(2) > td.tocAuthors") String authors,
+            Page page) {
+
+        log.log(Level.INFO, String.format("onHandleArticle# link=%s, title=%s, authors=%s, page=%s", link, title, authors, page.getUrl()));
+
+        val publicationView = new PublicationView();
+        var strLink = link.toExternalForm();
+
+        if (strLink.contains("view")) {
+            strLink = strLink.replace("view", "download");
+        }
+
+        publicationView.setFile_link(strLink);
+        publicationView.setTitle(title);
+
+        val ids = Arrays.stream(authors.replaceAll(FULL_NAME_PATTERN.pattern(), "").split(","))
+                .map(fullName -> findAuthorIdByName(fullName.trim()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+
+        publicationView.setAuthors_id(ids);
+        publicationView.setLink(page.getUrl().toExternalForm());
+
+        publicationViews.add(publicationView);
+    }
+
+   /* @Handles(
             group = PUBLICATION_GROUP,
             selectors = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a"
     )
-    public void onHandleFileLink(@Binding(selectors = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a") URL link) {
+    public void onHandleFileLink(URL link) {
         log.log(Level.INFO, String.format("On handle file link %s", link));
 
         var strLink = link.toExternalForm();
@@ -150,7 +180,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
         publicationView.setLink(page.getUrl().toExternalForm());
         publicationViews.add(PublicationView.copy(publicationView));
         publicationView.reset();
-    }
+    }*/
 
     @Handles(
             group = PUBLICATION_GROUP,

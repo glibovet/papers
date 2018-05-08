@@ -18,7 +18,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -36,8 +35,7 @@ public final class ProcessInvoker {
     private final int auxiliaryArgIndex;
 
     <T> ProcessInvoker(@NonNull Method method, @NonNull Object target,
-                       @NonNull Function<Class<T>, Converter<T>> rawTypeAdapterSupplier,
-                       @NonNull Function<Class<? extends Converter<T>>, Converter<T>> adapterSupplier) {
+                       @NonNull Context context) {
 
         AnnotationUtil.checkMethodOrThrow(method, target);
 
@@ -70,17 +68,11 @@ public final class ProcessInvoker {
 
         if (process.converter() == Handles.Stub.class) {
             // guess adapter for a method argument type
-            converter = Preconditions.checkNotNull(rawTypeAdapterSupplier.apply((Class<T>) transformArg),
-                    String.format("Wasn't found adapter for a type %s, method %s", transformArg, method));
+            converter = context.getRawTypeConverter((Class<T>) transformArg);
         } else {
             // explicit adapter was supplied, use it
-            converter = Preconditions.checkNotNull(adapterSupplier.apply((Class<? extends Converter<T>>) process.converter()),
-                    String.format("Wasn't found adapter for explicit adapter %s, method %s", process.converter(), method));
+            converter = context.getAdapter((Class<? extends Converter<T>>) process.converter());
         }
-
-        Preconditions.checkArgument(transformArg.isAssignableFrom(converter.converts()),
-                String.format("Converter %s may not be used for an argument of type %s in method %s", converter.getClass(),
-                        transformArg, method));
 
         this.method = method;
         this.target = target;
