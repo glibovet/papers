@@ -23,7 +23,7 @@ final class SingleGroupInvoker implements Invoker {
 
     private static final Comparator<ProcessInvoker> EXECUTOR_CMP = (o1, o2) -> Handles.CallPolicy.DEFAULT_COMPARATOR.compare(o1.getHandles().policy(), o2.getHandles().policy());
 
-    private static final BinaryOperator<List<? extends Element>> DUPLICATES_MERGER = (e1, e2) -> {
+    private static final BinaryOperator<List<? extends Element>> EXCEPTION_ON_DUPLICATE_MERGER = (e1, e2) -> {
         throw new IllegalStateException(String.format("Found duplicate for %s, %s", e1, e2));
     };
 
@@ -35,7 +35,7 @@ final class SingleGroupInvoker implements Invoker {
 
     @Override
     public void invoke(Page page) throws InvocationTargetException, IllegalAccessException {
-        val invokerToArgs = invokers.stream().collect(Collectors.toMap(e -> e, v -> v.extractNodes(page), DUPLICATES_MERGER, LinkedHashMap::new));
+        val invokerToArgs = invokers.stream().collect(Collectors.toMap(e -> e, v -> v.extractNodes(page), EXCEPTION_ON_DUPLICATE_MERGER, () -> new LinkedHashMap<>(invokers.size())));
         var elementsLeft = invokerToArgs.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
 
         while (elementsLeft > 0) {
