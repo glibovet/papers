@@ -1,28 +1,30 @@
 package ua.com.papers.pojo.temporary;
 
+import ua.com.papers.pojo.entities.PublicationEntity;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Document {
 
-    private int id;
+    private PublicationEntity publication;
     private String text;
     private List<String> words;
     private List<TfIdfItem> tfIdfItems;
 
-    public Document(int id, String text, List<String> words) {
-        this.id = id;
+    public Document(PublicationEntity publication, String text, List<String> words) {
+        this.publication = publication;
         this.text = text;
         this.words = words;
         this.tfIdfItems = new ArrayList<>();
     }
 
-    public int getId() {
-        return id;
+    public PublicationEntity getPublication() {
+        return publication;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setPublication(PublicationEntity publication) {
+        this.publication = publication;
     }
 
     public String getText() {
@@ -48,4 +50,14 @@ public class Document {
     public void addTfIdfItem(TfIdfItem item) {
         this.tfIdfItems.add(item);
     }
+
+    public Double findTfIdfValue(String word) {
+        for(TfIdfItem item : this.getTfIdfItems()) {
+            if(item.getWord().equals(word)) {
+                return item.getValue();
+            }
+        }
+        return null;
+    }
+
 }

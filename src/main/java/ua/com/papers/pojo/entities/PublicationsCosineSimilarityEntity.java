@@ -2,8 +2,11 @@ package ua.com.papers.pojo.entities;
 
 
 import javax.persistence.*;
+import java.io.Serializable;
 
-public class PublicationsCosineSimilarityEntity {
+@Entity
+@Table(name = "publications_cosine_similarity")
+public class PublicationsCosineSimilarityEntity implements Serializable{
 
     @Id
     @Column(name = "id")

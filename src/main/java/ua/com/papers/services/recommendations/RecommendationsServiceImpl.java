@@ -2,12 +2,12 @@ package ua.com.papers.services.recommendations;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.temporary.Document;
+import ua.com.papers.pojo.temporary.TfIdfItem;
 
 import javax.print.Doc;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class RecommendationsServiceImpl implements IRecommendationsService{
@@ -17,6 +17,9 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
 
     @Autowired
     private ITfIdfService tfIdfService;
+
+    @Autowired
+    private ICosineSimilarityService cosineSimilarityServce;
 
     public void generate() {
         // 1. Prepare documents collection: Create document with publication id, text and list of words.
@@ -30,6 +33,16 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
             Collections.sort(document.getTfIdfItems());
         }
 
+        // 4. Create dictionary - dictionary can be created only after all key words for documents have been fined
+        HashSet<String> dictionary = new HashSet<>();
+        for(Document document : documents) {
+            for (int i=0; i< 20; i++) {
+                dictionary.add(document.getTfIdfItems().get(i).getWord());
+            }
+        }
+
+        // 5. Calculate cosine similarity between all pairs of documents and save into db
+        this.cosineSimilarityServce.processDocuments(documents, dictionary);
 
     }
 }
