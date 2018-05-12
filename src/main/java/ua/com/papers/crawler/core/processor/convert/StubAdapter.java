@@ -9,11 +9,17 @@ import javax.validation.constraints.NotNull;
  * Just returns element as it was passed without
  * modifications
  */
-public final class SkipAdapter implements Converter<Element> {
+public final class StubAdapter implements Converter<Element> {
 
-    public static final SkipAdapter instance = new SkipAdapter();
+    private static final class Holder {
+        private static final StubAdapter INSTANCE = new StubAdapter();
+    }
 
-    private SkipAdapter() {
+    public static StubAdapter getInstance() {
+        return Holder.INSTANCE;
+    }
+
+    private StubAdapter() {
     }
 
     @Override

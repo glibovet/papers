@@ -6,12 +6,10 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.processor.convert.UrlAdapter;
 import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
-import ua.com.papers.crawler.settings.v2.process.AfterPage;
-import ua.com.papers.crawler.settings.v2.process.BeforePage;
-import ua.com.papers.crawler.settings.v2.process.Binding;
-import ua.com.papers.crawler.settings.v2.process.Handles;
+import ua.com.papers.crawler.settings.v2.process.*;
 import ua.com.papers.crawler.util.TextUtils;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -47,7 +45,7 @@ import java.util.stream.Collectors;
 public final class UranArticleHandler extends BasePublicationHandler {
 
     private static final int PUBLICATION_GROUP = 1;
-    private static final Pattern FULL_NAME_PATTERN = Pattern.compile("\\(.*?\\)");
+    private static final Pattern FULL_NAME_PATTERN = Pattern.compile("[(\\[].*?[)\\]]");
 
     private final IPublisherService publisherService;
     private final IPublicationService publicationService;
@@ -106,11 +104,23 @@ public final class UranArticleHandler extends BasePublicationHandler {
         }
     }
 
+    // specify prefix to fetch DOM elements from same parent element (here parent is #content > table > tbody)
+    @Handles(
+            selectors = "#content > table > tbody"
+    )
     public void onHandleArticle(
-            @Binding(selectors = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a") URL link,
-            @Binding(selectors = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a") String title,
-            @Binding(selectors = "#content > table > tbody > tr:nth-child(2) > td.tocAuthors") String authors,
+            // @Converts annotation is optional; acceptable parameter type adapter will be searched among registered
+            // adapters
+            @NotNull @Converts(converter = UrlAdapter.class) @Binding(selectors = "tr:nth-child(1) > td.tocGalleys > a[href*='article/view']:first-child") URL link,
+            // handler respects @NotNull annotations
+            @NotNull @Binding(selectors = "tr:nth-child(1) > td.tocTitle > a") String title,
+            @NotNull @Binding(selectors = "tr:nth-child(2) > td.tocAuthors") String authors,
             Page page) {
+
+        assert page != null : "page == null";
+        assert link != null : "link == null, page=" + page.getUrl();
+        assert title != null : "title == null, page=" + page.getUrl();
+        assert authors != null : "authors == null, page=" + page.getUrl();
 
         log.log(Level.INFO, String.format("onHandleArticle# link=%s, title=%s, authors=%s, page=%s", link, title, authors, page.getUrl()));
 
@@ -135,52 +145,6 @@ public final class UranArticleHandler extends BasePublicationHandler {
 
         publicationViews.add(publicationView);
     }
-
-   /* @Handles(
-            group = PUBLICATION_GROUP,
-            selectors = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a"
-    )
-    public void onHandleFileLink(URL link) {
-        log.log(Level.INFO, String.format("On handle file link %s", link));
-
-        var strLink = link.toExternalForm();
-
-        if (strLink.contains("view")) {
-            strLink = strLink.replace("view", "download");
-        }
-
-        publicationView.setFile_link(strLink);
-    }
-
-    @Handles(
-            group = PUBLICATION_GROUP,
-            policy = Handles.CallPolicy.BEFORE,
-            selectors = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a"
-    )
-    public void onHandleTitle(String title) {
-        log.log(Level.INFO, String.format("#onHandleTitle %s", title));
-        publicationView.setTitle(title);
-    }
-
-    @Handles(
-            group = PUBLICATION_GROUP,
-            policy = Handles.CallPolicy.AFTER,
-            selectors = "#content > table > tbody > tr:nth-child(2) > td.tocAuthors"
-    )
-    public void onHandleAuthors(String authors, Page page) {
-        log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authors));
-
-        val ids = Arrays.stream(authors.replaceAll(FULL_NAME_PATTERN.pattern(), "").split(","))
-                .map(fullName -> findAuthorIdByName(fullName.trim()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
-
-        publicationView.setAuthors_id(ids);
-        publicationView.setLink(page.getUrl().toExternalForm());
-        publicationViews.add(PublicationView.copy(publicationView));
-        publicationView.reset();
-    }*/
 
     @Handles(
             group = PUBLICATION_GROUP,

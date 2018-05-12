@@ -15,7 +15,13 @@ import java.net.URL;
  */
 public final class UrlAdapter implements Converter<URL> {
 
-    public static final UrlAdapter INSTANCE = new UrlAdapter();
+    private static final class Holder {
+        private static final UrlAdapter INSTANCE = new UrlAdapter();
+    }
+
+    public static UrlAdapter getInstance() {
+        return Holder.INSTANCE;
+    }
 
     private UrlAdapter() {
     }

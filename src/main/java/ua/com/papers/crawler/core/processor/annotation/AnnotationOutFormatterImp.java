@@ -6,18 +6,19 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.core.main.vo.PageID;
 import ua.com.papers.crawler.core.processor.OutFormatter;
-import ua.com.papers.crawler.settings.v2.PageHandler;
-import ua.com.papers.crawler.core.processor.convert.Converter;
-import ua.com.papers.crawler.core.processor.convert.SkipAdapter;
-import ua.com.papers.crawler.core.processor.convert.StringAdapter;
+import ua.com.papers.crawler.core.processor.annotation.invocation.HandlerInvoker;
+import ua.com.papers.crawler.core.processor.convert.*;
 import ua.com.papers.crawler.core.processor.exception.ProcessException;
+import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.util.Preconditions;
-import ua.com.papers.crawler.core.processor.convert.UrlAdapter;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -25,51 +26,45 @@ import java.util.stream.Collectors;
 @Component
 public final class AnnotationOutFormatterImp implements OutFormatter {
 
-    private final Map<Class<?>, Converter<?>> adapters;
+    private final Context context;
     private final Map<PageID, ? extends Collection<HandlerInvoker>> idToHandlers;
 
     @Autowired
     public AnnotationOutFormatterImp(@NonNull @Qualifier("handlers") Collection<?> handlers) {
         Preconditions.checkArgument(!handlers.isEmpty());
-        this.adapters = new HashMap<>();
         // register default converters
-        registerAdapter(SkipAdapter.instance);
-        registerAdapter(StringAdapter.instance);
-        registerAdapter(UrlAdapter.INSTANCE);
+        this.context = new Context(Arrays.asList(
+                StubAdapter.getInstance(),
+                StringAdapter.getInstance(),
+                UrlAdapter.getInstance(),
+                PageAdapter.getInstance()
+        ));
         this.idToHandlers = mapToHandlers(handlers);
     }
 
     @Override
     public void registerAdapter(Converter<?> adapter) {
-        synchronized (adapters) {
-            adapters.put(adapter.converts(), adapter);
-        }
+        context.registerAdapter(adapter);
     }
 
     @Override
     public void unregisterAdapter(Class<? extends Converter<?>> cl) {
-        synchronized (adapters) {
-            val toRemove = adapters.values().stream()
-                    .filter(a -> a.getClass().isAssignableFrom(cl)).collect(Collectors.toList());
-
-            //noinspection SuspiciousMethodCalls
-            adapters.values().remove(toRemove);
-        }
+        context.unregisterAdapter(cl);
     }
 
     @Override
     public Set<? extends Converter<?>> getRegisteredAdapters() {
-        return Collections.unmodifiableSet(new HashSet<>(adapters.values()));
+        return context.getRegisteredAdapters();
     }
 
     @Override
-    public void formatPage(PageID pageID, ua.com.papers.crawler.core.main.bo.Page page) throws ProcessException {
+    public void formatPage(PageID pageID, Page page) throws ProcessException {
         val handlers = idToHandlers.get(pageID);
 
         if (handlers != null && !handlers.isEmpty()) {
 
             try {
-                processPage(page, handlers);
+                handlers.forEach(h -> h.invoke(page));
             } catch (final Throwable e) {
                 log.log(Level.SEVERE, String.format("Page handler thrown an exception while handling page %s", page.getUrl()));
                 throw new ProcessException(e);
@@ -79,52 +74,12 @@ public final class AnnotationOutFormatterImp implements OutFormatter {
         }
     }
 
-    private void processPage(ua.com.papers.crawler.core.main.bo.Page page, Iterable<HandlerInvoker> invokers) throws InvocationTargetException, IllegalAccessException {
-        for (val handler : invokers) {
-            handler.invoke(page);
-        }
-    }
-
     private Map<PageID, ? extends Collection<HandlerInvoker>> mapToHandlers(Collection<?> handlers) {
-        val context = new Context(adapters);
-
         return handlers.stream().collect(
                 Collectors.groupingBy(
                         AnnotationOutFormatterImp::extractPageId,
                         Collectors.mapping(o -> new HandlerInvoker(o, context), Collectors.toList()))
         );
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> Converter<T> getRawTypeConverter(Class<T> cl) {
-        synchronized (adapters) {
-            return Preconditions.checkNotNull((Converter<T>) adapters.get(cl), String.format("No handler found for %s", cl));
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> Converter<T> getAdapter(Class<? extends Converter<T>> cl) {
-        synchronized (adapters) {
-            val found = adapters.values().stream().filter(adapter -> adapter.getClass().isAssignableFrom(cl)).findFirst();
-
-            return found.map(adapter -> (Converter<T>) adapter)
-                    .orElseGet(() -> {
-                        val newAdapter = AnnotationOutFormatterImp.<T>constructAdapter(cl);
-
-                        registerAdapter(newAdapter);
-                        return newAdapter;
-                    });
-        }
-    }
-
-    private static <T> Converter<T> constructAdapter(Class<? extends Converter<T>> cl) {
-        try {
-            return cl.getConstructor().newInstance();
-        } catch (final NoSuchMethodException e) {
-            throw new RuntimeException(String.format("%s should define non-arg constructor", cl), e);
-        } catch (final IllegalAccessException | InstantiationException | InvocationTargetException e) {
-            throw new RuntimeException(String.format("An error occurred while creating a new instance of %s", cl), e);
-        }
     }
 
     private static PageID extractPageId(Object o) {

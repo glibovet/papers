@@ -1,6 +1,7 @@
 package ua.com.papers.services.crawler;
 
 import lombok.val;
+import org.apache.commons.io.FilenameUtils;
 import ua.com.papers.crawler.core.main.ICrawler;
 import ua.com.papers.crawler.core.main.PageIndexer;
 import ua.com.papers.crawler.core.main.bo.Page;
@@ -14,12 +15,14 @@ public class Tester {
 
     public static void main(String[] args) throws Exception {
 
+        System.out.println(FilenameUtils.getExtension("http://journals.uran.ua/index.php/1991-0177/article/view/118700/pdf_245"));
+
         val str = "(Oleksandr Aghyppo) Ажиппо Олександр Юрійович,\t(Tatyana Dorofeeva) Дорофєєва Тетяна Іванівна,\t(Yaroslavna Puhach) Пугач Ярославна Ігорівна,\t(Galina Artem’yeva) Артем’єва Галина Павлівна,\t(Mariia Nechytailo) Нечитайло Марія Валеріївна,\t(Valeriy Druz) Друзь Валерій Анатолійович";
 
 
-        val p = Pattern.compile("\\(.*?\\)");
+        val p = Pattern.compile("[(\\[].*?[)\\]]");
 
-        System.out.println("(Oleksandr Aghyppo) Ажиппо Олександр Юрійович,\t(Tatyana Dorofeeva) Дорофєєва Тетяна Іванівна".replaceAll(p.pattern(), ""));
+        System.out.println("[Oleksandr Aghyppo] Ажиппо Олександр Юрійович,\t[Tatyana Dorofeeva] Дорофєєва Тетяна Іванівна".replaceAll(p.pattern(), ""));
 
 
         System.out.println("xfooxxxxxxfoo".replaceAll(".*foo", "1"));

@@ -1,10 +1,5 @@
 package ua.com.papers.crawler.settings.v2.process;
 
-import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.main.bo.Page;
-import ua.com.papers.crawler.core.processor.OutFormatter;
-import ua.com.papers.crawler.core.processor.convert.Converter;
-
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -37,20 +32,6 @@ public @interface Handles {
     @NotNull
     CallPolicy policy() default CallPolicy.INSIDE;
 
-    /**
-     * <p>
-     * Converter type to apply when page content transformation into actual method argument is needed. Note that annotated method's
-     * argument type should be assignable from converter's transformation return type. In this case converter will be
-     * created via default constructor using reflection
-     * </p>
-     * <p>If {@linkplain Stub} is used, then acceptable converter will be searched among
-     * registered adapters by the corresponding {@linkplain OutFormatter}.
-     * If no acceptable converter is found - error is raised
-     * </p>
-     */
-    @NotNull
-    Class<? extends Converter<?>> converter() default Stub.class;
-
     enum CallPolicy {
 
         /**
@@ -79,7 +60,7 @@ public @interface Handles {
         public static final Comparator<CallPolicy> DEFAULT_COMPARATOR = Comparator.comparingInt(o -> o.position);
     }
 
-    final class Stub implements Converter<Object> {
+    /*final class Stub implements Converter<Object> {
         private Stub() {
             throw new IllegalStateException("Shouldn't be instantiated");
         }
@@ -93,5 +74,5 @@ public @interface Handles {
         public Object convert(Element element, Page page) {
             throw new IllegalStateException("Shouldn't be invoked");
         }
-    }
+    }*/
 }

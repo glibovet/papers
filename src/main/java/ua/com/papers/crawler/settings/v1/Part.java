@@ -1,7 +1,7 @@
 package ua.com.papers.crawler.settings.v1;
 
 import ua.com.papers.crawler.core.processor.convert.Converter;
-import ua.com.papers.crawler.core.processor.convert.SkipAdapter;
+import ua.com.papers.crawler.core.processor.convert.StubAdapter;
 
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.ElementType;
@@ -37,6 +37,6 @@ public @interface Part {
      * into method argument. By default page content part will be returned
      */
     @NotNull
-    Class<? extends Converter<?>> converter() default SkipAdapter.class;
+    Class<? extends Converter<?>> converter() default StubAdapter.class;
 
 }

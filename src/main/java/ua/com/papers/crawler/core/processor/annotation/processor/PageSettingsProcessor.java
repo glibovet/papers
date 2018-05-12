@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.processor.annotation;
+package ua.com.papers.crawler.core.processor.annotation.processor;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;

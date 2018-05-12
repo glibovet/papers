@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.processor.annotation;
+package ua.com.papers.crawler.core.processor.annotation.invocation;
 
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -7,7 +7,8 @@ import lombok.experimental.var;
 import lombok.val;
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.main.bo.Page;
-import ua.com.papers.crawler.core.processor.annotation.util.AnnotationUtil;
+import ua.com.papers.crawler.core.processor.annotation.Context;
+import ua.com.papers.crawler.core.processor.annotation.util.InvokerUtil;
 import ua.com.papers.crawler.core.processor.convert.Converter;
 import ua.com.papers.crawler.settings.v2.process.Handles;
 import ua.com.papers.crawler.util.Preconditions;
@@ -34,10 +35,10 @@ public final class ProcessInvoker {
     private final Converter<?> converter;
     private final int auxiliaryArgIndex;
 
-    <T> ProcessInvoker(@NonNull Method method, @NonNull Object target,
+    public <T> ProcessInvoker(@NonNull Method method, @NonNull Object target,
                        @NonNull Context context) {
 
-        AnnotationUtil.checkMethodOrThrow(method, target);
+        InvokerUtil.checkMethodOrThrow(method, target);
 
         val process = Preconditions.checkNotNull(method.getAnnotation(Handles.class),
                 String.format("Missing %s annotation", Annotation.class));
@@ -64,15 +65,15 @@ public final class ProcessInvoker {
             transformArg = params[(auxiliaryArgIndex + 1) % 2];
         }
 
-        final Converter<?> converter;
+        final Converter<?> converter = null;
 
-        if (process.converter() == Handles.Stub.class) {
+        //if (process.converter() == Handles.Stub.class) {
             // guess adapter for a method argument type
-            converter = context.getRawTypeConverter((Class<T>) transformArg);
-        } else {
+       //     converter = context.getRawTypeConverter((Class<T>) transformArg);
+       // } else {
             // explicit adapter was supplied, use it
-            converter = context.getAdapter((Class<? extends Converter<T>>) process.converter());
-        }
+   //         converter = context.getAdapter((Class<? extends Converter<T>>) process.converter());
+     //   }
 
         this.method = method;
         this.target = target;

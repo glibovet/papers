@@ -1,6 +1,6 @@
 package ua.com.papers.crawler.core.processor.exception;
 
-public class ProcessException extends Exception {
+public class ProcessException extends RuntimeException {
     public ProcessException() {
     }
 

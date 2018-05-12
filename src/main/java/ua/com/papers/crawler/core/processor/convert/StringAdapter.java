@@ -10,7 +10,13 @@ import javax.validation.constraints.NotNull;
  */
 public final class StringAdapter implements Converter<String> {
 
-    public static final StringAdapter instance = new StringAdapter();
+    private static final class Holder {
+        private static final StringAdapter INSTANCE = new StringAdapter();
+    }
+
+    public static StringAdapter getInstance() {
+        return Holder.INSTANCE;
+    }
 
     private StringAdapter() {}
 
