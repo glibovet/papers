@@ -6,10 +6,12 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ua.com.papers.crawler.core.main.bo.Page;
-import ua.com.papers.crawler.core.processor.convert.UrlAdapter;
 import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
-import ua.com.papers.crawler.settings.v2.process.*;
+import ua.com.papers.crawler.settings.v2.process.AfterPage;
+import ua.com.papers.crawler.settings.v2.process.BeforePage;
+import ua.com.papers.crawler.settings.v2.process.Binding;
+import ua.com.papers.crawler.settings.v2.process.Handles;
 import ua.com.papers.crawler.util.TextUtils;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
@@ -37,11 +39,12 @@ import java.util.stream.Collectors;
  */
 @Log
 @Component
-@PageHandler(id = 2, analyzers = {
-        @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a"),
-        @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a"),
-        @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(2) > td.tocAuthors")
-})
+@PageHandler(
+        analyzers = {
+                @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a"),
+                @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a"),
+                @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(2) > td.tocAuthors")
+        })
 public final class UranArticleHandler extends BasePublicationHandler {
 
     private static final int PUBLICATION_GROUP = 1;
@@ -111,7 +114,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
     public void onHandleArticle(
             // @Converts annotation is optional; acceptable parameter type adapter will be searched among registered
             // adapters
-            @NotNull @Converts(converter = UrlAdapter.class) @Binding(selectors = "tr:nth-child(1) > td.tocGalleys > a[href*='article/view']:first-child") URL link,
+            @NotNull @Binding(selectors = "tr:nth-child(1) > td.tocGalleys > a[href*='article/view']:first-child") URL link,
             // handler respects @NotNull annotations
             @NotNull @Binding(selectors = "tr:nth-child(1) > td.tocTitle > a") String title,
             @NotNull @Binding(selectors = "tr:nth-child(2) > td.tocAuthors") String authors,

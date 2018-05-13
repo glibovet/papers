@@ -1,6 +1,8 @@
 package ua.com.papers.services.crawler.unit.nbuv;
 
 import lombok.AccessLevel;
+import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.experimental.var;
@@ -9,17 +11,16 @@ import lombok.val;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;
 import ua.com.papers.crawler.settings.v2.process.BeforePage;
-import ua.com.papers.crawler.settings.v2.process.Handles;
+import ua.com.papers.crawler.settings.v2.process.Binding;
 import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.crawler.util.TextUtils;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
-import ua.com.papers.exceptions.service_error.ServiceErrorException;
-import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.entities.PublisherEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
@@ -34,7 +35,7 @@ import ua.com.papers.utils.ResultCallback;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -47,16 +48,17 @@ import java.util.stream.Collectors;
 @Log
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Component
-@PageHandler(id = 2,
+@PageHandler(
+        minWeight = 80,
         analyzers = {
                 // Has a file link
-                @ContentAnalyzer(weight = 40, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > div > div > div.file-link > a"),
+                @ContentAnalyzer(weight = 20, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > div > div > div.file-link > a"),
                 // Has authors
-                @ContentAnalyzer(weight = 40, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.contributor.author)"),
+                @ContentAnalyzer(weight = 20, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.contributor.author)"),
                 // Has publishers
-                @ContentAnalyzer(weight = 40, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.publisher)"),
+                @ContentAnalyzer(weight = 20, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.publisher)"),
                 // Has title
-                @ContentAnalyzer(weight = 40, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.title)")
+                @ContentAnalyzer(weight = 20, selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr > td.label-cell:containsOwn(dc.title)")
         }
 )
 public final class NbuvArticleHandler extends BasePublicationHandler {
@@ -64,8 +66,6 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
     IPublisherService publisherService;
     IPublicationService publicationService;
 
-    PublicationView publicationView = new PublicationView();
-    PublisherView publisherView = new PublisherView();
     @NonFinal
     Map<String, Integer> titleToId;
     Map<String, Integer> fullNameToId = new HashMap<>();
@@ -75,9 +75,6 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
         super(authorService);
         this.publisherService = publisherService;
         this.publicationService = publicationService;
-
-        publicationView.setStatus(PublicationStatusEnum.ACTIVE);
-        publicationView.setType(PublicationTypeEnum.ARTICLE);
     }
 
     @BeforePage
@@ -95,30 +92,43 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
                 titleToId = new HashMap<>();
             }
         }
-        // reset view instances
-        publicationView.setId(null);
-        publicationView.setPublisher_id(null);
-        publicationView.setLink(null);
-        publicationView.setAuthors_id(null);
-        publicationView.setTitle(null);
-        publicationView.setFile_link(null);
-
-        publisherView.setId(null);
-        publisherView.setTitle(null);
     }
 
     @AfterPage
     public void onPageParsed(ua.com.papers.crawler.core.main.bo.Page page) {
         log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
-        // save parsed page link
+    }
+
+    public void onHandleArticle(
+            @NotNull @Binding(selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > div > div:nth-child(1) > div.file-link > a") URL link,
+            @NotNull @Binding(selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.contributor.author)) > td:nth-child(2)") Collection<Element> authors,
+            @NotNull @Binding(selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.publisher)) > td:nth-child(2)") Element publisher,
+            @NotNull @Binding(selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:matchesOwn(dc.title\\z)) > td:nth-child(2)") Element title,
+            Page page) throws Exception {
+
+        log.log(Level.INFO, String.format("onHandleArticle, url=%s, authors=%s, publisher=%s, title=%s", link, authors, publisher.text(), title.ownText()));
+
+        val publicationView = new PublicationView();
+
         publicationView.setLink(page.getUrl().toExternalForm());
+        publicationView.setStatus(PublicationStatusEnum.ACTIVE);
+        publicationView.setType(PublicationTypeEnum.ARTICLE);
+        publicationView.setFile_link(link.toExternalForm());
 
-        val isValid = !TextUtils.isEmpty(publicationView.getLink())
-                && !TextUtils.isEmpty(publicationView.getTitle())
-                && publicationView.getAuthors_id() != null && !publicationView.getAuthors_id().isEmpty()
-                && publisherView.getId() != null;
+        val ids = authors.stream().map(Element::ownText).map(this::findAuthorIdByName)
+                .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
 
-        if (isValid) {
+        publicationView.setAuthors_id(ids);
+
+        if (TextUtils.isEmpty(publisher.ownText())) {
+            log.log(Level.WARNING, String.format("failed to parse title, %s", publisher));
+        } else {
+            publicationView.setPublisher_id(preparePublisher(publisher.text().trim()).getId());
+        }
+
+        publicationView.setTitle(title.ownText().trim());
+
+        if (publicationView.isValid()) {
             log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
 
             publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
@@ -133,54 +143,15 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
                 }
             });
         } else {
-            log.log(Level.WARNING, "failed to process publication");
+            log.log(Level.WARNING, String.format("failed to process publication, publication view=%s", publicationView));
         }
     }
 
-    @Handles(group = 6, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > div > div > div.file-link > a")
-    public void onHandleUri(URL link) {
-        log.log(Level.INFO, "onHandleUri " + link);
-        publicationView.setFile_link(link.toExternalForm());
-    }
-
-    @Handles(group = 7, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.contributor.author)) > td:nth-child(2)")
-    public void onHandleAuthors(Element authors) {
-        log.log(Level.INFO, "onHandleAuthors " + authors.ownText());
-
-        var ids = publicationView.getAuthors_id();
-
-        if (ids == null) {
-            ids = new ArrayList<>();
-            publicationView.setAuthors_id(ids);
-        }
-
-        try {
-            findAuthorIdByName(authors.ownText()).ifPresent(ids::add);
-        } catch (final Exception e) {
-            log.log(Level.WARNING, "Failed to find author by full name, was " + authors, e);
-        }
-    }
-
-    @Handles(group = 8, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.publisher)) > td:nth-child(2)")
-    public void onHandlePublishers(Element publisher) throws Exception {
-        log.log(Level.INFO, "onHandlePublisher " + publisher.ownText());
-
-        if (TextUtils.isEmpty(publisher.ownText())) {
-            log.log(Level.WARNING, String.format("failed to parse title, %s", publisher));
-        } else {
-            preparePublisher(publisher.text().trim());
-            publicationView.setPublisher_id(publisherView.getId());
-        }
-    }
-
-    @Handles(group = 9, selectors = "#aspect_artifactbrowser_ItemViewer_div_item-view > table > tbody > tr:has(td.label-cell:containsOwn(dc.title)) > td:nth-child(2)")
-    public void onHandleTitle(Element title) {
-        log.log(Level.INFO, "onHandleTitle " + title);
-        publicationView.setTitle(title.ownText().trim());
-    }
-
-    private void preparePublisher(String title) throws Exception {
+    @NonNull
+    private PublisherView preparePublisher(String title) throws Exception {
         Preconditions.checkArgument(!title.isEmpty(), "Empty publisher title");
+
+        val publisherView = new PublisherView();
 
         publisherView.setTitle(title);
 
@@ -199,9 +170,12 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
         }
 
         publisherView.setId(id);
+
+        return publisherView;
     }
 
-    private Optional<Integer> findAuthorIdByName(String fullName) throws NoSuchEntityException, ServiceErrorException, ValidationException {
+    @SneakyThrows
+    private Optional<Integer> findAuthorIdByName(String fullName) {
         var id = fullNameToId.get(fullName);
 
         if (id != null) {

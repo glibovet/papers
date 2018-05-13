@@ -10,15 +10,15 @@ import ua.com.papers.crawler.core.main.bo.Page;
 import ua.com.papers.crawler.core.main.vo.PageID;
 import ua.com.papers.crawler.core.processor.OutFormatter;
 import ua.com.papers.crawler.core.processor.annotation.invocation.HandlerInvoker;
+import ua.com.papers.crawler.core.processor.annotation.util.InvokerUtil;
 import ua.com.papers.crawler.core.processor.convert.*;
+import ua.com.papers.crawler.core.processor.convert.general.*;
 import ua.com.papers.crawler.core.processor.exception.ProcessException;
 import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.util.Preconditions;
+import ua.com.papers.services.crawler.unit.nbuv.NbuvArticleHandler;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -39,27 +39,36 @@ public final class AnnotationOutFormatterImp implements OutFormatter {
                 UrlAdapter.getInstance(),
                 PageAdapter.getInstance()
         ));
+
+        context.registerAdapterProvider(Collection.class, c -> new CollectionAdapter(c));
+        context.registerAdapterProvider(List.class, c -> new ListAdapter(c));
+        context.registerAdapterProvider(Set.class, c -> new SetAdapter(c));
+
         this.idToHandlers = mapToHandlers(handlers);
     }
 
     @Override
-    public void registerAdapter(Converter<?> adapter) {
+    public void registerAdapter(Converter<?, ?> adapter) {
         context.registerAdapter(adapter);
     }
 
     @Override
-    public void unregisterAdapter(Class<? extends Converter<?>> cl) {
+    public void unregisterAdapter(Class<? extends Converter<?, ?>> cl) {
         context.unregisterAdapter(cl);
     }
 
     @Override
-    public Set<? extends Converter<?>> getRegisteredAdapters() {
+    public Set<? extends Converter<?, ?>> getRegisteredAdapters() {
         return context.getRegisteredAdapters();
     }
 
     @Override
     public void formatPage(PageID pageID, Page page) throws ProcessException {
         val handlers = idToHandlers.get(pageID);
+
+        if (pageID.getId().equals(NbuvArticleHandler.class.getName())) {
+            int i = 0;
+        }
 
         if (handlers != null && !handlers.isEmpty()) {
 
@@ -86,7 +95,7 @@ public final class AnnotationOutFormatterImp implements OutFormatter {
         val handler = Preconditions.checkNotNull(o.getClass().getAnnotation(PageHandler.class),
                 String.format("No %s annotation was found for class %s", PageHandler.class.getName(), o.getClass().getName()));
 
-        return new PageID(handler.id());
+        return InvokerUtil.newPageId(handler, o);
     }
 
 }

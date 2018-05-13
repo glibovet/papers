@@ -34,8 +34,8 @@ public final class HandlerProcessor {
             } else if (PostLifecycleInvoker.canHandle(method)) {
                 afterInvokers.add(new PostLifecycleInvoker(method, handler));
 
-            } else if (BindingInvoker.canHandle(method)) {
-                bindingInvokers.add(new BindingInvoker(method, handler, context));
+            } else if (MethodInvoker.canHandle(method)) {
+                bindingInvokers.add(new MethodInvoker(method, handler, context));
             }
         }
 

@@ -1,5 +1,6 @@
 package ua.com.papers.storage.impl;
 
+import lombok.SneakyThrows;
 import lombok.val;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ua.com.papers.crawler.core.main.util.UrlUtils;
 import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
@@ -26,6 +28,7 @@ import ua.com.papers.utils.TokenUtil;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.Optional;
@@ -46,6 +49,7 @@ public class StorageServiceImpl implements IStorageService {
     private TokenUtil tokenUtil;
 
     @Override
+    @SneakyThrows(MalformedURLException.class)
     public void uploadPaper(@NotNull PublicationEntity publication, @NotNull ResultCallback<File> callback) {
         Preconditions.checkNotNullAll(publication, callback, publication.getId(), publication.getFileLink());
 
@@ -54,6 +58,8 @@ public class StorageServiceImpl implements IStorageService {
         if (!papersContainer.exists()) {
             papersContainer.mkdirs();
         }
+
+        System.out.println("Content type "  + UrlUtils.getContentType(new URL(publication.getFileLink())));
 
         val fileName = publication.getId() + "." + FilenameUtils.getExtension(publication.getFileLink());
         val serverFile = new File(papersContainer, fileName);

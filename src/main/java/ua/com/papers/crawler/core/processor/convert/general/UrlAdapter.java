@@ -1,10 +1,11 @@
-package ua.com.papers.crawler.core.processor.convert;
+package ua.com.papers.crawler.core.processor.convert.general;
 
 import lombok.SneakyThrows;
 import lombok.experimental.var;
 import lombok.val;
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.processor.convert.ElementConverter;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
@@ -13,7 +14,7 @@ import java.net.URL;
  * Transforms element into {@linkplain URL}
  * Created by Максим on 1/8/2017.
  */
-public final class UrlAdapter implements Converter<URL> {
+public final class UrlAdapter implements ElementConverter<URL> {
 
     private static final class Holder {
         private static final UrlAdapter INSTANCE = new UrlAdapter();

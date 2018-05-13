@@ -1,9 +1,10 @@
-package ua.com.papers.crawler.core.processor.convert;
+package ua.com.papers.crawler.core.processor.convert.general;
 
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.processor.convert.ElementConverter;
 
-public final class PageAdapter implements Converter<Page> {
+public final class PageAdapter implements ElementConverter<Page> {
 
     private static final class Holder {
         private static final PageAdapter INSTANCE = new PageAdapter();

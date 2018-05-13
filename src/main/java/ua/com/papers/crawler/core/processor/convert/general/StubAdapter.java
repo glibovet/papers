@@ -1,7 +1,8 @@
-package ua.com.papers.crawler.core.processor.convert;
+package ua.com.papers.crawler.core.processor.convert.general;
 
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.processor.convert.ElementConverter;
 
 import javax.validation.constraints.NotNull;
 
@@ -9,7 +10,7 @@ import javax.validation.constraints.NotNull;
  * Just returns element as it was passed without
  * modifications
  */
-public final class StubAdapter implements Converter<Element> {
+public final class StubAdapter implements ElementConverter<Element> {
 
     private static final class Holder {
         private static final StubAdapter INSTANCE = new StubAdapter();
@@ -28,7 +29,7 @@ public final class StubAdapter implements Converter<Element> {
     }
 
     @Override
-    public Element convert(@NotNull Element element, Page page) {
-        return element;
+    public Element convert(@NotNull Element i, Page page) {
+        return i;
     }
 }

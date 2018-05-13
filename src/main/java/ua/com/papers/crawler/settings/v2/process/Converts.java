@@ -1,6 +1,7 @@
 package ua.com.papers.crawler.settings.v2.process;
 
 import ua.com.papers.crawler.core.processor.convert.Converter;
+import ua.com.papers.crawler.core.processor.convert.ElementConverter;
 
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.ElementType;
@@ -22,5 +23,5 @@ public @interface Converts {
      * argument type should be assignable from converter's transformation return type
      */
     @NotNull
-    Class<? extends Converter<?>> converter();
+    Class<? extends ElementConverter<?>> converter();
 }

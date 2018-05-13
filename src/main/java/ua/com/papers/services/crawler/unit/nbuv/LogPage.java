@@ -16,7 +16,7 @@ import java.util.logging.Level;
  */
 @Log
 @Component
-@PageHandler(id = 1,
+@PageHandler(
         analyzers = @ContentAnalyzer(selector = "*"),
         baseUrl = "http://dspace.nbuv.gov.ua/",
         urlSelectors = {

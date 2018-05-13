@@ -23,7 +23,7 @@ public @interface PageHandler {
      * given handler can be distinguished among
      * other
      */
-    int id();
+    String id() default "";
 
     int minWeight() default 70;
 

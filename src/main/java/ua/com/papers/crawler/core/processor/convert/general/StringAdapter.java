@@ -1,14 +1,15 @@
-package ua.com.papers.crawler.core.processor.convert;
+package ua.com.papers.crawler.core.processor.convert.general;
 
 import org.jsoup.nodes.Element;
 import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.processor.convert.ElementConverter;
 
 import javax.validation.constraints.NotNull;
 
 /**
  * Created by Максим on 1/8/2017.
  */
-public final class StringAdapter implements Converter<String> {
+public final class StringAdapter implements ElementConverter<String> {
 
     private static final class Holder {
         private static final StringAdapter INSTANCE = new StringAdapter();

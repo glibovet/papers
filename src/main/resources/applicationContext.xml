@@ -41,8 +41,8 @@
     <bean id="crawlerService" class="ua.com.papers.services.crawler.CrawlerService">
         <constructor-arg name="factories">
             <list value-type="ua.com.papers.crawler.core.factory.ICrawlerFactory">
-                <!--<ref bean="nbuvFactory"/>-->
-                <ref bean="uranFactory"/>
+                <ref bean="nbuvFactory"/>
+               <!-- <ref bean="uranFactory"/>-->
             </list>
         </constructor-arg>
     </bean>
