@@ -129,19 +129,7 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
         publicationView.setTitle(title.ownText().trim());
 
         if (publicationView.isValid()) {
-            log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
-
-            publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
-                @Override
-                public void onResult(@NotNull PublicationEntity publicationEntity) {
-                    log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
-                }
-
-                @Override
-                public void onException(@NotNull Exception e) {
-                    log.log(Level.WARNING, String.format("Failed to save publication %s", publicationView.getLink()), e);
-                }
-            });
+            upload(publicationView);
         } else {
             log.log(Level.WARNING, String.format("failed to process publication, publication view=%s", publicationView));
         }
@@ -172,6 +160,22 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
         publisherView.setId(id);
 
         return publisherView;
+    }
+
+    private void upload(@NonNull PublicationView publicationView) {
+        log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
+
+        publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
+            @Override
+            public void onResult(@NotNull PublicationEntity publicationEntity) {
+                log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
+            }
+
+            @Override
+            public void onException(@NotNull Exception e) {
+                log.log(Level.WARNING, String.format("Failed to save publication %s", publicationView.getLink()), e);
+            }
+        });
     }
 
     @SneakyThrows

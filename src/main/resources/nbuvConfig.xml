@@ -11,14 +11,11 @@
     <context:annotation-config/>
 
     <util:set id="handlers">
-        <ref bean="logPage"/>
+        <ref bean="nbuvUrlCollector"/>
         <ref bean="nbuvArticleHandler"/>
     </util:set>
 
     <util:set id="startUrls">
-        <!--<bean class="java.net.URL">
-            <constructor-arg name="spec" value="http://dspaceua/"/>
-        </bean>-->
         <bean class="java.net.URL">
             <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/"/>
         </bean>

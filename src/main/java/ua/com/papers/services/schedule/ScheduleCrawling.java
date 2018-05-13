@@ -11,7 +11,6 @@ import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.pojo.enums.EmailTypes;
 import ua.com.papers.pojo.enums.RolesEnum;
-import ua.com.papers.services.crawler.MainComposer;
 import ua.com.papers.services.mailing.IMailingService;
 import ua.com.papers.services.users.IUserService;
 
@@ -25,8 +24,6 @@ import java.util.Locale;
 @Component
 public class ScheduleCrawling {
 
-    @Autowired
-    private MainComposer composer;
     @Autowired
     private IMailingService mailingService;
     @Autowired

@@ -19,7 +19,7 @@
         </constructor-arg>
         <constructor-arg name="handlers">
             <util:set id="handlers">
-                <ref bean="uranUrlWalker"/>
+                <ref bean="uranUrlCollector"/>
                 <ref bean="uranArticleHandler"/>
             </util:set>
         </constructor-arg>

@@ -20,7 +20,8 @@ public final class UrlUtils {
     );
 
     @SneakyThrows
-    public static String getContentType(@NonNull URL url) {
+    @NonNull
+    public static ContentType getContentType(@NonNull URL url) {
         val connection = (HttpURLConnection) url.openConnection();
 
         connection.setRequestMethod("HEAD");
@@ -29,7 +30,7 @@ public final class UrlUtils {
             return getContentType(new URL(connection.getHeaderField("Location")));
         }
 
-        return connection.getContentType();
+        return new ContentType(connection.getContentType());
     }
 
     private static boolean isRedirect(int statusCode) {

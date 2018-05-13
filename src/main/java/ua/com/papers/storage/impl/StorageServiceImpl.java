@@ -59,9 +59,8 @@ public class StorageServiceImpl implements IStorageService {
             papersContainer.mkdirs();
         }
 
-        System.out.println("Content type "  + UrlUtils.getContentType(new URL(publication.getFileLink())));
-
-        val fileName = publication.getId() + "." + FilenameUtils.getExtension(publication.getFileLink());
+        val contentType = UrlUtils.getContentType(new URL(publication.getFileLink()));
+        val fileName = publication.getId() + "." + contentType.getExtension();
         val serverFile = new File(papersContainer, fileName);
 
         Optional<Exception> exception = Optional.empty();

@@ -26,7 +26,7 @@ import java.util.logging.Level;
                 @UrlAnalyzer(selector = "#issues > a")
         }
 )
-public final class UranUrlWalker {
+public final class UranUrlCollector {
 
     @Handles(
             selectors = {

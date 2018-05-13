@@ -48,23 +48,22 @@ public final class MethodInvoker implements GroupedInvoker {
 
     @Override
     public int group() {
-        return methodInfo.getHandles() == null ? Handles.DEFAULT : methodInfo.getHandles().group();
+        return methodInfo.getHandles().map(Handles::group).orElse(Handles.DEFAULT);
     }
 
     @Override
     public Handles.CallPolicy executionPolicy() {
-        return methodInfo.getHandles() == null ? Handles.CallPolicy.INSIDE : methodInfo.getHandles().policy();
+        return methodInfo.getHandles().map(Handles::policy).orElse(Handles.CallPolicy.INSIDE);
     }
 
     @Override
     public void invoke(Page page) {
-        val handles = methodInfo.getHandles();
-
-        if (handles == null) {
-            invoke(page, page.toDocument().body());
-        } else {
-            Arrays.stream(handles.selectors()).map(s -> page.toDocument().select(s)).flatMap(Collection::stream)
+        if (methodInfo.getHandles().isPresent()) {
+            Arrays.stream(methodInfo.getHandles().get().selectors()).map(s -> page.toDocument().select(s))
+                    .flatMap(Collection::stream)
                     .forEach(e -> invoke(page, e));
+        } else {
+            invoke(page, page.toDocument().body());
         }
     }
 
