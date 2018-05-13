@@ -7,7 +7,7 @@ import ua.com.papers.crawler.core.factory.ICrawlerFactory;
 import ua.com.papers.crawler.core.main.ICrawler;
 import ua.com.papers.crawler.core.main.v2.CrawlerV2;
 import ua.com.papers.crawler.core.processor.FormatterFactory;
-import ua.com.papers.crawler.core.processor.annotation.PageSettingsProcessor;
+import ua.com.papers.crawler.core.processor.annotation.processor.PageSettingsProcessor;
 import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.core.storage.UrlsRepository;
 import ua.com.papers.crawler.settings.JobId;

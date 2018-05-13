@@ -11,7 +11,7 @@
     <context:annotation-config/>
 
     <util:set id="handlers">
-        <ref bean="logPage"/>
+        <ref bean="nbuvUrlCollector"/>
         <ref bean="nbuvArticleHandler"/>
     </util:set>
 
@@ -30,7 +30,7 @@
 
     <bean id="schedulerSettings" class="ua.com.papers.crawler.settings.SchedulerSetting">
         <constructor-arg name="indexDelay" value="10000"/>
-        <constructor-arg name="processingThreads" value="3"/>
+        <constructor-arg name="processingThreads" value="1"/>
         <constructor-arg name="processingDelay" value="10000"/>
         <constructor-arg name="indexThreads" value="3"/>
     </bean>

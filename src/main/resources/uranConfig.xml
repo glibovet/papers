@@ -19,7 +19,7 @@
         </constructor-arg>
         <constructor-arg name="handlers">
             <util:set id="handlers">
-                <ref bean="uranUrlWalker"/>
+                <ref bean="uranUrlCollector"/>
                 <ref bean="uranArticleHandler"/>
             </util:set>
         </constructor-arg>
@@ -33,9 +33,9 @@
         <constructor-arg name="schedulerSetting">
             <bean class="ua.com.papers.crawler.settings.SchedulerSetting">
                 <constructor-arg name="indexDelay" value="10000"/>
-                <constructor-arg name="processingThreads" value="3"/>
+                <constructor-arg name="processingThreads" value="1"/>
                 <constructor-arg name="processingDelay" value="10000"/>
-                <constructor-arg name="indexThreads" value="3"/>
+                <constructor-arg name="indexThreads" value="1"/>
             </bean>
         </constructor-arg>
         <constructor-arg name="urlsRepository" ref="jpaUrlsRepository"/>
