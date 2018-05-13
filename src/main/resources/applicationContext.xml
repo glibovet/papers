@@ -35,8 +35,8 @@
         </property>
     </bean>
 
-    <import resource="nbuvConfig.xml" />
-    <import resource="uranConfig.xml" />
+    <import resource="nbuvConfig.xml"/>
+    <import resource="uranConfig.xml"/>
 
     <bean id="crawlerService" class="ua.com.papers.services.crawler.CrawlerService">
         <constructor-arg name="factories">
@@ -45,6 +45,25 @@
                 <ref bean="uranFactory"/>
             </list>
         </constructor-arg>
+        <constructor-arg name="handler" ref="slackLogger" />
+        <constructor-arg name="crawlerChannel" ref="slackCrawlerChannel" />
+        <constructor-arg name="slackSession" ref="slackSession" />
+    </bean>
+
+    <bean id="slackSession" class="com.ullink.slack.simpleslackapi.impl.SlackSessionFactory"
+          factory-method="createWebSocketSlackSession" init-method="connect">
+        <constructor-arg name="authToken" value="${slack.token}"/>
+    </bean>
+
+
+    <bean id="slackCrawlerChannel" class="com.ullink.slack.simpleslackapi.SlackChannel" factory-bean="slackSession"
+          factory-method="findChannelByName">
+        <constructor-arg name="channelName" value="crawler"/>
+    </bean>
+
+    <bean id="slackLogger" class="ua.com.papers.services.utils.SlackLogHandler">
+        <constructor-arg name="crawlerChannel" ref="slackCrawlerChannel" />
+        <constructor-arg name="slackSession" ref="slackSession" />
     </bean>
 
     <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>

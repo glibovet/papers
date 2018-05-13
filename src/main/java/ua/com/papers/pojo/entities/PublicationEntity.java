@@ -1,5 +1,6 @@
 package ua.com.papers.pojo.entities;
 
+import lombok.ToString;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
 import ua.com.papers.pojo.enums.UploadStatus;
@@ -15,6 +16,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "publication")
+@ToString
 public class PublicationEntity implements Serializable {
 
     public PublicationEntity(){

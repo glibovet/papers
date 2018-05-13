@@ -1,5 +1,7 @@
 package ua.com.papers.services.crawler.unit.nbuv;
 
+import com.ullink.slack.simpleslackapi.SlackChannel;
+import com.ullink.slack.simpleslackapi.SlackSession;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -39,6 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -69,12 +72,19 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
     @NonFinal
     Map<String, Integer> titleToId;
     Map<String, Integer> fullNameToId = new HashMap<>();
+    SlackChannel slackChannel;
+    SlackSession slackSession;
 
     @Autowired
-    public NbuvArticleHandler(IAuthorService authorService, IPublisherService publisherService, IPublicationService publicationService) {
+    public NbuvArticleHandler(IAuthorService authorService, IPublisherService publisherService,
+                              IPublicationService publicationService, Handler handler, SlackChannel slackChannel, SlackSession slackSession) {
         super(authorService);
         this.publisherService = publisherService;
         this.publicationService = publicationService;
+        this.slackChannel = slackChannel;
+        this.slackSession = slackSession;
+
+        log.addHandler(handler);
     }
 
     @BeforePage
@@ -168,7 +178,10 @@ public final class NbuvArticleHandler extends BasePublicationHandler {
         publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
             @Override
             public void onResult(@NotNull PublicationEntity publicationEntity) {
-                log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
+                val message = String.format("Publication %s was saved %s", publicationEntity.getLink(), publicationEntity);
+
+                log.log(Level.INFO, message);
+                slackSession.sendMessage(slackChannel, message);
             }
 
             @Override

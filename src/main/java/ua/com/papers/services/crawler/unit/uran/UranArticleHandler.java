@@ -1,5 +1,7 @@
 package ua.com.papers.services.crawler.unit.uran;
 
+import com.ullink.slack.simpleslackapi.SlackChannel;
+import com.ullink.slack.simpleslackapi.SlackSession;
 import lombok.experimental.var;
 import lombok.extern.java.Log;
 import lombok.val;
@@ -30,6 +32,7 @@ import ua.com.papers.utils.ResultCallback;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.*;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -60,14 +63,23 @@ public final class UranArticleHandler extends BasePublicationHandler {
 
     private final Collection<PublicationView> publicationViews = new ArrayList<>();
 
+    private final SlackChannel slackChannel;
+    private final SlackSession slackSession;
+
     @Autowired
-    public UranArticleHandler(IAuthorService authorService, IPublisherService publisherService, IPublicationService publicationService) {
+    public UranArticleHandler(IAuthorService authorService, IPublisherService publisherService,
+                              IPublicationService publicationService, Handler handler,
+                              SlackChannel crawlerChannel, SlackSession slackSession) {
         super(authorService);
         this.publisherService = publisherService;
         this.publicationService = publicationService;
+        this.slackChannel = crawlerChannel;
+        this.slackSession = slackSession;
 
         publicationView.setStatus(PublicationStatusEnum.ACTIVE);
         publicationView.setType(PublicationTypeEnum.ARTICLE);
+
+        log.addHandler(handler);
     }
 
     @BeforePage
@@ -102,7 +114,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
             if (view.isValid()) {
                 upload(view);
             } else {
-                log.log(Level.WARNING, "failed to process publication");
+                log.log(Level.WARNING, String.format("failed to process publication=%s", view));
             }
         }
     }
@@ -223,7 +235,10 @@ public final class UranArticleHandler extends BasePublicationHandler {
         publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
             @Override
             public void onResult(@NotNull PublicationEntity publicationEntity) {
-                log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
+                val message = String.format("Publication %s was saved %s", publicationEntity.getLink(), publicationEntity);
+
+                log.log(Level.INFO, message);
+                slackSession.sendMessage(slackChannel, message);
             }
 
             @Override
