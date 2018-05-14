@@ -24,6 +24,10 @@ public class PublicationsCosineSimilarityEntity implements Serializable{
     @JoinColumn(name="publication2_id")
     private PublicationEntity publication2;
 
+    public PublicationsCosineSimilarityEntity() {
+
+    }
+
     public PublicationsCosineSimilarityEntity(Double value, PublicationEntity publication1, PublicationEntity publication2) {
         this.value = value;
         this.publication1 = publication1;

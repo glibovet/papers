@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS `papers`.`dictionary` (
   PRIMARY KEY (`word`));
 
 CREATE TABLE IF NOT EXISTS `papers`.`publications_cosine_similarity` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `publication1_id` INT NULL,
   `publication2_id` INT NULL,
   `value` DOUBLE NULL,

@@ -58,6 +58,7 @@
                                         <button class="btn btn-success order-publication" data-id="${publication.id}">Замовити файл</button>
                                     </c:otherwise>
                                 </c:choose>
+                                <a href="/recommendations/to-publication/${publication.id}" class="btn btn-default" target="_blank">Переглянути рекомендації</a>
                             </div>
                         </c:forEach>
                     </div>
