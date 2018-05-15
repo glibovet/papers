@@ -15,12 +15,12 @@ import java.util.Set;
 @Validated
 public interface OutFormatter {
 
-    void registerAdapter(@NotNull Converter<?> adapter);
+    void registerAdapter(@NotNull Converter<?, ?> adapter);
 
-    void unregisterAdapter(@NotNull Class<? extends Converter<?>> cl);
+    void unregisterAdapter(@NotNull Class<? extends Converter<?, ?>> cl);
 
     @NotNull
-    Set<? extends Converter<?>> getRegisteredAdapters();
+    Set<? extends Converter<?, ?>> getRegisteredAdapters();
 
     void formatPage(@NotNull PageID pageID, @NotNull Page page) throws ProcessException;
 

@@ -1,5 +1,7 @@
 package ua.com.papers.services.crawler.unit.uran;
 
+import com.ullink.slack.simpleslackapi.SlackChannel;
+import com.ullink.slack.simpleslackapi.SlackSession;
 import lombok.experimental.var;
 import lombok.extern.java.Log;
 import lombok.val;
@@ -10,6 +12,7 @@ import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;
 import ua.com.papers.crawler.settings.v2.process.BeforePage;
+import ua.com.papers.crawler.settings.v2.process.Binding;
 import ua.com.papers.crawler.settings.v2.process.Handles;
 import ua.com.papers.crawler.util.TextUtils;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
@@ -29,6 +32,7 @@ import ua.com.papers.utils.ResultCallback;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.*;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,15 +42,16 @@ import java.util.stream.Collectors;
  */
 @Log
 @Component
-@PageHandler(id = 2, analyzers = {
-        @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a"),
-        @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a"),
-        @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(2) > td.tocAuthors")
-})
+@PageHandler(
+        analyzers = {
+                @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a"),
+                @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a"),
+                @ContentAnalyzer(weight = 30, selector = "#content > table > tbody > tr:nth-child(2) > td.tocAuthors")
+        })
 public final class UranArticleHandler extends BasePublicationHandler {
 
     private static final int PUBLICATION_GROUP = 1;
-    private static final Pattern FULL_NAME_PATTERN = Pattern.compile("\\(.*?\\)");
+    private static final Pattern FULL_NAME_PATTERN = Pattern.compile("[(\\[].*?[)\\]]");
 
     private final IPublisherService publisherService;
     private final IPublicationService publicationService;
@@ -58,19 +63,28 @@ public final class UranArticleHandler extends BasePublicationHandler {
 
     private final Collection<PublicationView> publicationViews = new ArrayList<>();
 
+    private final SlackChannel slackChannel;
+    private final SlackSession slackSession;
+
     @Autowired
-    public UranArticleHandler(IAuthorService authorService, IPublisherService publisherService, IPublicationService publicationService) {
+    public UranArticleHandler(IAuthorService authorService, IPublisherService publisherService,
+                              IPublicationService publicationService, Handler handler,
+                              SlackChannel crawlerChannel, SlackSession slackSession) {
         super(authorService);
         this.publisherService = publisherService;
         this.publicationService = publicationService;
+        this.slackChannel = crawlerChannel;
+        this.slackSession = slackSession;
 
         publicationView.setStatus(PublicationStatusEnum.ACTIVE);
         publicationView.setType(PublicationTypeEnum.ARTICLE);
+
+        log.addHandler(handler);
     }
 
     @BeforePage
     public void onPrepare(ua.com.papers.crawler.core.main.bo.Page page) throws WrongRestrictionException {
-        //log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
+        log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
 
         if (titleToId == null) {
             // load all data
@@ -91,7 +105,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
 
     @AfterPage
     public void onPageParsed(Page page) {
-        //log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
+        log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
 
         for (val view : publicationViews) {
 
@@ -100,18 +114,32 @@ public final class UranArticleHandler extends BasePublicationHandler {
             if (view.isValid()) {
                 upload(view);
             } else {
-                log.log(Level.WARNING, "failed to process publication");
+                log.log(Level.WARNING, String.format("failed to process publication=%s", view));
             }
         }
     }
 
+    // specify prefix to fetch DOM elements from same parent element (here parent is #content > table > tbody)
     @Handles(
-            group = PUBLICATION_GROUP,
-            selectors = "#content > table > tbody > tr:nth-child(1) > td.tocGalleys > a"
+            selectors = "#content > table > tbody"
     )
-    public void onHandleFileLink(URL link) {
-        //log.log(Level.INFO, String.format("On handle file link %s", link));
+    public void onHandleArticle(
+            // @Converts annotation is optional; acceptable parameter type adapter will be searched among registered
+            // adapters
+            @NotNull @Binding(selectors = "tr:nth-child(1) > td.tocGalleys > a[href*='article/view']:first-child") URL link,
+            // handler respects @NotNull annotations
+            @NotNull @Binding(selectors = "tr:nth-child(1) > td.tocTitle > a") String title,
+            @NotNull @Binding(selectors = "tr:nth-child(2) > td.tocAuthors") String authors,
+            Page page) {
 
+        assert page != null : "page == null";
+        assert link != null : "link == null, page=" + page.getUrl();
+        assert title != null : "title == null, page=" + page.getUrl();
+        assert authors != null : "authors == null, page=" + page.getUrl();
+
+        log.log(Level.INFO, String.format("onHandleArticle# link=%s, title=%s, authors=%s, page=%s", link, title, authors, page.getUrl()));
+
+        val publicationView = new PublicationView();
         var strLink = link.toExternalForm();
 
         if (strLink.contains("view")) {
@@ -119,24 +147,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
         }
 
         publicationView.setFile_link(strLink);
-    }
-
-    @Handles(
-            group = PUBLICATION_GROUP,
-            selectors = "#content > table > tbody > tr:nth-child(1) > td.tocTitle > a"
-    )
-    public void onHandleTitle(String title) {
-        //log.log(Level.INFO, String.format("#onHandleTitle %s", title));
         publicationView.setTitle(title);
-    }
-
-    @Handles(
-            group = PUBLICATION_GROUP,
-            policy = Handles.CallPolicy.AFTER,
-            selectors = "#content > table > tbody > tr:nth-child(2) > td.tocAuthors"
-    )
-    public void onHandleAuthors(String authors, Page page) {
-        //log.log(Level.INFO, String.format("#onHandleAuthors %s, %s", getClass(), authors));
 
         val ids = Arrays.stream(authors.replaceAll(FULL_NAME_PATTERN.pattern(), "").split(","))
                 .map(fullName -> findAuthorIdByName(fullName.trim()))
@@ -146,8 +157,8 @@ public final class UranArticleHandler extends BasePublicationHandler {
 
         publicationView.setAuthors_id(ids);
         publicationView.setLink(page.getUrl().toExternalForm());
-        publicationViews.add(PublicationView.copy(publicationView));
-        publicationView.reset();
+
+        publicationViews.add(publicationView);
     }
 
     @Handles(
@@ -155,7 +166,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
             selectors = "#headerTitle > h1"
     )
     public void onHandlePublisher(String publisher) {
-        //log.log(Level.INFO, String.format("#onHandlePublisher %s, %s", getClass(), publisher));
+        log.log(Level.INFO, String.format("#onHandlePublisher %s, %s", getClass(), publisher));
 
         publisherView = createPublisherView(publisher);
     }
@@ -213,18 +224,21 @@ public final class UranArticleHandler extends BasePublicationHandler {
         }
 
         publisherView.setId(id);
-        //log.log(Level.INFO, String.format("publisher was proceeded successfully %s", publisherView.getTitle()));
+        log.log(Level.INFO, String.format("publisher was proceeded successfully %s", publisherView.getTitle()));
 
         return publisherView;
     }
 
     private void upload(PublicationView publicationView) {
-        //log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
+        log.log(Level.INFO, String.format("trying to save publication %s", publicationView));
 
         publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
             @Override
             public void onResult(@NotNull PublicationEntity publicationEntity) {
-                //log.log(Level.INFO, String.format("Publication %s with url %s was saved", publicationEntity.getLink(), publicationEntity.getFileLink()));
+                val message = String.format("Publication %s was saved %s", publicationEntity.getLink(), publicationEntity);
+
+                log.log(Level.INFO, message);
+                slackSession.sendMessage(slackChannel, message);
             }
 
             @Override

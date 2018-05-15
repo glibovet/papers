@@ -1,9 +1,10 @@
 package ua.com.papers.crawler.core.processor.convert;
 
-import lombok.NonNull;
 import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.main.bo.Page;
+import org.jsoup.select.Elements;
 import ua.com.papers.crawler.core.processor.OutFormatter;
+
+import java.util.Collection;
 
 /**
  * <p>
@@ -15,19 +16,5 @@ import ua.com.papers.crawler.core.processor.OutFormatter;
  * </p>
  * Created by Максим on 1/8/2017.
  */
-public interface Converter<I, R> {
-
-    @NonNull
-    Class<? extends R> converts();
-
-    /**
-     * Converts {@linkplain I} into {@linkplain R}
-     *
-     * @param i element to convert
-     * @param page    page to format
-     * @return transformed instance of {@linkplain I}
-     */
-    @NonNull
-    R convert(@NonNull I i, @NonNull Page page);
-
+public interface CollectionConverter<E, R extends Collection<? extends E>> extends Converter<Elements, R> {
 }

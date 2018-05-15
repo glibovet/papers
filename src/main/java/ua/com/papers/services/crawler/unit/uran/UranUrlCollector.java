@@ -16,7 +16,7 @@ import java.util.logging.Level;
  */
 @Log
 @Component
-@PageHandler(id = 1,
+@PageHandler(
         analyzers = {
                 @ContentAnalyzer(selector = "#issues > a"),
                 @ContentAnalyzer(selector = "#issues > h4 > a")
@@ -26,7 +26,7 @@ import java.util.logging.Level;
                 @UrlAnalyzer(selector = "#issues > a")
         }
 )
-public final class UranUrlWalker {
+public final class UranUrlCollector {
 
     @Handles(
             selectors = {

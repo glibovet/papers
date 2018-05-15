@@ -1,9 +1,9 @@
-package ua.com.papers.crawler.core.processor.annotation;
+package ua.com.papers.crawler.core.processor.annotation.processor;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
-import ua.com.papers.crawler.core.main.vo.PageID;
+import ua.com.papers.crawler.core.processor.annotation.util.InvokerUtil;
 import ua.com.papers.crawler.settings.AnalyzeTemplate;
 import ua.com.papers.crawler.settings.AnalyzeWeight;
 import ua.com.papers.crawler.settings.PageSetting;
@@ -31,17 +31,19 @@ public final class PageSettingsProcessor {
 
     public List<PageSetting> process() {
         return source.stream()
-                .map(h -> Preconditions.checkNotNull(h.getClass().getAnnotation(PageHandler.class), "Missing %s annotation for %s", PageHandler.class, h))
                 .map(PageSettingsProcessor::toPageSettings)
                 .collect(Collectors.toList());
     }
 
-    private static PageSetting toPageSettings(PageHandler page) {
+    private static PageSetting toPageSettings(Object o) {
+        val handler = Preconditions.checkNotNull(o.getClass().getAnnotation(PageHandler.class),
+                "Missing %s annotation for %s", PageHandler.class, o);
+
         return PageSetting.builder()
-                .id(new PageID(page.id()))
-                .minWeight(AnalyzeWeight.ofValue(page.minWeight()))
-                .analyzeTemplates(toAnalyzeTemplates(page))
-                .selectSettings(toUrlAnalyzeTemplates(page))
+                .id(InvokerUtil.newPageId(handler, o))
+                .minWeight(AnalyzeWeight.ofValue(handler.minWeight()))
+                .analyzeTemplates(toAnalyzeTemplates(handler))
+                .selectSettings(toUrlAnalyzeTemplates(handler))
                 .build();
     }
 
@@ -63,7 +65,7 @@ public final class PageSettingsProcessor {
     private static UrlSelectSetting toUrlAnalyzeTemplates(UrlAnalyzer urlAnalyzer, @Nullable URL pageBaseUrl) {
         final URL url;
 
-        if(TextUtils.isEmpty(urlAnalyzer.baseUrl())) {
+        if (TextUtils.isEmpty(urlAnalyzer.baseUrl())) {
             url = pageBaseUrl;
         } else {
             url = new URL(urlAnalyzer.baseUrl());

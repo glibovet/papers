@@ -1,6 +1,9 @@
 package ua.com.papers.crawler.core.main.vo;
 
+import lombok.NonNull;
 import lombok.Value;
+import ua.com.papers.crawler.util.Preconditions;
+import ua.com.papers.crawler.util.TextUtils;
 
 /**
  * <p>
@@ -10,5 +13,10 @@ import lombok.Value;
  */
 @Value
 public class PageID {
-    int id;
+    String id;
+
+    public PageID(@NonNull String id) {
+        Preconditions.checkArgument(TextUtils.isNonEmpty(id));
+        this.id = id;
+    }
 }

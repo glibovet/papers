@@ -1,28 +1,30 @@
-package ua.com.papers.crawler.core.processor.annotation;
+package ua.com.papers.crawler.core.processor.annotation.invocation;
 
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.val;
 import ua.com.papers.crawler.core.main.bo.Page;
-import ua.com.papers.crawler.core.processor.annotation.util.AnnotationUtil;
+import ua.com.papers.crawler.core.processor.annotation.util.InvokerUtil;
+import ua.com.papers.crawler.settings.v2.process.AfterPage;
 import ua.com.papers.crawler.util.Preconditions;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 @EqualsAndHashCode
 @ToString
-final class LifecycleInvoker implements Invoker {
+public final class PostLifecycleInvoker implements Invoker {
     private final Method method;
     private final Object target;
     private boolean isPageRequired;
 
-    LifecycleInvoker(@NonNull Method method, @NonNull Object target, @NonNull Class<? extends Annotation> annotation) {
-        AnnotationUtil.checkMethodOrThrow(method, target);
-        Preconditions.checkArgument(method.isAnnotationPresent(annotation),
-                String.format("Missing %s annotation", annotation));
+    public static boolean canHandle(Method method) {
+        return method.isAnnotationPresent(AfterPage.class);
+    }
+
+    public PostLifecycleInvoker(@NonNull Method method, @NonNull Object target) {
+        InvokerUtil.checkMethodOrThrow(method, target);
+        Preconditions.checkArgument(PostLifecycleInvoker.canHandle(method), "Missing lifecycle annotation");
 
         val params = method.getParameterTypes();
 
@@ -40,11 +42,11 @@ final class LifecycleInvoker implements Invoker {
     }
 
     @Override
-    public void invoke(Page page) throws InvocationTargetException, IllegalAccessException {
+    public void invoke(Page page) {
         if (isPageRequired) {
-            method.invoke(target, page);
+            InvokerUtil.invokeWrappingError(method, target, page);
         } else {
-            method.invoke(target);
+            InvokerUtil.invokeWrappingError(method, target);
         }
     }
 }

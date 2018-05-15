@@ -1,5 +1,7 @@
 package ua.com.papers.services.crawler;
 
+import com.ullink.slack.simpleslackapi.SlackChannel;
+import com.ullink.slack.simpleslackapi.SlackSession;
 import lombok.extern.java.Log;
 import lombok.val;
 import ua.com.papers.crawler.core.factory.ICrawlerFactory;
@@ -11,6 +13,7 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 import java.util.Collection;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -24,23 +27,42 @@ import java.util.stream.Collectors;
 public final class CrawlerService implements ICrawlerService, ICrawler.Callback, PageIndexer.Callback {
 
     private final Collection<? extends ICrawler> crawlers;
+    private final SlackChannel crawlerChannel;
+    private final SlackSession slackSession;
 
-    public CrawlerService(Collection<? extends ICrawlerFactory> factories) {
+    public CrawlerService(Collection<? extends ICrawlerFactory> factories, SlackChannel crawlerChannel,
+                          SlackSession slackSession, Handler handler) {
         this.crawlers = factories.stream().map(ICrawlerFactory::create).collect(Collectors.toList());
+        this.crawlerChannel = crawlerChannel;
+        this.slackSession = slackSession;
+
+        log.addHandler(handler);
     }
 
     @Override
     public void startCrawling() {
+        val sb = new StringBuilder("Starting crawler jobs: ");
+
         for (val crawler : crawlers) {
+            sb.append(crawler.getSettings().getJob().getId()).append(',');
             crawler.start(this);
         }
+
+        sb.setLength(sb.length() - 1);
+        slackSession.sendMessage(crawlerChannel, sb.toString());
     }
 
     @Override
     public void stopCrawling() {
+        val sb = new StringBuilder("Stopping crawler jobs: ");
+
         for (val crawler : crawlers) {
+            sb.append(crawler.getSettings().getJob().getId()).append(',');
             crawler.stop();
         }
+
+        sb.setLength(sb.length() - 1);
+        slackSession.sendMessage(crawlerChannel, sb.toString());
     }
 
    /* @Override

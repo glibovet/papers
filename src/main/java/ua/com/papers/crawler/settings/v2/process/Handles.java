@@ -1,15 +1,11 @@
 package ua.com.papers.crawler.settings.v2.process;
 
-import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.main.bo.Page;
-import ua.com.papers.crawler.core.processor.OutFormatter;
-import ua.com.papers.crawler.core.processor.convert.Converter;
-
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Comparator;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -36,36 +32,35 @@ public @interface Handles {
     @NotNull
     CallPolicy policy() default CallPolicy.INSIDE;
 
-    /**
-     * <p>
-     * Converter type to apply when page content transformation into actual method argument is needed. Note that annotated method's
-     * argument type should be assignable from converter's transformation return type. In this case converter will be
-     * created via default constructor using reflection
-     * </p>
-     * <p>If {@linkplain Stub} is used, then acceptable converter will be searched among
-     * registered adapters by the corresponding {@linkplain OutFormatter}.
-     * If no acceptable converter is found - error is raised
-     * </p>
-     */
-    @NotNull
-    Class<? extends Converter<?>> converter() default Stub.class;
-
     enum CallPolicy {
+
         /**
          * Denotes this method should be invoked before other methods within same group
          */
-        BEFORE,
+        BEFORE(0),
         /**
          * Denotes this method should be invoked together with other methods within same group
          */
-        INSIDE,
+        INSIDE(1),
         /**
          * Denotes this method should be invoked after other methods within same group
          */
-        AFTER
+        AFTER(2);
+
+        private final int position;
+
+        CallPolicy(int position) {
+            this.position = position;
+        }
+
+        public int getPosition() {
+            return position;
+        }
+
+        public static final Comparator<CallPolicy> DEFAULT_COMPARATOR = Comparator.comparingInt(o -> o.position);
     }
 
-    final class Stub implements Converter<Object> {
+    /*final class Stub implements Converter<Object> {
         private Stub() {
             throw new IllegalStateException("Shouldn't be instantiated");
         }
@@ -79,5 +74,5 @@ public @interface Handles {
         public Object convert(Element element, Page page) {
             throw new IllegalStateException("Shouldn't be invoked");
         }
-    }
+    }*/
 }

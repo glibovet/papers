@@ -16,7 +16,7 @@ import java.util.logging.Level;
  */
 @Log
 @Component
-@PageHandler(id = 1,
+@PageHandler(
         analyzers = @ContentAnalyzer(selector = "*"),
         baseUrl = "http://dspace.nbuv.gov.ua/",
         urlSelectors = {
@@ -27,7 +27,7 @@ import java.util.logging.Level;
                 @UrlAnalyzer(selector = "#aspect_artifactbrowser_ItemViewer_div_item-view > div.item-summary-view-metadata > p > a")
         }
 )
-public final class LogPage {
+public final class NbuvUrlCollector {
 
     @Handles(
             selectors = {
