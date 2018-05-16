@@ -3,15 +3,15 @@ package ua.com.papers.pojo.entities;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "dictionary")
-public class DictionaryEntity {
+@Table(name = "stop_words_dictionary")
+public class StopWordsDictionaryEntity {
 
     @Id
     @Column(name = "word")
     private String word;
 
-    public DictionaryEntity(String word) {
-        this.word = word;
+
+    public StopWordsDictionaryEntity() {
     }
 
     public String getWord() {

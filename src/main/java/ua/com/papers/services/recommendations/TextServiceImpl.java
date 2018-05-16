@@ -5,6 +5,7 @@ import org.apache.pdfbox.util.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ua.com.papers.services.stemmer.IUkrainianStemmer;
+import ua.com.papers.services.stop_words_dictionary.IStopWordsDictionaryService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,6 +17,9 @@ public class TextServiceImpl implements ITextService{
 
     @Autowired
     private IUkrainianStemmer stemmer;
+
+    @Autowired
+    private IStopWordsDictionaryService stopWordsDictionaryService;
 
     /**
      * @param document
@@ -59,9 +63,9 @@ public class TextServiceImpl implements ITextService{
             String temp = this.getStemmed(this.normalizeString(st.nextToken()));
             while (st.hasMoreTokens()) {
                 String word = this.getStemmed(this.normalizeString(st.nextToken()));
-                if (temp.length() >= 3) {
+                if (temp.length() > 2 && !this.stopWordsDictionaryService.wordExistsInDictionary(temp)) {
                     words.add(temp);
-                    if (word.length() >= 3) {
+                    if (word.length() > 2 && !this.stopWordsDictionaryService.wordExistsInDictionary(word)) {
                         words.add(temp + " " + word);
                     }
                 }

@@ -52,12 +52,14 @@ public class Document {
     }
 
     public Double findTfIdfValue(String word) {
-        for(TfIdfItem item : this.getTfIdfItems()) {
+//      I need subList of 15 elements because dictionary contains 15 words from every document,
+//      but this.getTfIdfItems() contains all words.
+        for(TfIdfItem item : this.getTfIdfItems().subList(0, 15)) {
             if(item.getWord().equals(word)) {
                 return item.getValue();
             }
         }
-        return null;
+        return 0.0;
     }
 
 }
