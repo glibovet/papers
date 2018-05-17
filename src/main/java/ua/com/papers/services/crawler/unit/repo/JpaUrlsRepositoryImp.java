@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import ua.com.papers.crawler.core.main.model.PageStatus;
 import ua.com.papers.crawler.core.storage.UrlsRepository;
 import ua.com.papers.crawler.settings.JobId;
 
@@ -24,6 +25,8 @@ import java.util.Iterator;
 @Log
 @Repository
 public class JpaUrlsRepositoryImp implements UrlsRepository {
+
+    private static final String TRANSACTION = "jobsTransaction";
 
     private final JpaUrlsRepository repository;
 
@@ -44,7 +47,7 @@ public class JpaUrlsRepositoryImp implements UrlsRepository {
 
         @Override
         @SneakyThrows(MalformedURLException.class)
-        @Transactional("update")
+        @Transactional(TRANSACTION)
         public synchronized URL next() {
             val current = next;
 
@@ -55,10 +58,10 @@ public class JpaUrlsRepositoryImp implements UrlsRepository {
         @Nullable
         private JobEntity queryNext() {
 
-            val jobs = repository.findFirstByStatusAndJob(JobStatus.PENDING, job.getId(), new PageRequest(0, 1));
+            val jobs = repository.findFirstByStatusAndJob(PageStatus.PENDING, job.getId(), new PageRequest(0, 1));
 
             if (jobs != null && !jobs.isEmpty()) {
-                jobs.get(0).setStatus(JobStatus.PROCESSING);
+                jobs.get(0).setStatus(PageStatus.PROCESSING);
                 repository.saveAndFlush(jobs.get(0));
                 return jobs.get(0);
             }
@@ -74,31 +77,35 @@ public class JpaUrlsRepositoryImp implements UrlsRepository {
     }
 
     @Override
-    @Transactional("store")
-    public void storePending(URL url, JobId job) {
+    @Transactional(TRANSACTION)
+    public void store(URL url, JobId job, PageStatus status) {
+        repository.saveAndFlush(new JobEntity(url.toExternalForm(), new Date(System.currentTimeMillis()), status, job.getId()));
+    }
+
+    @Override
+    @Transactional(TRANSACTION)
+    public void add(URL url, JobId job, PageStatus status) {
         if (!repository.exists(url.toExternalForm())) {
-            repository.saveAndFlush(new JobEntity(url.toExternalForm(), new Date(System.currentTimeMillis()), JobStatus.PENDING, job.getId()));
+            store(url, job, status);
         }
     }
 
     @Override
-    @Transactional("store")
-    public void storePending(Collection<? extends URL> urls, JobId job) {
+    @Transactional(TRANSACTION)
+    public void store(JobId job, PageStatus status) {
+        repository.updateStatusForAll(status, job.getId());
+    }
+
+    @Override
+    @Transactional(TRANSACTION)
+    public void store(Collection<? extends URL> urls, JobId job, PageStatus status) {
         for (val u : urls) {
-            if (!repository.exists(u.toExternalForm())) {
-                repository.saveAndFlush(new JobEntity(u.toExternalForm(), new Date(System.currentTimeMillis()), JobStatus.PENDING, job.getId()));
-            }
+            repository.saveAndFlush(new JobEntity(u.toExternalForm(), new Date(System.currentTimeMillis()), status, job.getId()));
         }
     }
 
     @Override
-    @Transactional("store")
-    public void storeProcessing(URL url, JobId job) {
-        repository.saveAndFlush(new JobEntity(url.toExternalForm(), new Date(System.currentTimeMillis()), JobStatus.PROCESSING, job.getId()));
-    }
-
-    @Override
-    public Iterator<URL> pendingUrlsIterator(JobId job) {
+    public Iterator<URL> urlsIterator(JobId job) {
         return new UrlsIterator(job);
     }
 

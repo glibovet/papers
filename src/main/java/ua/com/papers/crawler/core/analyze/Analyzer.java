@@ -1,6 +1,6 @@
 package ua.com.papers.crawler.core.analyze;
 
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 
 import javax.validation.constraints.NotNull;
 import java.util.Set;
@@ -21,5 +21,14 @@ public interface Analyzer {
      */
     @NotNull
     Set<Result> analyze(@NotNull Page page);
+
+    /**
+     * Analyzes page and returns set of matching results
+     *
+     * @param page page to analyze
+     * @return set of {@linkplain Result}
+     */
+    @NotNull
+    Set<Result> matchingResults(@NotNull Page page);
 
 }

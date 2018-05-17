@@ -3,15 +3,15 @@ package ua.com.papers.services.schedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ua.com.papers.crawler.core.factory.ICrawlerFactory;
-import ua.com.papers.crawler.core.main.ICrawler;
+import ua.com.papers.crawler.core.factory.CrawlerFactory;
+import ua.com.papers.crawler.core.main.Crawler;
+import ua.com.papers.crawler.core.main.CrawlingCallback;
 import ua.com.papers.criteria.impl.UserCriteria;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.pojo.enums.EmailTypes;
 import ua.com.papers.pojo.enums.RolesEnum;
-import ua.com.papers.services.crawler.MainComposer;
 import ua.com.papers.services.mailing.IMailingService;
 import ua.com.papers.services.users.IUserService;
 
@@ -26,22 +26,20 @@ import java.util.Locale;
 public class ScheduleCrawling {
 
     @Autowired
-    private MainComposer composer;
-    @Autowired
     private IMailingService mailingService;
     @Autowired
     private IUserService userService;
 
-    private ICrawler crawler;
+    private Crawler crawler;
 
     @Autowired
-    public ScheduleCrawling(@Qualifier("nbuvFactory") ICrawlerFactory creator) {
+    public ScheduleCrawling(@Qualifier("nbuvFactory") CrawlerFactory creator) {
         this.crawler = creator.create();
     }
 
     public void startCrawling() {
         crawler.start(
-                new ICrawler.Callback() {
+                new CrawlingCallback() {
                     @Override
                     public void onStart() {
                         try {

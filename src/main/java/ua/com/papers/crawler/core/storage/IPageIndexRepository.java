@@ -22,6 +22,7 @@ import java.util.Optional;
  * @see Index
  */
 @Validated
+@Deprecated
 public interface IPageIndexRepository {
 
     /**

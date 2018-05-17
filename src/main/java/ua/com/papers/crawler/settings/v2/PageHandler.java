@@ -1,5 +1,6 @@
 package ua.com.papers.crawler.settings.v2;
 
+import ua.com.papers.crawler.settings.AnalyzeWeight;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
 import ua.com.papers.crawler.settings.v2.analyze.UrlAnalyzer;
 
@@ -20,12 +21,24 @@ public @interface PageHandler {
 
     /**
      * Should return unique id, so that
-     * given handler can be distinguished among
-     * other
+     * given page handler can be distinguished among
+     * other. If supplied value is empty, then default one will
+     * be generated
      */
-    int id();
+    String id() default "";
 
-    int minWeight() default 70;
+    /**
+     * <p>
+     * Species a minimal weight which indicates whether current web-resource
+     * should be accepted to be processed later by crawler
+     * </p>
+     * <p>
+     * Suppose minimal weight to accept a page is 70, then sum of weights of
+     * all matched rules of {@linkplain ContentAnalyzer} should be equal or greater
+     * than 70 in order to be accepted for later processing by crawler
+     * </p>
+     */
+    int minWeight() default AnalyzeWeight.DEFAULT_WEIGHT;
 
     /**
      * Analyze rules to use
