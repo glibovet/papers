@@ -1,15 +1,13 @@
 package ua.com.papers.services.crawler;
 
 import lombok.NonNull;
-import ua.com.papers.crawler.core.analyze.AnalyzerImp;
 import ua.com.papers.crawler.core.analyze.Analyzer;
-import ua.com.papers.crawler.core.analyze.IPageAnalyzer;
+import ua.com.papers.crawler.core.analyze.AnalyzerImp;
 import ua.com.papers.crawler.core.analyze.PageAnalyzer;
+import ua.com.papers.crawler.core.analyze.PageAnalyzerImp;
 import ua.com.papers.crawler.core.factory.annotation.AnnotationCrawlerFactory;
-import ua.com.papers.crawler.core.processor.FormatterFactory;
-import ua.com.papers.crawler.core.processor.annotation.AnnotationFormatterFactoryImp;
-import ua.com.papers.crawler.core.select.IUrlExtractor;
 import ua.com.papers.crawler.core.select.UrlExtractor;
+import ua.com.papers.crawler.core.select.UrlExtractorImp;
 import ua.com.papers.crawler.core.storage.UrlsRepository;
 import ua.com.papers.crawler.settings.JobId;
 import ua.com.papers.crawler.settings.PageSetting;
@@ -36,12 +34,8 @@ public final class AnnotationCrawlerFactoryImp extends AnnotationCrawlerFactory 
         this.urlsRepository = urlsRepository;
     }
 
-    protected FormatterFactory createFormatFactory(@NotNull Settings settings) {
-        return new AnnotationFormatterFactoryImp();
-    }
-
-    protected IUrlExtractor createUrlExtractor(@NotNull Settings settings) {
-        return new UrlExtractor(settings.getPageSettings()
+    protected UrlExtractor createUrlExtractor(@NotNull Settings settings) {
+        return new UrlExtractorImp(settings.getPageSettings()
                 .stream()
                 .collect(Collectors
                         .toMap(PageSetting::getId,
@@ -58,8 +52,8 @@ public final class AnnotationCrawlerFactoryImp extends AnnotationCrawlerFactory 
         return new JpaUrlsRepositoryImp(urlsRepository);
     }
 
-    private IPageAnalyzer createPageAnalyzer(PageSetting setting) {
-        return new PageAnalyzer(setting.getMinWeight(), setting.getId(), setting.getAnalyzeTemplates());
+    private PageAnalyzer createPageAnalyzer(PageSetting setting) {
+        return new PageAnalyzerImp(setting.getMinWeight(), setting.getId(), setting.getAnalyzeTemplates());
     }
 
 }

@@ -35,15 +35,19 @@ public final class PageSettingsProcessor {
                 .collect(Collectors.toList());
     }
 
+    @SneakyThrows(MalformedURLException.class)
     private static PageSetting toPageSettings(Object o) {
         val handler = Preconditions.checkNotNull(o.getClass().getAnnotation(PageHandler.class),
                 "Missing %s annotation for %s", PageHandler.class, o);
+
+        val pageBaseUrl = TextUtils.isEmpty(handler.baseUrl()) ? null : new URL(handler.baseUrl());
 
         return PageSetting.builder()
                 .id(InvokerUtil.newPageId(handler, o))
                 .minWeight(AnalyzeWeight.ofValue(handler.minWeight()))
                 .analyzeTemplates(toAnalyzeTemplates(handler))
-                .selectSettings(toUrlAnalyzeTemplates(handler))
+                .selectSettings(toUrlAnalyzeTemplates(handler, pageBaseUrl))
+                .baseUrl(pageBaseUrl)
                 .build();
     }
 
@@ -52,10 +56,7 @@ public final class PageSettingsProcessor {
                 .collect(Collectors.toList());
     }
 
-    @SneakyThrows(MalformedURLException.class)
-    private static Collection<? extends UrlSelectSetting> toUrlAnalyzeTemplates(PageHandler page) {
-        val pageBaseUrl = TextUtils.isEmpty(page.baseUrl()) ? null : new URL(page.baseUrl());
-
+    private static Collection<? extends UrlSelectSetting> toUrlAnalyzeTemplates(PageHandler page, @Nullable URL pageBaseUrl) {
         return Arrays.stream(page.urlSelectors())
                 .map(analyzer -> PageSettingsProcessor.toUrlAnalyzeTemplates(analyzer, pageBaseUrl))
                 .collect(Collectors.toList());

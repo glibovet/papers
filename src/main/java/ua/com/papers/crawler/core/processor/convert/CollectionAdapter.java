@@ -2,7 +2,8 @@ package ua.com.papers.crawler.core.processor.convert;
 
 import lombok.NonNull;
 import org.jsoup.select.Elements;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
+import ua.com.papers.crawler.settings.PageSetting;
 
 import java.net.URL;
 import java.util.Collection;
@@ -27,8 +28,8 @@ public final class CollectionAdapter<I> implements CollectionConverter<I, Collec
     }
 
     @Override
-    public Collection<I> convert(Elements elements, Page page) {
-        return elements.stream().map(e -> delegate.convert(e, page)).collect(Collectors.toList());
+    public Collection<I> convert(Elements elements, Page page, PageSetting settings) {
+        return elements.stream().map(e -> delegate.convert(e, page, settings)).collect(Collectors.toList());
     }
 
 }

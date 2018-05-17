@@ -2,13 +2,7 @@ package ua.com.papers.services.crawler;
 
 import lombok.val;
 import org.apache.commons.io.FilenameUtils;
-import ua.com.papers.crawler.core.main.ICrawler;
-import ua.com.papers.crawler.core.main.PageIndexer;
-import ua.com.papers.crawler.core.main.bo.Page;
 
-import javax.validation.constraints.NotNull;
-import java.io.IOException;
-import java.net.URL;
 import java.util.regex.Pattern;
 
 public class Tester {
@@ -55,77 +49,6 @@ public class Tester {
 
         //Thread.sleep(30_000);
         // scheduler.stop();
-    }
-
-    private static PageIndexer.Callback indexCall() {
-        return new PageIndexer.Callback() {
-
-            @Override
-            public void onStart() {
-                System.out.println("On start / index");
-            }
-
-            @Override
-            public void onStop() {
-                System.out.println("On stop / index");
-            }
-
-            @Override
-            public void onIndexed(@NotNull Page page) {
-                System.out.println("On indexed " + page.getUrl());
-            }
-
-            @Override
-            public void onUpdated(@NotNull Page page) {
-                System.out.println("On updated " + page.getUrl());
-            }
-
-            @Override
-            public void onLost(@NotNull Page page) {
-                System.out.println("On lost " + page.getUrl());
-            }
-
-            @Override
-            public void onIndexException(@NotNull URL url, @NotNull Throwable th) {
-
-            }
-        };
-    }
-
-    private static ICrawler.Callback crawlCall() throws IOException {
-
-        return new ICrawler.Callback() {
-
-            @Override
-            public void onStart() {
-                System.out.println("On start");
-            }
-
-            @Override
-            public void onUrlEntered(@NotNull URL url) {
-                System.out.println("On url entered " + url);
-            }
-
-            @Override
-            public void onPageRejected(@NotNull Page page) {
-                System.out.println("On page rejected " + page.getUrl());
-            }
-
-            @Override
-            public void onStop() {
-                System.out.println("On stop");
-            }
-
-            @Override
-            public void onCrawlException(@NotNull URL url, @NotNull Throwable th) {
-                System.out.println("On exception " + th);
-            }
-
-            @Override
-            public void onPageAccepted(@NotNull Page page) {
-                System.out.println("Page accepted " + page.getUrl());
-            }
-        };
     }
 
 }

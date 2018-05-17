@@ -7,7 +7,7 @@ import lombok.extern.java.Log;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;
@@ -83,7 +83,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
     }
 
     @BeforePage
-    public void onPrepare(ua.com.papers.crawler.core.main.bo.Page page) throws WrongRestrictionException {
+    public void onPrepare(ua.com.papers.crawler.core.main.model.Page page) throws WrongRestrictionException {
         log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
 
         if (titleToId == null) {
@@ -235,7 +235,7 @@ public final class UranArticleHandler extends BasePublicationHandler {
         publicationService.savePublicationFromRobot(publicationView, new ResultCallback<PublicationEntity>() {
             @Override
             public void onResult(@NotNull PublicationEntity publicationEntity) {
-                val message = String.format("Publication %s was saved %s", publicationEntity.getLink(), publicationEntity);
+                val message = String.format("Publication %s was saved %s", publicationEntity.getLink(), publicationEntity.getFileLink());
 
                 log.log(Level.INFO, message);
                 slackSession.sendMessage(slackChannel, message);

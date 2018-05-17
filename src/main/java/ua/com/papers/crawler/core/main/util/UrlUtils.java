@@ -3,6 +3,7 @@ package ua.com.papers.crawler.core.main.util;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
+import ua.com.papers.pojo.entities.PublicationEntity;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -31,6 +32,20 @@ public final class UrlUtils {
         }
 
         return new ContentType(connection.getContentType());
+    }
+
+    @SneakyThrows
+    @NonNull
+    public static boolean checkContentUpdated(@NonNull URL fileUrl, @NonNull PublicationEntity entity) {
+        val connection = (HttpURLConnection) fileUrl.openConnection();
+
+        connection.setRequestMethod("HEAD");
+
+        if (isRedirect(connection.getResponseCode())) {
+            return checkContentUpdated(new URL(connection.getHeaderField("Location")), entity);
+        }
+
+        return connection.getContentLengthLong() != entity.getContentLength();
     }
 
     private static boolean isRedirect(int statusCode) {

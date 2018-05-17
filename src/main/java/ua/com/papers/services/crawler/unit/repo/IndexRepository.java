@@ -19,6 +19,7 @@ import java.util.Optional;
  * Created by Максим on 2/12/2017.
  */
 @Log
+@Deprecated
 @Repository
 public final class IndexRepository implements IPageIndexRepository {
 

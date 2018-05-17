@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.main.v2;
+package ua.com.papers.crawler.core.main;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

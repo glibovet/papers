@@ -8,7 +8,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import lombok.val;
 import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.settings.v1.Part;
 import ua.com.papers.crawler.settings.v1.PageHandlerV1;
 import ua.com.papers.crawler.settings.v1.PostHandle;

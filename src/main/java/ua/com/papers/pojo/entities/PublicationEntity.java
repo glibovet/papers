@@ -1,6 +1,5 @@
 package ua.com.papers.pojo.entities;
 
-import lombok.ToString;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
 import ua.com.papers.pojo.enums.UploadStatus;
@@ -9,6 +8,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -16,7 +16,6 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "publication")
-@ToString
 public class PublicationEntity implements Serializable {
 
     public PublicationEntity(){
@@ -76,6 +75,10 @@ public class PublicationEntity implements Serializable {
 
     @Column(name = "file_link")
     private String fileLink;
+
+    @Column(name = "content_length")
+    private long contentLength;
+
 
     public String getFileNameOriginal() {
         return fileNameOriginal;
@@ -188,54 +191,39 @@ public class PublicationEntity implements Serializable {
         this.uploadStatus = uploadStatus;
     }
 
+    public long getContentLength() {
+        return contentLength;
+    }
+
+    public void setContentLength(long contentLength) {
+        this.contentLength = contentLength;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (!(o instanceof PublicationEntity)) return false;
         PublicationEntity that = (PublicationEntity) o;
-
-        if (inIndex != that.inIndex) return false;
-        if (literatureParsed != that.literatureParsed) return false;
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        if (title != null ? !title.equals(that.title) : that.title != null) return false;
-        if (annotation != null ? !annotation.equals(that.annotation) : that.annotation != null) return false;
-        if (type != that.type) return false;
-        if (link != null ? !link.equals(that.link) : that.link != null) return false;
-        if (publisher != null ? !publisher.equals(that.publisher) : that.publisher != null) return false;
-        if (uploadStatus != null ? !uploadStatus.equals(that.uploadStatus) : that.uploadStatus != null) return false;
-        return status == that.status;
-
+        return inIndex == that.inIndex &&
+                literatureParsed == that.literatureParsed &&
+                contentLength == that.contentLength &&
+                Objects.equals(id, that.id) &&
+                Objects.equals(title, that.title) &&
+                Objects.equals(annotation, that.annotation) &&
+                type == that.type &&
+                uploadStatus == that.uploadStatus &&
+                Objects.equals(link, that.link) &&
+                Objects.equals(publisher, that.publisher) &&
+                status == that.status &&
+                Objects.equals(authors, that.authors) &&
+                Objects.equals(fileNameOriginal, that.fileNameOriginal) &&
+                Objects.equals(fileLink, that.fileLink);
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (title != null ? title.hashCode() : 0);
-        result = 31 * result + (annotation != null ? annotation.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (link != null ? link.hashCode() : 0);
-        result = 31 * result + (publisher != null ? publisher.hashCode() : 0);
-        result = 31 * result + (inIndex ? 1 : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-        result = 31 * result + (literatureParsed ? 1 : 0);
-        result = 31 * result + (uploadStatus != null ? uploadStatus.hashCode() : 0);
-        return result;
+
+        return Objects.hash(id, title, annotation, type, uploadStatus, link, publisher, inIndex, status, literatureParsed, authors, fileNameOriginal, fileLink, contentLength);
     }
 
-    @Override
-    public String toString() {
-        return "PublicationEntity{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", annotation='" + annotation + '\'' +
-                ", type=" + type +
-                ", link='" + link + '\'' +
-                ", publisher=" + publisher +
-                ", inIndex=" + inIndex +
-                ", status=" + status +
-                ", literatureParsed=" + literatureParsed +
-                ", uploadStatus=" + uploadStatus +
-                '}';
-    }
 }

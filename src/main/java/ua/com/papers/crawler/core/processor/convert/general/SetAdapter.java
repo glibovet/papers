@@ -2,9 +2,10 @@ package ua.com.papers.crawler.core.processor.convert.general;
 
 import lombok.NonNull;
 import org.jsoup.select.Elements;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.core.processor.convert.CollectionConverter;
 import ua.com.papers.crawler.core.processor.convert.ElementConverter;
+import ua.com.papers.crawler.settings.PageSetting;
 
 import java.net.URL;
 import java.util.Collections;
@@ -29,8 +30,8 @@ public final class SetAdapter<I> implements CollectionConverter<I, Set<I>> {
     }
 
     @Override
-    public Set<I> convert(Elements elements, Page page) {
-        return elements.stream().map(e -> delegate.convert(e, page)).collect(Collectors.toSet());
+    public Set<I> convert(Elements elements, Page page, PageSetting settings) {
+        return elements.stream().map(e -> delegate.convert(e, page, settings)).collect(Collectors.toSet());
     }
 
 }

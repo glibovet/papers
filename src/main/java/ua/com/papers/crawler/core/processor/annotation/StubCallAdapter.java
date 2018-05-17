@@ -1,8 +1,9 @@
 package ua.com.papers.crawler.core.processor.annotation;
 
 import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.core.processor.convert.ElementConverter;
+import ua.com.papers.crawler.settings.PageSetting;
 
 public final class StubCallAdapter implements ElementConverter<Page> {
 
@@ -23,7 +24,7 @@ public final class StubCallAdapter implements ElementConverter<Page> {
     }
 
     @Override
-    public Page convert(Element element, Page page) {
+    public Page convert(Element element, Page page, PageSetting settings) {
         return page;
     }
 }

@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.main.vo;
+package ua.com.papers.crawler.core.main.model;
 
 import lombok.NonNull;
 import lombok.Value;

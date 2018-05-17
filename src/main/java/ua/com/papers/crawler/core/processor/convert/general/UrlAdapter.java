@@ -1,18 +1,17 @@
 package ua.com.papers.crawler.core.processor.convert.general;
 
-import lombok.SneakyThrows;
+import lombok.*;
 import lombok.experimental.var;
-import lombok.val;
 import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.core.processor.convert.ElementConverter;
+import ua.com.papers.crawler.settings.PageSetting;
 
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 
 /**
  * Transforms element into {@linkplain URL}
- * Created by Максим on 1/8/2017.
  */
 public final class UrlAdapter implements ElementConverter<URL> {
 
@@ -23,6 +22,10 @@ public final class UrlAdapter implements ElementConverter<URL> {
     public static UrlAdapter getInstance() {
         return Holder.INSTANCE;
     }
+
+    @Getter
+    @Setter
+    private boolean dynamicResolveUrl = true;
 
     private UrlAdapter() {
     }
@@ -35,12 +38,12 @@ public final class UrlAdapter implements ElementConverter<URL> {
     @Override
     @NotNull
     @SneakyThrows
-    public URL convert(@NotNull Element element, @NotNull Page page) {
+    public URL convert(@NotNull Element element, @NotNull Page page, @NotNull PageSetting settings) {
         var urlSpec = element.absUrl("href");
 
         if (urlSpec.isEmpty()) {
             // maybe it was a relative link?
-            val pageUrl = page.getUrl();
+            val pageUrl = extractUrlWithBase(page, settings);
 
             element.setBaseUri(String.format("%s://%s", pageUrl.getProtocol(), pageUrl.getHost()));
             urlSpec = element.absUrl("href");
@@ -52,4 +55,15 @@ public final class UrlAdapter implements ElementConverter<URL> {
         }
         return new URL(urlSpec);
     }
+
+    @NonNull
+    private URL extractUrlWithBase(Page page, PageSetting setting) {
+        if (dynamicResolveUrl) {
+            return page.getUrl();
+        }
+
+        return setting.getBaseUrl().orElseThrow(() -> new IllegalStateException(String.format("No base url was specified for page=%s, " +
+                "page id=%s", page.getUrl(), setting.getId())));
+    }
+
 }

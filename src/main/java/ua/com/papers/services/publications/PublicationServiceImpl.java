@@ -1,11 +1,13 @@
 package ua.com.papers.services.publications;
 
+import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.convertors.Converter;
+import ua.com.papers.crawler.core.main.util.UrlUtils;
 import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.crawler.util.TextUtils;
 import ua.com.papers.criteria.Criteria;
@@ -31,9 +33,12 @@ import ua.com.papers.utils.ResultCallback;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 
 /**
@@ -69,12 +74,15 @@ public class PublicationServiceImpl implements IPublicationService {
 
     private final ExecutorService executorService;
 
-    public PublicationServiceImpl() {
+    @Autowired
+    public PublicationServiceImpl(Handler handler) {
         this.executorService = Executors.newSingleThreadExecutor(r -> {
             val th = new Thread(r, "Publication service upload thread");
             th.setUncaughtExceptionHandler((t, e) -> log.log(Level.WARNING, "uncaught exception", e));
             return th;
         });
+
+        log.addHandler(handler);
     }
 
     @Override
@@ -298,8 +306,10 @@ public class PublicationServiceImpl implements IPublicationService {
         }
     }
 
+    @SneakyThrows(MalformedURLException.class)
     private void doSavePublicationFromRobot(PublicationView publication, ResultCallback<PublicationEntity> callback) {
         Preconditions.checkNotNull(publication);
+        Preconditions.checkArgument(!TextUtils.isEmpty(publication.getFile_link()), "Invalid publication view %s", publication);
         Optional<PublicationEntity> entity = Optional.empty();
         Optional<Exception> exception = Optional.empty();
 
@@ -334,18 +344,17 @@ public class PublicationServiceImpl implements IPublicationService {
 
         } else {
             val entityVal = entity.get();
-            val needUpload = (!entityVal.isInIndex() || entityVal.getUploadStatus() != UploadStatus.UPLOADED)
-                    && (!TextUtils.isEmpty(publication.getFile_link()) || !TextUtils.isEmpty(entityVal.getFileLink()));
 
             //log.log(Level.INFO, String.format("Publication entity %s", entityVal));
 
-            if (needUpload) {
+            if (needUpload(entityVal, new URL(publication.getFile_link()))) {
                 //log.log(Level.INFO, "Insert publication for upload");
                 storageService.uploadPaper(entityVal, new ResultCallback<File>() {
 
                     @Override
                     public void onResult(@NotNull File file) {
                         entityVal.setUploadStatus(UploadStatus.UPLOADED);
+                        entityVal.setContentLength(file.length());
 
                         try {
                             updatePublication(entityVal);
@@ -398,7 +407,6 @@ public class PublicationServiceImpl implements IPublicationService {
         }
 
         criteria.setLink(publication.getLink());
-        criteria.setTitle(publication.getTitle());
         criteria.setOffset(0);
         criteria.setLimit(2);
 
@@ -419,6 +427,10 @@ public class PublicationServiceImpl implements IPublicationService {
         if (callback != null) {
             callback.onException(e);
         }
+    }
+
+    private static boolean needUpload(PublicationEntity entity, URL url) {
+        return entity.getUploadStatus() != UploadStatus.UPLOADED || UrlUtils.checkContentUpdated(url, entity);
     }
 
 }

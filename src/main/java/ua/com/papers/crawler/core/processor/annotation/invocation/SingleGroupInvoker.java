@@ -1,7 +1,8 @@
 package ua.com.papers.crawler.core.processor.annotation.invocation;
 
 import lombok.NonNull;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
+import ua.com.papers.crawler.settings.PageSetting;
 import ua.com.papers.crawler.settings.v2.process.Handles;
 
 import java.util.Collection;
@@ -23,7 +24,7 @@ public final class SingleGroupInvoker implements Invoker {
     }
 
     @Override
-    public void invoke(Page page) {
-        invokers.forEach(i -> i.invoke(page));
+    public void invoke(Page page, PageSetting settings) {
+        invokers.forEach(i -> i.invoke(page, settings));
     }
 }

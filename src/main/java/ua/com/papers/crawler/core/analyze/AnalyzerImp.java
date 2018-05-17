@@ -1,7 +1,7 @@
 package ua.com.papers.crawler.core.analyze;
 
 import lombok.NonNull;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.util.PageUtils;
 
 import javax.validation.constraints.NotNull;
@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
  */
 public final class AnalyzerImp implements Analyzer {
 
-    private final Collection<? extends IPageAnalyzer> analyzers;
+    private final Collection<? extends PageAnalyzer> analyzers;
 
-    public AnalyzerImp(@NonNull Collection<? extends IPageAnalyzer> analyzers) {
+    public AnalyzerImp(@NonNull Collection<? extends PageAnalyzer> analyzers) {
         this.analyzers = Collections.unmodifiableCollection(new ArrayList<>(analyzers));
     }
 
@@ -32,5 +32,10 @@ public final class AnalyzerImp implements Analyzer {
         }
 
         return analyzers.stream().map(entry -> entry.analyze(page)).filter(Result::isMatching).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Result> matchingResults(Page page) {
+        return analyze(page).stream().filter(Result::isMatching).collect(Collectors.toSet());
     }
 }

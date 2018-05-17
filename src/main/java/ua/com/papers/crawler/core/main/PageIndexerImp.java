@@ -6,9 +6,8 @@ import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
 import org.joda.time.DateTimeZone;
 import ua.com.papers.crawler.core.analyze.Analyzer;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.core.processor.FormatterFactory;
-import ua.com.papers.crawler.core.processor.exception.ProcessException;
 import ua.com.papers.crawler.core.storage.IPageIndexRepository;
 import ua.com.papers.crawler.settings.Conditions;
 import ua.com.papers.crawler.settings.SchedulerSetting;
@@ -72,7 +71,7 @@ public class PageIndexerImp implements PageIndexer {
     }
 
     @Override
-    public void index(@NotNull Callback callback, @NotNull Collection<Object> handlers) {
+    public void index(@NotNull IndexingCallback callback, @NotNull Collection<Object> handlers) {
         PageIndexerImp.checkPreConditions(callback, handlers);
         stop();
         // iterator implementation, for example, can be
@@ -101,20 +100,20 @@ public class PageIndexerImp implements PageIndexer {
                         if (indexRes.isEmpty()) {
                             // page doesn't conform analyze
                             // settings anymore
-                            callback.onLost(page);
+                            callback.onNotMatching(page);
                         } else if (PageIndexerImp.hasChanges(page, index)) {
-                            callback.onUpdated(page);
+                            callback.onMatching(page);
                             synchronized (lock) {
                                 indexRes.forEach(result -> {
-                                    try {
-                                        formatManager.formatPage(result.getId(), page);
+                                    /*try {
+                                        formatManager.formatPage(result.getId(), page, );
                                     } catch (ProcessException e) {
                                         e.printStackTrace();
-                                    }
+                                    }*/
                                 });
                             }
                         } else {
-                            callback.onIndexed(page);
+                          //  callback.onIndexed(page);
                         }
 
                         Thread.sleep(setting.getIndexDelay());
@@ -217,7 +216,7 @@ public class PageIndexerImp implements PageIndexer {
         return buffer.toString();
     }
 
-    private static void checkPreConditions(Callback callback, Collection<Object> handlers) {
+    private static void checkPreConditions(IndexingCallback callback, Collection<Object> handlers) {
 
         Preconditions.checkNotNull(callback, "callback == null");
 

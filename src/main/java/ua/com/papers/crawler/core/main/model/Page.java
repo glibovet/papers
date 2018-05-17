@@ -1,4 +1,4 @@
-package ua.com.papers.crawler.core.main.bo;
+package ua.com.papers.crawler.core.main.model;
 
 import lombok.*;
 import lombok.experimental.NonFinal;

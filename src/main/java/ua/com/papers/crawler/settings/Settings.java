@@ -8,11 +8,8 @@ import java.net.URL;
 import java.util.Collection;
 
 /**
- * <p>
- * This class represents crawler settings, which
- * can be used to create a new instance
- * </p>
- * Created by Максим on 11/27/2016.
+ * This class represents crawler settings that
+ * can be used to configure crawler
  */
 @Value
 public final class Settings {

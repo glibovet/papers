@@ -1,8 +1,9 @@
 package ua.com.papers.crawler.core.processor.convert.general;
 
 import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.core.processor.convert.ElementConverter;
+import ua.com.papers.crawler.settings.PageSetting;
 
 import javax.validation.constraints.NotNull;
 
@@ -27,7 +28,7 @@ public final class StringAdapter implements ElementConverter<String> {
     }
 
     @Override
-    public String convert(@NotNull Element element, Page page) {
+    public String convert(@NotNull Element element, Page page, PageSetting settings) {
         return element.text();
     }
 }

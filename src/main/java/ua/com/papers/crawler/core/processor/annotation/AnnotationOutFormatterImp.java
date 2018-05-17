@@ -3,34 +3,30 @@ package ua.com.papers.crawler.core.processor.annotation;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import ua.com.papers.crawler.core.main.bo.Page;
-import ua.com.papers.crawler.core.main.vo.PageID;
+import ua.com.papers.crawler.core.main.model.Page;
+import ua.com.papers.crawler.core.main.model.PageID;
 import ua.com.papers.crawler.core.processor.OutFormatter;
 import ua.com.papers.crawler.core.processor.annotation.invocation.HandlerInvoker;
 import ua.com.papers.crawler.core.processor.annotation.util.InvokerUtil;
-import ua.com.papers.crawler.core.processor.convert.*;
+import ua.com.papers.crawler.core.processor.convert.CollectionAdapter;
+import ua.com.papers.crawler.core.processor.convert.Converter;
 import ua.com.papers.crawler.core.processor.convert.general.*;
 import ua.com.papers.crawler.core.processor.exception.ProcessException;
+import ua.com.papers.crawler.settings.PageSetting;
 import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.util.Preconditions;
-import ua.com.papers.services.crawler.unit.nbuv.NbuvArticleHandler;
 
 import java.util.*;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 @Log
-@Component
 public final class AnnotationOutFormatterImp implements OutFormatter {
 
     private final Context context;
     private final Map<PageID, ? extends Collection<HandlerInvoker>> idToHandlers;
 
-    @Autowired
-    public AnnotationOutFormatterImp(@NonNull @Qualifier("handlers") Collection<?> handlers) {
+    @SuppressWarnings("unchecked")
+    public AnnotationOutFormatterImp(@NonNull Collection<?> handlers) {
         Preconditions.checkArgument(!handlers.isEmpty());
         // register default converters
         this.context = new Context(Arrays.asList(
@@ -58,28 +54,21 @@ public final class AnnotationOutFormatterImp implements OutFormatter {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <R> Optional<? extends Converter<?, R>> getAdapter(Class<? extends R> cl) {
+        return context.getRegisteredAdapters().stream().filter(a -> cl.isAssignableFrom(a.converts()))
+                .map(a -> (Converter<?, R>) a).findFirst();
+    }
+
+    @Override
     public Set<? extends Converter<?, ?>> getRegisteredAdapters() {
         return context.getRegisteredAdapters();
     }
 
     @Override
-    public void formatPage(PageID pageID, Page page) throws ProcessException {
-        val handlers = idToHandlers.get(pageID);
-
-        if (pageID.getId().equals(NbuvArticleHandler.class.getName())) {
-            int i = 0;
-        }
-
-        if (handlers != null && !handlers.isEmpty()) {
-
-            try {
-                handlers.forEach(h -> h.invoke(page));
-            } catch (final Throwable e) {
-                log.log(Level.SEVERE, String.format("Page handler thrown an exception while handling page %s", page.getUrl()));
-                throw new ProcessException(e);
-            }
-        } else {
-            //log.log(Level.INFO, String.format("Not found corresponding handler for the page with id %s", pageID));
+    public void formatPage(PageID pageID, Page page, PageSetting settings) throws ProcessException {
+        synchronized (idToHandlers) {
+            Optional.ofNullable(idToHandlers.get(pageID)).ifPresent(handlers -> handlers.forEach(h -> h.invoke(page, settings)));
         }
     }
 

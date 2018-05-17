@@ -3,7 +3,7 @@ package ua.com.papers.services.crawler.unit.nbuv;
 import lombok.extern.java.Log;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
 import ua.com.papers.crawler.settings.v2.analyze.UrlAnalyzer;

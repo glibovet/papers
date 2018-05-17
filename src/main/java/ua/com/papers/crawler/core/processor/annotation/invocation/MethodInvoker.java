@@ -6,9 +6,10 @@ import lombok.experimental.var;
 import lombok.extern.java.Log;
 import lombok.val;
 import org.jsoup.nodes.Element;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.core.processor.annotation.Context;
 import ua.com.papers.crawler.core.processor.annotation.util.InvokerUtil;
+import ua.com.papers.crawler.settings.PageSetting;
 import ua.com.papers.crawler.settings.v2.process.Binding;
 import ua.com.papers.crawler.settings.v2.process.Handles;
 
@@ -57,18 +58,18 @@ public final class MethodInvoker implements GroupedInvoker {
     }
 
     @Override
-    public void invoke(Page page) {
+    public void invoke(Page page, PageSetting settings) {
         if (methodInfo.getHandles().isPresent()) {
             Arrays.stream(methodInfo.getHandles().get().selectors()).map(s -> page.toDocument().select(s))
                     .flatMap(Collection::stream)
-                    .forEach(e -> invoke(page, e));
+                    .forEach(e -> invoke(page, e, settings));
         } else {
-            invoke(page, page.toDocument().body());
+            invoke(page, page.toDocument().body(), settings);
         }
     }
 
-    private void invoke(@NonNull Page page, @NonNull Element root) {
-        val suppliers = argumentsInfo.stream().map(info -> supplierFactory.newSupplier(info, page, root))
+    private void invoke(@NonNull Page page, @NonNull Element root, @NonNull PageSetting settings) {
+        val suppliers = argumentsInfo.stream().map(info -> supplierFactory.newSupplier(info, page, root, settings))
                 .collect(Collectors.toList());
 
         val invokeArgs = new Object[suppliers.size()];
@@ -117,26 +118,12 @@ public final class MethodInvoker implements GroupedInvoker {
     }
 
     private static boolean canProvideArguments(Collection<? extends ArgsSupplier> suppliers) {
-        for (val supplier : suppliers) {
-            if (canProvideArguments(supplier)) {
-                return true;
-            }
-        }
-        return false;
+        return suppliers.stream().anyMatch(MethodInvoker::canProvideArguments);
     }
 
     private static boolean hasBindingAnnotation(Method method) {
-        val arr = method.getParameterAnnotations();
-
-        for (val row : arr) {
-            for (val cell : row) {
-                if (cell.annotationType().isAssignableFrom(Binding.class)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return Arrays.stream(method.getParameterAnnotations()).flatMap(Arrays::stream)
+                .anyMatch(a -> a.annotationType().isAssignableFrom(Binding.class));
     }
 
 }

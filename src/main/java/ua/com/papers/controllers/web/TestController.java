@@ -20,14 +20,13 @@ import ua.com.papers.pojo.view.PublisherView;
 import ua.com.papers.services.authors.IAuthorService;
 import ua.com.papers.services.crawler.ICrawlerService;
 import ua.com.papers.services.crawler.unit.repo.JobEntity;
-import ua.com.papers.services.crawler.unit.repo.JobStatus;
+import ua.com.papers.crawler.core.main.model.PageStatus;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publisher.IPublisherService;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
-import java.sql.Date;
 import java.util.Arrays;
 
 /**
@@ -58,8 +57,8 @@ public class TestController {
         // .createQuery("").setLockMode().getSingleResult()find()getCriteriaBuilder().createQuery().se
 
         for (int i = 0; i < 10; ++i) {
-            //entityManager.persist(new JobEntity("www.example.com" + i, new Date(System.currentTimeMillis()), JobStatus.PENDING));
-            //jobsRepository.save(new JobEntity("www.example.com" + i, new Date(System.currentTimeMillis()), JobStatus.PENDING));
+            //entityManager.persist(new JobEntity("www.example.com" + i, new Date(System.currentTimeMillis()), PageStatus.PENDING));
+            //jobsRepository.save(new JobEntity("www.example.com" + i, new Date(System.currentTimeMillis()), PageStatus.PENDING));
         }
     }
 
@@ -73,7 +72,7 @@ public class TestController {
 
             val q = entityManager.createQuery("SELECT j FROM JobEntity j WHERE j.status = :status", JobEntity.class);
 
-            q.setParameter("status", JobStatus.PROCESSING)
+            q.setParameter("status", PageStatus.PROCESSING)
                     .setMaxResults(1)
                     .setLockMode(LockModeType.PESSIMISTIC_WRITE);
 
@@ -82,7 +81,7 @@ public class TestController {
 
                 System.out.println(res);
 
-               // res.setStatus(JobStatus.ERROR);
+               // res.setStatus(PageStatus.ERROR);
 
                 entityManager.merge(res);
 
@@ -123,6 +122,8 @@ public class TestController {
                 composer.asHandlers(),
                 PageIndexer.DEFAULT_CALLBACK
         );*/
+
+        crawlerService.startIndexing();
 
         return "redirect:/";
     }

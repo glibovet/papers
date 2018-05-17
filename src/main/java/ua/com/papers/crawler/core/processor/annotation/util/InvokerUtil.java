@@ -2,8 +2,8 @@ package ua.com.papers.crawler.core.processor.annotation.util;
 
 import lombok.NonNull;
 import lombok.val;
-import ua.com.papers.crawler.core.main.bo.Page;
-import ua.com.papers.crawler.core.main.vo.PageID;
+import ua.com.papers.crawler.core.main.model.Page;
+import ua.com.papers.crawler.core.main.model.PageID;
 import ua.com.papers.crawler.core.processor.exception.ProcessException;
 import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;

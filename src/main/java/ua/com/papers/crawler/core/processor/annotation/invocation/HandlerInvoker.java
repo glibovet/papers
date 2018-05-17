@@ -2,9 +2,10 @@ package ua.com.papers.crawler.core.processor.annotation.invocation;
 
 import lombok.NonNull;
 import lombok.val;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.core.processor.annotation.Context;
 import ua.com.papers.crawler.core.processor.annotation.processor.HandlerProcessor;
+import ua.com.papers.crawler.settings.PageSetting;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,8 +32,8 @@ public final class HandlerInvoker implements Invoker {
     }
 
     @Override
-    public void invoke(Page page) {
-        invokers.forEach(i -> i.invoke(page));
+    public void invoke(Page page, PageSetting settings) {
+        invokers.forEach(i -> i.invoke(page, settings));
     }
 
 }

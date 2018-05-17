@@ -3,7 +3,7 @@ package ua.com.papers.crawler.core.processor.annotation.invocation;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.jodah.typetools.TypeResolver;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.core.processor.annotation.util.InvokerUtil;
 import ua.com.papers.crawler.core.processor.convert.ElementConverter;
 import ua.com.papers.crawler.settings.v2.process.Binding;

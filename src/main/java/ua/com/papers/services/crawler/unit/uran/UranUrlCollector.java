@@ -3,7 +3,7 @@ package ua.com.papers.services.crawler.unit.uran;
 import lombok.extern.java.Log;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.settings.v2.PageHandler;
 import ua.com.papers.crawler.settings.v2.analyze.ContentAnalyzer;
 import ua.com.papers.crawler.settings.v2.analyze.UrlAnalyzer;
@@ -12,7 +12,7 @@ import ua.com.papers.crawler.settings.v2.process.Handles;
 import java.util.logging.Level;
 
 /**
- * Collects url to process
+ * Collects url to process from http://journals.uran.ua
  */
 @Log
 @Component

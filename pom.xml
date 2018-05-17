@@ -37,26 +37,26 @@
         <profile>
             <id>local</id>
             <properties>
-                <!-- <jdbc.username>papers</jdbc.username>
+                <!--<jdbc.username>papers</jdbc.username>
                  <jdbc.password>7pzWNDtg7l7k</jdbc.password>
                  <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
                  <jdbc.database.name>papers</jdbc.database.name>
                  <jdbc.database.server>mysql30587-papaers-server.mircloud.host</jdbc.database.server>
                  <jdbc.url>jdbc:mysql://mysql30587-papaers-server.mircloud.host:3306/papers?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;connectionCollation=utf8_general_ci&amp;characterSetResults=UTF-8</jdbc.url>
- -->
+                -->
                 <jdbc.username>root</jdbc.username>
                 <jdbc.password>qwerty</jdbc.password>
                 <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
                 <jdbc.database.name>papers</jdbc.database.name>
                 <jdbc.database.server>localhost</jdbc.database.server>
+                <activation>
+                    <activeByDefault>true</activeByDefault>
+                </activation>
                 <jdbc.url>
                     <![CDATA[jdbc:mysql://${jdbc.database.server}/${jdbc.database.name}?autoReconnect=true&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
                 </jdbc.url>
             </properties>
 
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
         </profile>
         <profile>
             <id>prod</id>

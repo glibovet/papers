@@ -4,8 +4,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.val;
-import ua.com.papers.crawler.core.main.bo.Page;
+import ua.com.papers.crawler.core.main.model.Page;
 import ua.com.papers.crawler.core.processor.annotation.util.InvokerUtil;
+import ua.com.papers.crawler.settings.PageSetting;
 import ua.com.papers.crawler.settings.v2.process.AfterPage;
 import ua.com.papers.crawler.util.Preconditions;
 
@@ -42,7 +43,7 @@ public final class PostLifecycleInvoker implements Invoker {
     }
 
     @Override
-    public void invoke(Page page) {
+    public void invoke(Page page, PageSetting settings) {
         if (isPageRequired) {
             InvokerUtil.invokeWrappingError(method, target, page);
         } else {

@@ -40,7 +40,7 @@
 
     <bean id="crawlerService" class="ua.com.papers.services.crawler.CrawlerService">
         <constructor-arg name="factories">
-            <list value-type="ua.com.papers.crawler.core.factory.ICrawlerFactory">
+            <list value-type="ua.com.papers.crawler.core.factory.CrawlerFactory">
                 <ref bean="nbuvFactory"/>
                 <ref bean="uranFactory"/>
             </list>
@@ -256,14 +256,13 @@
     </bean>
 
     <bean id="crawlJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-        <property name="targetObject" ref="scheduleCrawling"/>
-        <property name="targetMethod" value="startCrawling"/>
+        <property name="targetObject" ref="crawlerService"/>
+        <property name="targetMethod" value="startIndexing"/>
     </bean>
 
     <bean id="crawlCronJob" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail" ref="crawlJobDetail"/>
-        <!-- every five days in the month at 2 a.m. crawler will start working -->
-        <property name="cronExpression" value="0 0 2 1/7 * ?"/>
+        <property name="cronExpression" value="0 0 13 ? * MON,THU"/>
     </bean>
 
     <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
