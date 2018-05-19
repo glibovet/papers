@@ -35,17 +35,14 @@ public class SessionUtils {
 
     public UserEntity getCurrentUser() {
         if (isAuthorized()) {
-            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            return usersRepository.findByEmail(userDetails.getUsername());
+            UserEntity userEntity = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return userEntity;
         } else
             return null;
     }
     public boolean isAuthorized() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken))
-            return true;
-        else
-            return false;
+        return !(authentication instanceof AnonymousAuthenticationToken);
     }
 
     public void authorized() throws AuthRequiredException {

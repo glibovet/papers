@@ -147,13 +147,17 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional(rollbackFor=NoSuchEntityException.class)
-    public UserEntity update(UserEntity user) throws NoSuchEntityException {
-        UserEntity updatedUser = usersRepository.findOne(user.getId());
+    public UserEntity update(UserView userView) throws NoSuchEntityException {
+        UserEntity updatedUser = usersRepository.findOne(userView.getId());
         if (updatedUser == null)
-            throw new NoSuchEntityException(UserEntity.class.getName(),"userId"+user.getId());
-        updatedUser.setName(user.getName());
-        updatedUser.setEmail(user.getEmail());
+            throw new NoSuchEntityException(UserEntity.class.getName(),"userId"+userView.getId());
+        updatedUser.setName(userView.getName());
+        updatedUser.setLastName(userView.getLastName());
+        if(userView.getEmail()!=null) {
+            updatedUser.setEmail(userView.getEmail());
+        }
         //TODO add oll other
+        usersRepository.saveAndFlush(updatedUser);
         return updatedUser;
     }
 
@@ -197,6 +201,10 @@ public class UserServiceImpl implements IUserService {
         if(view.getName() != null)
             entity.setName(view.getName());
         else view.setName(entity.getName());
+
+        if(view.getLastName() != null)
+            entity.setLastName(view.getLastName());
+        else view.setLastName(entity.getLastName());
 
         if(view.getEmail() != null)
             entity.setEmail(view.getEmail());

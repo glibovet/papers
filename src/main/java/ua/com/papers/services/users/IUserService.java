@@ -32,7 +32,7 @@ public interface IUserService {
 
     int create(UserView view) throws EmailExistsException, ServiceErrorException, ValidationException;
 
-    UserEntity update(UserEntity user) throws NoSuchEntityException;
+    UserEntity update(UserView user) throws NoSuchEntityException;
 
     boolean signInUser(UserView view) throws NoSuchEntityException, WrongPasswordException;
 

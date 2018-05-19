@@ -9,7 +9,7 @@
                     <li><a href="/admin/cabinet">Кабінет адміна</a></li>
                 </security:authorize>
                 <security:authorize access="isAuthenticated()">
-                    <li><a href="#">Профіль</a></li>
+                    <li><a href="/user/<security:authentication property="principal.id"/>">Профіль</a></li>
                     <li><a href="#" id="logout">Вийти</a></li>
                 </security:authorize>
                 <security:authorize access="isAnonymous()">

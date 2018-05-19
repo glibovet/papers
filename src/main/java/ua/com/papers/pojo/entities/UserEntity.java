@@ -25,6 +25,9 @@ public class UserEntity {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "last_name")
+    private String lastName;
+
     @Column(name = "state")
     @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean active;
@@ -86,6 +89,14 @@ public class UserEntity {
         this.roleEntity = roleEntity;
     }
 
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -98,6 +109,7 @@ public class UserEntity {
         if (email != null ? !email.equals(that.email) : that.email != null) return false;
         if (password != null ? !password.equals(that.password) : that.password != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (lastName != null ? !lastName.equals(that.lastName) : that.lastName != null) return false;
         return roleEntity != null ? roleEntity.equals(that.roleEntity) : that.roleEntity == null;
 
     }
@@ -108,6 +120,7 @@ public class UserEntity {
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
         result = 31 * result + (active ? 1 : 0);
         result = 31 * result + (roleEntity != null ? roleEntity.hashCode() : 0);
         return result;
@@ -120,6 +133,7 @@ public class UserEntity {
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", name='" + name + '\'' +
+                ", lastName='" + lastName + '\'' +
                 ", active=" + active +
                 ", roleEntity=" + roleEntity +
                 '}';
