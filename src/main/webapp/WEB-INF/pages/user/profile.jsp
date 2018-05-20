@@ -15,12 +15,14 @@
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
             <div class="inner cover">
-                user.id = ${user.name} <br>
-                user.email = ${user.lastName} <br>
+
+                <img src="/users/image/${user.id}" style="width: 20%; height: 20%"/>
+                Name = ${user.name} <br>
+                Last Name = ${user.lastName} <br>
+                Email = ${user.email} <br>
                 <c:set var="currentUserId">
                     <security:authentication property = "principal.id"/>
                 </c:set>
-                currentUserId = ${currentUserId}
                 <c:if test="${user.id == currentUserId}" >
                     <li><a href="/users/edit">Редагувати</a></li>
                 </c:if>

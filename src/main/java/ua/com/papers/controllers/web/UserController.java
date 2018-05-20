@@ -54,7 +54,7 @@ public class UserController {
     public String updateUser(@ModelAttribute("userView") UserView userView,
                              Model model,
                              @RequestParam(value = "photo") MultipartFile photo
-                            ) throws NoSuchEntityException {
+                            ) throws NoSuchEntityException, ValidationException, IOException, ServiceErrorException {
         UserEntity user = sessionUtils.getCurrentUser();
         System.out.println(photo.getOriginalFilename());
         System.out.println(photo.getSize());
@@ -62,20 +62,16 @@ public class UserController {
             userView.setId(user.getId());
             System.out.println(userView);
             user = userService.update(userView);
-            model.addAttribute("user", user);
-            model.addAttribute("photo", photo);
-            try {
-                storageService.uploadProfileImage(user, photo);
-            } catch (ServiceErrorException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ValidationException e) {
-                e.printStackTrace();
-            }
-            //return "redirect:/users/"+user.getId();
-            return "user/profile";
+            storageService.uploadProfileImage(user, photo);
+            return "redirect:/users/"+user.getId();
         }
         return "/";
+    }
+
+    @RequestMapping(value = "/image/{id}")
+    @ResponseBody
+    public byte[] getProfileImage(@PathVariable(value = "id") int userId) throws IOException, NoSuchEntityException {
+        System.out.println("id "+userId);
+        return storageService.getProfileImage(userId);
     }
 }

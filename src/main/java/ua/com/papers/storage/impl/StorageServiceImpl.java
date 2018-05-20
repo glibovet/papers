@@ -192,6 +192,13 @@ public class StorageServiceImpl implements IStorageService {
     }
 
     @Override
+    public byte[] getProfileImage (int userId) throws IOException, NoSuchEntityException {
+        UserEntity user = userService.getUserById(userId);
+        final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +'/' + userId + '/'+user.getPhoto());
+        return Files.readAllBytes(serverFile.toPath());
+    }
+
+    @Override
     public byte[] getPaperAsByteArray(Integer paperId) throws NoSuchEntityException, ServiceErrorException, ForbiddenException {
         PublicationEntity entity = publicationService.getPublicationById(paperId);
         return getPaperAsByteArray(entity);
