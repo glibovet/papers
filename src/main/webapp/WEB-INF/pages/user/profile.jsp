@@ -17,14 +17,22 @@
             <div class="inner cover">
 
                 <img src="/users/image/${user.id}" style="width: 20%; height: 20%"/>
-                Name = ${user.name} <br>
-                Last Name = ${user.lastName} <br>
-                Email = ${user.email} <br>
+                <br>
+                Ім'я: ${user.name} <br>
+                Прізвище: ${user.lastName} <br>
+                Електронна адреса: ${user.email} <br>
                 <c:set var="currentUserId">
                     <security:authentication property = "principal.id"/>
                 </c:set>
+                Я
+                <c:if test="${user.roleEntity.name == 'student'}" >
+                    студент
+                </c:if>
+                <c:if test="${user.roleEntity.name == 'scientist'}" >
+                    науковець
+                </c:if>
                 <c:if test="${user.id == currentUserId}" >
-                    <li><a href="/users/edit">Редагувати</a></li>
+                    <li><a href="/users/edit">Редагувати інформацію</a></li>
                 </c:if>
             </div>
         </div>

@@ -56,8 +56,6 @@ public class UserController {
                              @RequestParam(value = "photo") MultipartFile photo
                             ) throws NoSuchEntityException, ValidationException, IOException, ServiceErrorException {
         UserEntity user = sessionUtils.getCurrentUser();
-        System.out.println(photo.getOriginalFilename());
-        System.out.println(photo.getSize());
         if (user != null) {
             userView.setId(user.getId());
             System.out.println(userView);
@@ -71,7 +69,6 @@ public class UserController {
     @RequestMapping(value = "/image/{id}")
     @ResponseBody
     public byte[] getProfileImage(@PathVariable(value = "id") int userId) throws IOException, NoSuchEntityException {
-        System.out.println("id "+userId);
         return storageService.getProfileImage(userId);
     }
 }

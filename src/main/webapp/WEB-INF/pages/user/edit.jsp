@@ -16,14 +16,24 @@
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
             <div class="inner cover">
-                user.id = ${user.id} <br>
-                user.email = ${user.email} <br>
                 <spring:form method="post"  modelAttribute="userView" action="/users/update?${_csrf.parameterName}=${_csrf.token}"
                              enctype="multipart/form-data">
                     <input type="file" name="photo" accept="image/*"/>
-                    Name: <spring:input class="form-control" path="name" value="${user.name}"/> <br/>
-                    Last Name: <spring:input class="form-control" path="lastName" value="${user.lastName}"/> <br/>
-                    <spring:button class="btn btn-lg btn-primary btn-block">Update</spring:button>
+                    Ім'я: <spring:input class="form-control" path="name" value="${user.name}"/> <br/>
+                    Прізвище: <spring:input class="form-control" path="lastName" value="${user.lastName}"/> <br/>
+                    Електронна адреса: <spring:input class="form-control" path="email" value="${user.email}"/> <br/>
+                    Я
+                    <spring:select class="form-control" path="role">
+                        <c:if test="${user.roleEntity.name == 'student'}" >
+                            <spring:option selected="true" value="student">студент</spring:option>
+                            <spring:option value="scientist">науковець</spring:option>
+                        </c:if>
+                        <c:if test="${user.roleEntity.name == 'scientist'}" >
+                            <spring:option value="student">студент</spring:option>
+                            <spring:option selected="true" value="scientist">науковець</spring:option>
+                        </c:if>
+                    </spring:select> <br/>
+                    <spring:button class="btn btn-lg btn-primary btn-block">Зберегти</spring:button>
 
                 </spring:form>
             </div>

@@ -68,5 +68,9 @@ ALTER TABLE `papers`.`users`
 ALTER TABLE `papers`.`users`
   ADD `photo` VARCHAR(500);
 
+INSERT INTO `papers`.`role` (`name`) VALUES ('student');
+INSERT INTO `papers`.`role` (`name`) VALUES ('scientist');
+
+
 
 

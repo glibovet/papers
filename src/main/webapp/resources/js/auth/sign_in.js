@@ -9,7 +9,7 @@
             Ajax.post({
                 url: '/api/users/logout',
                 success: function(){
-                    location.reload(true);
+                    location.replace("/index");
                 }
             })
         });

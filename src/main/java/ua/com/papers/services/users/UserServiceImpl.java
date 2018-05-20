@@ -153,7 +153,8 @@ public class UserServiceImpl implements IUserService {
             throw new NoSuchEntityException(UserEntity.class.getName(),"userId"+userView.getId());
         updatedUser.setName(userView.getName());
         updatedUser.setLastName(userView.getLastName());
-        if(userView.getEmail()!=null) {
+        updatedUser.setRoleEntity(rolesRepository.findByName(userView.getRole()));
+        if(userView.getEmail() != null) {
             updatedUser.setEmail(userView.getEmail());
         }
         //TODO add oll other

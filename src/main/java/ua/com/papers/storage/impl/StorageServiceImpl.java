@@ -178,7 +178,7 @@ public class StorageServiceImpl implements IStorageService {
     @Override
     @Transactional
     public boolean uploadProfileImage(UserEntity user, MultipartFile file) throws IOException, ServiceErrorException {
-        if(file == null) return true;
+        if(file.isEmpty()) return true;
         File imageContainer = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER + '/' + user.getId());
         if(!imageContainer.exists()) {
             imageContainer.mkdirs();
