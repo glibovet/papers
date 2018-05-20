@@ -1,5 +1,7 @@
 package ua.com.papers.controllers.web;
 
+import com.google.common.io.BaseEncoding;
+import org.elasticsearch.common.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,7 +11,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ua.com.papers.pojo.dto.search.PublicationDTO;
 import ua.com.papers.services.elastic.IElasticSearch;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
+
+import static javax.xml.bind.DatatypeConverter.parseBase64Binary;
+import static javax.xml.bind.DatatypeConverter.printBase64Binary;
 
 /**
  * Created by mogo on 4/17/17.

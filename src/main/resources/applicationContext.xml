@@ -280,4 +280,9 @@
             </list>
         </property>
     </bean>
+
+    <bean id="RedisClient" class="com.lambdaworks.redis.support.RedisClientFactoryBean">
+        <property name="uri" value="redis://127.0.0.1:6379"/>
+    </bean>
+
 </beans>

@@ -50,7 +50,6 @@ public class CosineSimilarityServiceImpl implements ICosineSimilarityService {
         for(int i = 0; i < documents.size(); i++) {
             for(int j = i+1; j< documents.size(); j++) {
                 PublicationsCosineSimilarityEntity entity = this.prepareEntity(documents.get(i), documents.get(j), dictionary);
-                System.out.println("CS: " + entity.getPublication1().getId() + " " + entity.getPublication2().getId() + " = " + entity.getValue());
                 if(!Double.isNaN(entity.getValue()) && entity.getValue() > 0.0) {
                     // save into db
                     publicationsCosineSimilarityService.save(entity);

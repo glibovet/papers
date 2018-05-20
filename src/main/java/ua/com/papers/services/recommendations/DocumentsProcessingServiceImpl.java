@@ -48,7 +48,7 @@ public class DocumentsProcessingServiceImpl implements IDocumentsProcessingServi
                 PDFTextStripper pdfStripper = new PDFTextStripper();
                 if (publication != null) {
                     String text = pdfStripper.getText(pddDocument);
-                    List<String> words = this.textService.breakTextIntoUniGramsAndBiGrams(text);
+                    List<String> words = this.textService.breakTextIntoTokens(text);
                     list.add(new Document(publication, text, words));
                     pddDocument.close();
                 }

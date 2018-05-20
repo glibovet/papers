@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ITextService {
     List<String> breakTextIntoUniGramsAndBiGrams(String text);
+    List<String> breakTextIntoTokens(String text);
 }

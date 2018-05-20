@@ -76,4 +76,23 @@ public class TextServiceImpl implements ITextService{
         return words;
     }
 
+    /**
+     *
+     * @param text
+     * @return List<String>
+     */
+    public List<String> breakTextIntoTokens(String text) {
+        // LinkedHashSet
+        List<String> words = new ArrayList<String>();
+        StringTokenizer st = new StringTokenizer(text);
+        while (st.hasMoreTokens()) {
+            String word = this.getStemmed(this.normalizeString(st.nextToken()));
+            if (word.length() > 2 && !this.stopWordsDictionaryService.wordExistsInDictionary(word)) {
+                words.add(word);
+            }
+        }
+
+        return words;
+    }
+
 }
