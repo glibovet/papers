@@ -162,6 +162,13 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Transactional(rollbackFor=NoSuchEntityException.class)
+    public UserEntity update(UserEntity user) {
+        usersRepository.saveAndFlush(user);
+        return user;
+    }
+
+    @Override
     @Transactional
     public boolean signInUser(UserView view) throws NoSuchEntityException, WrongPasswordException {
         UserEntity entity = getByEmail(view.getEmail());

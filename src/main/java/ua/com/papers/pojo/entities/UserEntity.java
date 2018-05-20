@@ -28,6 +28,9 @@ public class UserEntity {
     @Column(name = "last_name")
     private String lastName;
 
+    @Column(name = "photo")
+    private String photo;
+
     @Column(name = "state")
     @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean active;
@@ -97,6 +100,14 @@ public class UserEntity {
         this.lastName = lastName;
     }
 
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -136,6 +147,7 @@ public class UserEntity {
                 ", lastName='" + lastName + '\'' +
                 ", active=" + active +
                 ", roleEntity=" + roleEntity +
+                ", photo=" + photo +
                 '}';
     }
 }

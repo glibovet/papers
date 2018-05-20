@@ -65,5 +65,8 @@ CREATE TABLE `papers`.`company` (
 ALTER TABLE `papers`.`users`
   ADD `last_name` VARCHAR(45);
 
+ALTER TABLE `papers`.`users`
+  ADD `photo` VARCHAR(500);
+
 
 

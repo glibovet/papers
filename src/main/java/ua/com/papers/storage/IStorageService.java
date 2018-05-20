@@ -7,6 +7,7 @@ import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.PublicationEntity;
+import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.utils.ResultCallback;
 
 import javax.servlet.http.HttpServletResponse;
@@ -27,6 +28,7 @@ public interface IStorageService {
 
     boolean uploadPaper(int id, String url) throws NoSuchEntityException, StorageException;
     boolean uploadPaper(int id, MultipartFile file) throws NoSuchEntityException, ServiceErrorException, IOException, ValidationException;
+    boolean uploadProfileImage(UserEntity user, MultipartFile file) throws NoSuchEntityException, ServiceErrorException, IOException, ValidationException;
     byte[] getPaperAsByteArray(Integer paperId) throws NoSuchEntityException, ServiceErrorException, ForbiddenException;
     byte[] getPaperAsByteArray(PublicationEntity entity) throws NoSuchEntityException, ServiceErrorException, ForbiddenException;
 

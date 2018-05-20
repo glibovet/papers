@@ -20,7 +20,7 @@
                 user.email = ${user.email} <br>
                 <spring:form method="post"  modelAttribute="userView" action="/users/update?${_csrf.parameterName}=${_csrf.token}"
                              enctype="multipart/form-data">
-                    <%--<input type="file" name="photo" accept="image/*"/>--%>
+                    <input type="file" name="photo" accept="image/*"/>
                     Name: <spring:input class="form-control" path="name" value="${user.name}"/> <br/>
                     Last Name: <spring:input class="form-control" path="lastName" value="${user.lastName}"/> <br/>
                     <spring:button class="btn btn-lg btn-primary btn-block">Update</spring:button>

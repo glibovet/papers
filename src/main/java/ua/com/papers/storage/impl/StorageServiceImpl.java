@@ -17,8 +17,10 @@ import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.PublicationEntity;
+import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publications.IPublicationValidateService;
+import ua.com.papers.services.users.IUserService;
 import ua.com.papers.storage.IStorage;
 import ua.com.papers.storage.IStorageService;
 import ua.com.papers.utils.ResultCallback;
@@ -41,6 +43,8 @@ public class StorageServiceImpl implements IStorageService {
 
     @Autowired
     private IPublicationService publicationService;
+    @Autowired
+    private IUserService userService;
     @Autowired
     private IStorage storage;
     @Autowired
@@ -172,6 +176,22 @@ public class StorageServiceImpl implements IStorageService {
     }
 
     @Override
+    @Transactional
+    public boolean uploadProfileImage(UserEntity user, MultipartFile file) throws IOException, ServiceErrorException {
+        if(file == null) return true;
+        File imageContainer = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER + '/' + user.getId());
+        if(!imageContainer.exists()) {
+            imageContainer.mkdirs();
+        }
+        String fileName = user.getId() + "." + FilenameUtils.getExtension(file.getOriginalFilename());
+        final File serverFile = new File(imageContainer.getAbsolutePath() + '/' + fileName);
+        copyFile(file, serverFile);
+        user.setPhoto(fileName);
+        userService.update(user);
+        return true;
+    }
+
+    @Override
     public byte[] getPaperAsByteArray(Integer paperId) throws NoSuchEntityException, ServiceErrorException, ForbiddenException {
         PublicationEntity entity = publicationService.getPublicationById(paperId);
         return getPaperAsByteArray(entity);
@@ -286,6 +306,7 @@ public class StorageServiceImpl implements IStorageService {
     private final String ROOT_DIR = System.getProperty("catalina.home") + "/papers";
 
     private final String PUBLICATIONS_FOLDER = "/publications";
+    private final String PROFILE_IMAGES_FOLDER = "/profiles";
 
     @Value("${remote_storage.use}")
     private boolean useRemote;

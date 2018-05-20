@@ -15,8 +15,8 @@
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
             <div class="inner cover">
-                user.id = ${user.id} <br>
-                user.email = ${user.email} <br>
+                user.id = ${user.name} <br>
+                user.email = ${user.lastName} <br>
                 <c:set var="currentUserId">
                     <security:authentication property = "principal.id"/>
                 </c:set>

@@ -7,10 +7,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
+import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.pojo.view.UserView;
 import ua.com.papers.services.users.IUserService;
 import ua.com.papers.services.utils.SessionUtils;
+import ua.com.papers.storage.IStorageService;
+
+import java.io.IOException;
 
 @Controller
 @RequestMapping(value = "/users")
@@ -20,6 +25,8 @@ public class UserController {
     private IUserService userService;
     @Autowired
     private SessionUtils sessionUtils;
+    @Autowired
+    private IStorageService storageService;
 
     @RequestMapping(value = {"/{id}"}, method = RequestMethod.GET)
     public ModelAndView profile(@PathVariable int id, ModelAndView modelAndView){
@@ -45,17 +52,29 @@ public class UserController {
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     public String updateUser(@ModelAttribute("userView") UserView userView,
-                             Model model
-//                             @RequestParam(value = "photo") MultipartFile photo
+                             Model model,
+                             @RequestParam(value = "photo") MultipartFile photo
                             ) throws NoSuchEntityException {
         UserEntity user = sessionUtils.getCurrentUser();
-//        System.out.println(photo);
+        System.out.println(photo.getOriginalFilename());
+        System.out.println(photo.getSize());
         if (user != null) {
             userView.setId(user.getId());
             System.out.println(userView);
             user = userService.update(userView);
             model.addAttribute("user", user);
-            return "redirect:/users/"+user.getId();
+            model.addAttribute("photo", photo);
+            try {
+                storageService.uploadProfileImage(user, photo);
+            } catch (ServiceErrorException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ValidationException e) {
+                e.printStackTrace();
+            }
+            //return "redirect:/users/"+user.getId();
+            return "user/profile";
         }
         return "/";
     }
