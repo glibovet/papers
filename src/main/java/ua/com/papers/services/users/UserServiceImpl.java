@@ -171,6 +171,15 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
+    public List<UserEntity> findByNames(String name) {
+        List<UserEntity> users = usersRepository.findByNames(name);
+        System.out.println("users size " + users.size());
+        System.out.println("users "+users);
+        return users;
+    }
+
+    @Override
+    @Transactional
     public boolean signInUser(UserView view) throws NoSuchEntityException, WrongPasswordException {
         UserEntity entity = getByEmail(view.getEmail());
         if(!entity.getPassword().equals(view.getPassword()))

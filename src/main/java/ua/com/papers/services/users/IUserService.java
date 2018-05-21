@@ -37,6 +37,8 @@ public interface IUserService {
 
     UserEntity update(UserEntity user);
 
+    List<UserEntity> findByNames(String name);
+
     boolean signInUser(UserView view) throws NoSuchEntityException, WrongPasswordException;
 
     boolean logoutUser(HttpServletRequest request, HttpServletResponse response);

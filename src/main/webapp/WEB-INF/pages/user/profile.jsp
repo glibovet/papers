@@ -33,6 +33,7 @@
                 </c:if>
                 <c:if test="${user.id == currentUserId}" >
                     <li><a href="/users/edit">Редагувати інформацію</a></li>
+                    <li><a href="/users/contacts">Контакти</a></li>
                 </c:if>
             </div>
         </div>

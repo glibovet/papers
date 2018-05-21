@@ -3,6 +3,7 @@ package ua.com.papers.pojo.entities;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.Set;
 
 /**
  * Created by Andrii on 18.08.2016.
@@ -38,6 +39,12 @@ public class UserEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity roleEntity;
+
+    @OneToMany(mappedBy="userFrom", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<ContactEntity> sentContactRequests;
+
+    @OneToMany(mappedBy="userTo", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<ContactEntity> receivedContactRequests;
 
     @PrePersist
     protected void onCreate() {
@@ -106,6 +113,22 @@ public class UserEntity {
 
     public void setPhoto(String photo) {
         this.photo = photo;
+    }
+
+    public Set<ContactEntity> getSentContactRequests() {
+        return sentContactRequests;
+    }
+
+    public void setSentContactRequests(Set<ContactEntity> sentContactRequests) {
+        this.sentContactRequests = sentContactRequests;
+    }
+
+    public Set<ContactEntity> getReceivedContactRequests() {
+        return receivedContactRequests;
+    }
+
+    public void setReceivedContactRequests(Set<ContactEntity> receivedContactRequests) {
+        this.receivedContactRequests = receivedContactRequests;
     }
 
     @Override

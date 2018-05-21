@@ -71,6 +71,27 @@ ALTER TABLE `papers`.`users`
 INSERT INTO `papers`.`role` (`name`) VALUES ('student');
 INSERT INTO `papers`.`role` (`name`) VALUES ('scientist');
 
+CREATE TABLE `papers`.`contacts` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_from` INT(11) NOT NULL,
+  `user_to` INT(11) NOT NULL,
+  `isAccepted` TINYINT(1) NOT NULL,
+  `message` VARCHAR(500) NULL,
+  `attachment` VARCHAR(500) NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_from_user_to_user_idx` (`user_from` ASC),
+  INDEX `fk_to_user_to_user_idx` (`user_to` ASC),
+  CONSTRAINT `fk_from_user_to_user`
+  FOREIGN KEY (`user_from`)
+  REFERENCES `papers`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_to_user_to_user`
+  FOREIGN KEY (`user_to`)
+  REFERENCES `papers`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
 
 
 
