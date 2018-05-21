@@ -25,7 +25,6 @@ public interface UsersRepository extends JpaRepository<UserEntity, Integer> {
     List<UserEntity> findAll(Sort sort);
 
     Page<UserEntity> findAll(Pageable pageable);
-
-    @Query("Select u from UserEntity u where u.name = :name or u.lastName = :name")
-    List<UserEntity> findByNames(@Param("name")String name);
+    
+    List<UserEntity> findByNameIgnoreCaseContainingAndLastNameIgnoreCaseContaining(String name, String lastName);
 }

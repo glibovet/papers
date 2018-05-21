@@ -23,6 +23,7 @@ import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.RolesRepository;
 import ua.com.papers.persistence.dao.repositories.UsersRepository;
+import ua.com.papers.pojo.entities.ContactEntity;
 import ua.com.papers.pojo.entities.PermissionEntity;
 import ua.com.papers.pojo.entities.RoleEntity;
 import ua.com.papers.pojo.entities.UserEntity;
@@ -35,10 +36,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Andrii on 18.08.2016.
@@ -171,8 +169,8 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
-    public List<UserEntity> findByNames(String name) {
-        List<UserEntity> users = usersRepository.findByNames(name);
+    public List<UserEntity> findByNames(String name, String lastName) {
+        List<UserEntity> users = usersRepository.findByNameIgnoreCaseContainingAndLastNameIgnoreCaseContaining(name, lastName);
         System.out.println("users size " + users.size());
         System.out.println("users "+users);
         return users;
@@ -241,5 +239,24 @@ public class UserServiceImpl implements IUserService {
         }else if (entity.getRoleEntity()!=null){
             view.setRole(entity.getRoleEntity().getName());
         }
+    }
+
+    @Override
+    public Set<UserEntity> getAcceptedContacts (UserEntity user){
+        Set<UserEntity> result = new HashSet<>();
+        Set<ContactEntity> sentContactRequests = user.getSentContactRequests();
+        for(ContactEntity c:sentContactRequests){
+            if(c.isAccepted()){
+                result.add(c.getUserTo());
+            }
+        }
+        Set<ContactEntity> receivedContactRequests = user.getReceivedContactRequests();
+        for(ContactEntity c:receivedContactRequests){
+            if(c.isAccepted()){
+                result.add(c.getUserFrom());
+            }
+        }
+        System.out.println(result);
+        return result;
     }
 }

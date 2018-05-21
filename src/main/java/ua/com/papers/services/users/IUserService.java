@@ -37,9 +37,11 @@ public interface IUserService {
 
     UserEntity update(UserEntity user);
 
-    List<UserEntity> findByNames(String name);
+    List<UserEntity> findByNames(String name, String lastName);
 
     boolean signInUser(UserView view) throws NoSuchEntityException, WrongPasswordException;
 
     boolean logoutUser(HttpServletRequest request, HttpServletResponse response);
+
+    Set<UserEntity> getAcceptedContacts (UserEntity user);
 }

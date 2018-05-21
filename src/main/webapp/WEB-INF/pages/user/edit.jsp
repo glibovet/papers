@@ -5,7 +5,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Профіль</title>
+    <title>Редагувати інформацію</title>
     <jsp:include page="../common/include_resources.jsp" />
 </head>
 
