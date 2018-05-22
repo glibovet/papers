@@ -101,11 +101,12 @@ public class ContactEntity {
     @Override
     public String toString() {
         return "ContactEntity{" +
+                "id=" + id +
+                ", isAccepted=" + isAccepted +
+                ", attachment='" + attachment + '\'' +
+                ", message='" + message + '\'' +
                 ", userFrom=" + userFrom +
                 ", userTo=" + userTo +
-                ", message='" + message + '\'' +
-                ", attachment='" + attachment + '\'' +
-                ", isAccepted=" + isAccepted +
                 '}';
     }
 }

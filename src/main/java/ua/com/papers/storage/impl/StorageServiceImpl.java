@@ -16,6 +16,7 @@ import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.ContactEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.services.publications.IPublicationService;
@@ -192,6 +193,22 @@ public class StorageServiceImpl implements IStorageService {
     }
 
     @Override
+    @Transactional
+    public boolean uploadAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException {
+        if(file.isEmpty()) return true;
+        File fileContainer = new File(ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER + '/' + contact.getId());
+        if(!fileContainer.exists()) {
+            fileContainer.mkdirs();
+        }
+        String fileName = contact.getId() + "." + FilenameUtils.getExtension(file.getOriginalFilename());
+        final File serverFile = new File(fileContainer.getAbsolutePath() + '/' + fileName);
+        copyFile(file, serverFile);
+        contact.setAttachment(fileName);
+        userService.update(contact);
+        return true;
+    }
+
+    @Override
     public byte[] getProfileImage (int userId) throws IOException, NoSuchEntityException {
         UserEntity user = userService.getUserById(userId);
         final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +'/' + userId + '/'+user.getPhoto());
@@ -314,6 +331,7 @@ public class StorageServiceImpl implements IStorageService {
 
     private final String PUBLICATIONS_FOLDER = "/publications";
     private final String PROFILE_IMAGES_FOLDER = "/profiles";
+    private final String CONTACT_REQUESTS_ATTACHMENTS_FOLDER = "/contact_requests";
 
     @Value("${remote_storage.use}")
     private boolean useRemote;

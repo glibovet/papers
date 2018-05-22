@@ -3,6 +3,7 @@ package ua.com.papers.pojo.entities;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -40,10 +41,10 @@ public class UserEntity {
     @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity roleEntity;
 
-    @OneToMany(mappedBy="userFrom", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy="userFrom", fetch=FetchType.EAGER)
     private Set<ContactEntity> sentContactRequests;
 
-    @OneToMany(mappedBy="userTo", fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy="userTo", fetch=FetchType.EAGER)
     private Set<ContactEntity> receivedContactRequests;
 
     @PrePersist
@@ -123,12 +124,14 @@ public class UserEntity {
         this.sentContactRequests = sentContactRequests;
     }
 
-    public Set<ContactEntity> getReceivedContactRequests() {
-        return receivedContactRequests;
+    public Set<ContactEntity> getAllContactRequests() {
+        Set<ContactEntity> all = new HashSet<>(sentContactRequests);
+        all.addAll(receivedContactRequests);
+        return all;
     }
 
-    public void setReceivedContactRequests(Set<ContactEntity> receivedContactRequests) {
-        this.receivedContactRequests = receivedContactRequests;
+    public Set<ContactEntity> getReceivedContactRequests() {
+        return receivedContactRequests;
     }
 
     @Override

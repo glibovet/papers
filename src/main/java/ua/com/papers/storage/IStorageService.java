@@ -6,6 +6,7 @@ import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.ContactEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.utils.ResultCallback;
@@ -36,4 +37,6 @@ public interface IStorageService {
     void getPaper(int id, String token, HttpServletResponse response) throws NoSuchEntityException, ForbiddenException, ServiceErrorException;
 
     boolean paperHasFile(int id) throws NoSuchEntityException, ForbiddenException, ServiceErrorException;
+
+    boolean uploadAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException;
 }

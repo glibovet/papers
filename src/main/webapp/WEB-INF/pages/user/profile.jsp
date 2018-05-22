@@ -35,6 +35,17 @@
                     <li><a href="/users/edit">Редагувати інформацію</a></li>
                     <li><a href="/users/contacts">Контакти</a></li>
                 </c:if>
+                <c:if test="${contact != null}" >
+                    <c:if test="${contact.accepted}" >
+                        <li><a href="/users/delete-contact/${user.id}">Видалити контакт</a></li>
+                    </c:if>
+                    <c:if test="${!contact.accepted}" >
+                        <li><a href="/users/delete-contact/${user.id}">Відмінити запрошення</a></li>
+                    </c:if>
+                </c:if>
+                <c:if test="${user.id != currentUserId && contact == null}">
+                    <li><a href="/users/add-contact/${user.id}">Встановити контакт</a></li>
+                </c:if>
             </div>
         </div>
     </div>

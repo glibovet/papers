@@ -3,6 +3,7 @@ package ua.com.papers.services.users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.method.P;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +15,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.security.web.authentication.rememberme.AbstractRememberMeServices;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.convertors.Converter;
 import ua.com.papers.criteria.impl.UserCriteria;
 import ua.com.papers.exceptions.bad_request.WrongPasswordException;
@@ -21,6 +23,7 @@ import ua.com.papers.exceptions.conflict.EmailExistsException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.criteria.ICriteriaRepository;
+import ua.com.papers.persistence.dao.repositories.ContactsRepository;
 import ua.com.papers.persistence.dao.repositories.RolesRepository;
 import ua.com.papers.persistence.dao.repositories.UsersRepository;
 import ua.com.papers.pojo.entities.ContactEntity;
@@ -31,11 +34,13 @@ import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.view.UserView;
 import ua.com.papers.services.utils.SessionUtils;
+import ua.com.papers.storage.IStorageService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -61,6 +66,12 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private ICriteriaRepository criteriaRepository;
+
+    @Autowired
+    private ContactsRepository contactsRepository;
+
+    @Autowired
+    private IStorageService storageService;
 
     @Override
     @Transactional
@@ -258,5 +269,53 @@ public class UserServiceImpl implements IUserService {
         }
         System.out.println(result);
         return result;
+    }
+
+    @Override
+    public boolean isConnected (int firstId, int secondId) throws NoSuchEntityException {
+        UserEntity first = getUserById(firstId);
+        UserEntity second = getUserById(secondId);
+        Set<UserEntity> acceptedContacts = getAcceptedContacts(first);
+        for(UserEntity userEntity: acceptedContacts){
+            if(userEntity.getId() == second.getId()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public ContactEntity createContactRequest (UserEntity userFrom, UserEntity userTo, String message, MultipartFile attachment) throws IOException, ServiceErrorException {
+        ContactEntity contactEntity = new ContactEntity();
+        contactEntity.setUserFrom(userFrom);
+        contactEntity.setUserTo(userTo);
+        contactEntity.setAccepted(false);
+        contactEntity.setMessage(message);
+        contactEntity = contactsRepository.saveAndFlush(contactEntity);
+        if(!attachment.isEmpty()){
+            storageService.uploadAttachment(contactEntity, attachment);
+        }
+        return contactEntity;
+    }
+
+    @Override
+    @Transactional(rollbackFor=NoSuchEntityException.class)
+    public ContactEntity update(ContactEntity contact) {
+        contactsRepository.saveAndFlush(contact);
+        return contact;
+    }
+
+    @Override
+    public void deleteContact(UserEntity userFrom, UserEntity userTo) {
+        ContactEntity contact = contactsRepository.findByUserFromAndUserTo(userFrom, userTo);
+        if(contact == null) contact = contactsRepository.findByUserFromAndUserTo(userTo, userFrom);
+        System.out.println("deleteContact "+contact);
+        contactsRepository.delete(contact);
+    }
+
+    public ContactEntity getContactByUsers(UserEntity userFrom, UserEntity userTo){
+        ContactEntity contact = contactsRepository.findByUserFromAndUserTo(userFrom, userTo);
+        if(contact == null) contact = contactsRepository.findByUserFromAndUserTo(userTo, userFrom);
+        return contact;
     }
 }

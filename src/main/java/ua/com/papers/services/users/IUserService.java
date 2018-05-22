@@ -1,10 +1,12 @@
 package ua.com.papers.services.users;
 
+import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.criteria.impl.UserCriteria;
 import ua.com.papers.exceptions.bad_request.WrongPasswordException;
 import ua.com.papers.exceptions.conflict.EmailExistsException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.ContactEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.view.UserView;
@@ -44,4 +46,14 @@ public interface IUserService {
     boolean logoutUser(HttpServletRequest request, HttpServletResponse response);
 
     Set<UserEntity> getAcceptedContacts (UserEntity user);
+
+    boolean isConnected (int firstId, int secondId) throws NoSuchEntityException;
+
+    ContactEntity createContactRequest (UserEntity userFrom, UserEntity userTo, String message, MultipartFile attachment) throws IOException, ServiceErrorException;
+
+    ContactEntity update(ContactEntity contact);
+
+    void deleteContact(UserEntity userFrom, UserEntity userTo);
+
+    ContactEntity getContactByUsers(UserEntity userFrom, UserEntity userTo);
 }
