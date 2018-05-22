@@ -52,7 +52,7 @@
                                 <p>Видавництво: ${publication.publisher}</p>
                                 <c:choose>
                                     <c:when test="${publication.link ne null}">
-                                        <a href="${publication.link}" class="btn btn-default" target="_blank">Перейти на сторінку публікації</a>
+                                        <a href="${publication.link}" class="btn btn-default publicationLink" publication-id="${publication.id}" target="_blank">Перейти на сторінку публікації</a>
                                     </c:when>
                                     <c:otherwise>
                                         <button class="btn btn-success order-publication" data-id="${publication.id}">Замовити файл</button>
@@ -82,5 +82,21 @@
 
 <jsp:include page="../common/footer.jsp" />
 <script src="/resources/js/search/search.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.publicationLink').on('click', function(e) {
+            e.preventDefault();
+           var link = $(this).attr('href');
+           var publicationId = $(this).attr('publication-id');
+
+            $.ajax({
+                type: "GET",
+                url: "/redis/register-clicked-publication/" + publicationId,
+            });
+
+            window.open(link, '_blank');
+        });
+    });
+</script>
 </body>
 </html>

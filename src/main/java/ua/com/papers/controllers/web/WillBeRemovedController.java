@@ -36,25 +36,25 @@ public class WillBeRemovedController {
     @RequestMapping(value = {"/will-be-removed"}, method = RequestMethod.GET)
     public String indexPage() {
 //        Redis Service examples
-        redisService.updateKey(3,6,"shown");
-        redisService.updateKey(3,6,"shown");
-        redisService.updateKey(3,6,"shown");
-        redisService.updateKey(3,6,"clicked");
-
-        redisService.updateKey(3,4,"shown");
-        redisService.updateKey(3,4,"shown");
-        redisService.updateKey(3,4,"shown");
-        redisService.updateKey(3,4,"shown");
-        redisService.updateKey(3,4,"clicked");
-        redisService.updateKey(3,4,"clicked");
-        redisService.updateKey(3,4,"clicked");
-
-        HashMap<Integer, Double> hm = redisService.getCTRMap(3);
-        for (Map.Entry<Integer, Double> entry : hm.entrySet()) {
-            Integer key = entry.getKey();
-            Double value = entry.getValue();
-            System.out.println("CTR for " + key + " = " + value);
-        }
+//        redisService.updateKey(3,6,"shown");
+//        redisService.updateKey(3,6,"shown");
+//        redisService.updateKey(3,6,"shown");
+//        redisService.updateKey(3,6,"clicked");
+//
+//        redisService.updateKey(3,4,"shown");
+//        redisService.updateKey(3,4,"shown");
+//        redisService.updateKey(3,4,"shown");
+//        redisService.updateKey(3,4,"shown");
+//        redisService.updateKey(3,4,"clicked");
+//        redisService.updateKey(3,4,"clicked");
+//        redisService.updateKey(3,4,"clicked");
+//
+//        HashMap<Integer, Double> hm = redisService.getCTRMap(3);
+//        for (Map.Entry<Integer, Double> entry : hm.entrySet()) {
+//            Integer key = entry.getKey();
+//            Double value = entry.getValue();
+//            System.out.println("CTR for " + key + " = " + value);
+//        }
         //recommendationsService.generate();
         return null;
     }

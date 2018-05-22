@@ -35,8 +35,8 @@ public class SessionUtils {
 
     public UserEntity getCurrentUser() {
         if (isAuthorized()) {
-            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            return usersRepository.findByEmail(userDetails.getUsername());
+            UserEntity userEntity = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return userEntity;
         } else
             return null;
     }
