@@ -39,4 +39,6 @@ public interface IStorageService {
     boolean paperHasFile(int id) throws NoSuchEntityException, ForbiddenException, ServiceErrorException;
 
     boolean uploadAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException;
+
+    File getContactRequestAttachment (ContactEntity contact) throws IOException;
 }

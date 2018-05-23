@@ -1,8 +1,10 @@
 package ua.com.papers.controllers.web;
 
+import org.elasticsearch.index.mapper.SourceToParse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
@@ -17,7 +19,10 @@ import ua.com.papers.services.users.IUserService;
 import ua.com.papers.services.utils.SessionUtils;
 import ua.com.papers.storage.IStorageService;
 
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Set;
 
@@ -161,8 +166,29 @@ public class UserController {
             return "redirect:/users/"+id;
         }
         userService.acceptContactRequest(contact);
-        return "redirect:/users/"+id;
+        return "redirect:/users/"+contact.getUserFrom().getId();
     }
 
+    @RequestMapping(value = "/attachment/{id}")
+    @ResponseBody
+    public void getContactRequestAttachment(HttpServletResponse response,
+                                            @PathVariable(value = "id") int contactId) throws IOException, NoSuchEntityException {
+        ContactEntity contact = userService.getContactById(contactId);
+        UserEntity user = sessionUtils.getCurrentUser();
+        if(contact == null ||
+                (contact.getUserTo().getId() != user.getId() && contact.getUserFrom().getId() != user.getId())){
+            return;
+        }
+        File file =  storageService.getContactRequestAttachment(contact);
+        String mimeType= URLConnection.guessContentTypeFromName(file.getName());
+        if(mimeType==null){
+            mimeType = "application/octet-stream";
+        }
+        System.out.println("mimetype : "+mimeType);
+        response.setHeader("Content-Disposition", String.format("inline; filename=\"" + file.getName() +"\""));
+        response.setContentLength((int)file.length());
+        InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+        FileCopyUtils.copy(inputStream, response.getOutputStream());
+    }
 
 }

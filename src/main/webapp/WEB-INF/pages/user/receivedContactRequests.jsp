@@ -18,7 +18,9 @@
             <div class="inner cover">
                 <div id="search_result">
                     <c:forEach items="${contacts}" var="contact">
-                        <label><a href="/users/${contact.userFrom.id}">${contact.userFrom.name} ${contact.userFrom.lastName} : ${contact.message}</a></label><br>
+                        <label><a href="/users/${contact.userFrom.id}">${contact.userFrom.name} ${contact.userFrom.lastName}</a>
+                         : ${contact.message}
+                        <br> <a href="/users/attachment/${contact.id}">Документ</a></label><br>
                     </c:forEach>
                 </div>
             </div>

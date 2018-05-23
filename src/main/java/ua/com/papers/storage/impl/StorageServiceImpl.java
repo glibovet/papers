@@ -193,6 +193,11 @@ public class StorageServiceImpl implements IStorageService {
     }
 
     @Override
+    public File getContactRequestAttachment (ContactEntity contact) throws IOException {
+        return new File(ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER +'/' + contact.getId() + '/'+contact.getAttachment());
+    }
+
+    @Override
     @Transactional
     public boolean uploadAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException {
         if(file.isEmpty()) return true;
@@ -212,6 +217,9 @@ public class StorageServiceImpl implements IStorageService {
     public byte[] getProfileImage (int userId) throws IOException, NoSuchEntityException {
         UserEntity user = userService.getUserById(userId);
         final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +'/' + userId + '/'+user.getPhoto());
+        if(!serverFile.exists()){
+            return null;
+        }
         return Files.readAllBytes(serverFile.toPath());
     }
 

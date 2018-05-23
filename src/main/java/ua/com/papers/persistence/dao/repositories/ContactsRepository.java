@@ -7,7 +7,6 @@ import ua.com.papers.pojo.entities.ContactEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 
 import java.util.List;
-import java.util.Set;
 
 @Transactional(propagation= Propagation.REQUIRED)
 public interface ContactsRepository extends JpaRepository<ContactEntity, Integer> {
