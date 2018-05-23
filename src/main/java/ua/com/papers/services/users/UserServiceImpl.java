@@ -318,4 +318,20 @@ public class UserServiceImpl implements IUserService {
         if(contact == null) contact = contactsRepository.findByUserFromAndUserTo(userTo, userFrom);
         return contact;
     }
+
+    public void acceptContactRequest (ContactEntity contact){
+        if(contact == null) return;
+        contact.setAccepted(true);
+        contactsRepository.saveAndFlush(contact);
+    }
+
+    public ContactEntity getContactById (int contactId){
+        return contactsRepository.findOne(contactId);
+    }
+
+    public List<ContactEntity> getReceivedContactRequests(UserEntity user){
+        List<ContactEntity> contacts = contactsRepository.findByUserToAndIsAccepted(user, false);
+        System.out.println("getReceivedContactRequests "+contacts);
+        return contacts;
+    }
 }

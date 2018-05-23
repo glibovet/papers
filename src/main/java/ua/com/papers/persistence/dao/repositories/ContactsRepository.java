@@ -6,8 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 import ua.com.papers.pojo.entities.ContactEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 
+import java.util.List;
+import java.util.Set;
+
 @Transactional(propagation= Propagation.REQUIRED)
 public interface ContactsRepository extends JpaRepository<ContactEntity, Integer> {
 
     ContactEntity findByUserFromAndUserTo(UserEntity userFrom, UserEntity userTo);
+
+    List<ContactEntity> findByUserToAndIsAccepted(UserEntity userTo, boolean isAccepted);
 }

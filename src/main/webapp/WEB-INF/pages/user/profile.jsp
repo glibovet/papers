@@ -39,8 +39,11 @@
                     <c:if test="${contact.accepted}" >
                         <li><a href="/users/delete-contact/${user.id}">Видалити контакт</a></li>
                     </c:if>
-                    <c:if test="${!contact.accepted}" >
+                    <c:if test="${!contact.accepted && contact.userFrom.id == currentUserId}" >
                         <li><a href="/users/delete-contact/${user.id}">Відмінити запрошення</a></li>
+                    </c:if>
+                    <c:if test="${!contact.accepted && contact.userTo.id == currentUserId}" >
+                        <li><a href="/users/accept-contact/${user.id}">Прийняти запрошення</a></li>
                     </c:if>
                 </c:if>
                 <c:if test="${user.id != currentUserId && contact == null}">

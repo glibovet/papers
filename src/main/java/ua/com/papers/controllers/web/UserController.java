@@ -145,5 +145,24 @@ public class UserController {
         return "redirect:/users/"+id;
     }
 
+    @RequestMapping(value = {"/received-contacts/"}, method = RequestMethod.GET)
+    public String receivedContacts(Model model){
+        UserEntity user = sessionUtils.getCurrentUser();
+        List<ContactEntity> contacts = userService.getReceivedContactRequests(user);
+        model.addAttribute("contacts", contacts);
+        return "/user/receivedContactRequests";
+    }
+
+    @RequestMapping(value = {"/accept-contact/{id}"}, method = RequestMethod.GET)
+    public String acceptContact(@PathVariable int id, Model model){
+        UserEntity user = sessionUtils.getCurrentUser();
+        ContactEntity contact = userService.getContactById(id);
+        if(contact == null || user.getId() != contact.getUserTo().getId()){
+            return "redirect:/users/"+id;
+        }
+        userService.acceptContactRequest(contact);
+        return "redirect:/users/"+id;
+    }
+
 
 }

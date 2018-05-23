@@ -16,6 +16,7 @@
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
             <div class="inner cover">
+                <li><a href="/users/received-contacts/">Отримані запити</a></li>
                 <div class="lead row">
                     <spring:form method="post"  modelAttribute="searchUsersView" action="/users/search">
                         <div class="col-md-4 form-group">

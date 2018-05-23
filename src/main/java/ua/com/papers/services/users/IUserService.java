@@ -56,4 +56,10 @@ public interface IUserService {
     void deleteContact(UserEntity userFrom, UserEntity userTo);
 
     ContactEntity getContactByUsers(UserEntity userFrom, UserEntity userTo);
+
+    void acceptContactRequest (ContactEntity contact);
+
+    ContactEntity getContactById (int contactId);
+
+    List<ContactEntity> getReceivedContactRequests(UserEntity user);
 }
