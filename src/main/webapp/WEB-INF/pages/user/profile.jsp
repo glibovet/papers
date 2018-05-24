@@ -38,6 +38,7 @@
                             </c:if>
                             <c:if test="${!contact.accepted && contact.userTo.id == currentUserId}">
                                 <li><a href="/users/accept-contact/${contact.id}">Прийняти запрошення</a></li>
+                                <li><a href="/users/delete-contact/${contact.id}">Відхилити запрошення</a></li>
                             </c:if>
                         </c:if>
                         <c:if test="${user.id != currentUserId && contact == null}">
