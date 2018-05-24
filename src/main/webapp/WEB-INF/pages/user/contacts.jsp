@@ -15,27 +15,38 @@
     <div class="site-wrapper-inner">
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
-            <div class="inner cover">
-                <li><a href="/users/received-contacts/">Отримані запити</a></li>
-                <div class="lead row">
-                    <spring:form method="post"  modelAttribute="searchUsersView" action="/users/search">
-                        <div class="col-md-4 form-group">
-                            <label>Прізвище</label>
-                            <spring:input path="lastName" type="text" class="form-control" placeholder="Іванов" value="${searchUsersView.lastName}"/>
-                        </div>
-                        <div class="col-md-4 form-group">
-                            <label>І`мя</label>
-                            <spring:input path="name" type="text" class="form-control" placeholder="Іван" value="${searchUsersView.name}"/>
-                        </div>
-                        <div class="col-md-4 form-group">
-                            <spring:button class="btn btn-success">Шукати</spring:button>
-                        </div>
-                    </spring:form>
-                </div>
-                <div id="search_result">
-                    <c:forEach items="${contacts}" var="contact">
-                        <label><a href="/users/${contact.id}">${contact.name} ${contact.lastName}</a></label><br>
-                    </c:forEach>
+            <div class="my_container">
+                <u class="nav masthead-nav my_nav">
+                    <li><a href="/users/edit">Редагувати інформацію</a></li>
+                    <li><a href="/users/contacts">Контакти</a></li>
+                    <li><a href="/users/add-contact/${user.id}">Встановити контакт</a></li>
+                    <li><a href="/users/edit">Редагувати інформацію</a></li>
+                    <li><a href="/users/contacts">Контакти</a></li>
+                    <li><a href="/users/add-contact/${user.id}">Встановити контакт</a></li>
+                    <li><a href="/users/edit">Редагувати інформацію</a></li>
+                </u>
+                <div class="inner cover">
+                    <li><a href="/users/received-contacts/">Отримані запити</a></li>
+                    <div class="lead row">
+                        <spring:form method="post"  modelAttribute="searchUsersView" action="/users/search">
+                            <div class="col-md-4 form-group">
+                                <label>Прізвище</label>
+                                <spring:input path="lastName" type="text" class="form-control" placeholder="Іванов" value="${searchUsersView.lastName}"/>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                <label>І`мя</label>
+                                <spring:input path="name" type="text" class="form-control" placeholder="Іван" value="${searchUsersView.name}"/>
+                            </div>
+                            <div class="col-md-4 form-group">
+                                <spring:button class="btn btn-success">Шукати</spring:button>
+                            </div>
+                        </spring:form>
+                    </div>
+                    <div id="search_result">
+                        <c:forEach items="${contacts}" var="contact">
+                            <label><a href="/users/${contact.id}">${contact.name} ${contact.lastName}</a></label><br>
+                        </c:forEach>
+                    </div>
                 </div>
             </div>
         </div>
