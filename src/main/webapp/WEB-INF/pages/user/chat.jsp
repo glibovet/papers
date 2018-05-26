@@ -1,14 +1,7 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: Artem
-  Date: 23.05.2018
-  Time: 19:08
-  To change this template use File | Settings | File Templates.
---%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Hello WebSocket</title>
+    <title>hello WebSocket</title>
     <script src="/resources/js/chat/sockjs-0.3.4.js"></script>
     <script src="/resources/js/chat/stomp.js"></script>
     <script type="text/javascript">
@@ -22,12 +15,12 @@
         }
 
         function connect() {
-            var socket = new SockJS('/chat');
+            var socket = new SockJS('/papers');
             stompClient = Stomp.over(socket);
             stompClient.connect({}, function(frame) {
                 setConnected(true);
                 console.log('Connected: ' + frame);
-                stompClient.subscribe('/topic/greetings', function(greeting){
+                stompClient.subscribe('/topic/papers/'+${chatId}, function(greeting){
                     showGreeting(JSON.parse(greeting.body).content);
                 });
             });
@@ -41,7 +34,7 @@
 
         function sendName() {
             var name = document.getElementById('name').value;
-            stompClient.send("/app/chat", {}, JSON.stringify({ 'name': name }));
+            stompClient.send("/app/papers/"+${chatId}, {}, JSON.stringify({ 'name': name }));
         }
 
         function showGreeting(message) {

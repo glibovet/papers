@@ -34,10 +34,11 @@ public class ChatController {
 //
 //    }
 
-    @MessageMapping("/chat")
-    @SendTo("/topic/greetings")
-    public Greeting greeting(HelloMessage message) throws Exception {
-        System.out.println("controller message "+message.getName());
+    @MessageMapping("/papers/{chatId}")
+    @SendTo("/topic/papers/{chatId}")
+    public Greeting greeting(@DestinationVariable(value = "chatId") String chatId,
+                             HelloMessage message) throws Exception {
+        System.out.println("chatId "+chatId);
         Thread.sleep(3000); // simulated delay
         return new Greeting("Hello, " + message.getName() + "!");
     }
