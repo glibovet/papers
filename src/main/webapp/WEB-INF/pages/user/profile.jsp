@@ -14,14 +14,19 @@
     <div class="site-wrapper-inner">
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
+            <div class="alert-danger">
+                <strong>Помилка!</strong> щось сталось.
+            </div>
             <div class="my_container">
                 <u class="nav masthead-nav my_nav">
                     <li><a href="/users/edit">Редагувати профіль</a></li>
                     <li><a href="/users/contacts">Контакти</a></li>
-                    <li><a href="/chat">Повідомлення</a></li>
+                    <li><a href="/chat/1">Повідомлення</a></li>
                 </u>
 
                 <div class="photo_block">
+
+
                     <div class="user_img">
                         <img class="user_ph" src="/users/image/${user.id}"/>
                     </div>

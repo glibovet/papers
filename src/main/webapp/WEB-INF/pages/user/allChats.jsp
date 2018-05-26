@@ -76,44 +76,44 @@
                             </div>
                         </section>
 
-                        <section id="content3">
+                        <%--<section id="content3">--%>
 
-                            <spring:form method="post" modelAttribute="searchUsersView" action="/users/contacts">
-                                <div class="col-md-4 form-group">
-                                    <label>
-                                        <spring:input path="lastName" type="text" class="form-control"
-                                                      placeholder="Прізвище" value="${searchUsersView.lastName}"/>
-                                    </label>
-                                </div>
-                                <div class="col-md-4 form-group">
-                                    <label>
-                                        <spring:input path="name" type="text" class="form-control" placeholder="Ім'я"
-                                                      value="${searchUsersView.name}"/>
-                                    </label>
-                                </div>
-                                <div class="col-md-4 form-group">
-                                    <spring:button class="btn btn-success">Шукати</spring:button>
-                                </div>
-                            </spring:form>
-                            <input type="hidden" id = "searchResultsSize" value="${fn:length(searchResults)}">
-                            <div class="search_result">
-                                <c:forEach items="${searchResults}" var="contact">
-                                    <div class="folder">
-                                        <div class="user_img">
-                                            <img class="user_ph" src="/users/image/${contact.id}"/>
-                                        </div>
-                                        <div class="info">
-                                            <a href="/users/${contact.id}">${contact.name} ${contact.lastName}</a>
-                                            <div class="buttons">
-                                                <button class="btn btn-success btn-block">accept</button>
-                                                <button class="btn btn-danger btn-block">decline</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </c:forEach>
-                            </div>
+                            <%--<spring:form method="post" modelAttribute="searchUsersView" action="/users/contacts">--%>
+                                <%--<div class="col-md-4 form-group">--%>
+                                    <%--<label>--%>
+                                        <%--<spring:input path="lastName" type="text" class="form-control"--%>
+                                                      <%--placeholder="Прізвище" value="${searchUsersView.lastName}"/>--%>
+                                    <%--</label>--%>
+                                <%--</div>--%>
+                                <%--<div class="col-md-4 form-group">--%>
+                                    <%--<label>--%>
+                                        <%--<spring:input path="name" type="text" class="form-control" placeholder="Ім'я"--%>
+                                                      <%--value="${searchUsersView.name}"/>--%>
+                                    <%--</label>--%>
+                                <%--</div>--%>
+                                <%--<div class="col-md-4 form-group">--%>
+                                    <%--<spring:button class="btn btn-success">Шукати</spring:button>--%>
+                                <%--</div>--%>
+                            <%--</spring:form>--%>
+                            <%--<input type="hidden" id = "searchResultsSize" value="${fn:length(searchResults)}">--%>
+                            <%--<div class="search_result">--%>
+                                <%--<c:forEach items="${searchResults}" var="contact">--%>
+                                    <%--<div class="folder">--%>
+                                        <%--<div class="user_img">--%>
+                                            <%--<img class="user_ph" src="/users/image/${contact.id}"/>--%>
+                                        <%--</div>--%>
+                                        <%--<div class="info">--%>
+                                            <%--<a href="/users/${contact.id}">${contact.name} ${contact.lastName}</a>--%>
+                                            <%--<div class="buttons">--%>
+                                                <%--<button class="btn btn-success btn-block">accept</button>--%>
+                                                <%--<button class="btn btn-danger btn-block">decline</button>--%>
+                                            <%--</div>--%>
+                                        <%--</div>--%>
+                                    <%--</div>--%>
+                                <%--</c:forEach>--%>
+                            <%--</div>--%>
 
-                        </section>
+                        <%--</section>--%>
 
                     </main>
                 </div>

@@ -104,19 +104,178 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-left: 100px;
+    margin-left: 50px;
 }
 
 .photo_block form input {
     margin-top: 25px;
 }
 
+.chat {
+    max-height: 60vh;
+    overflow-y: scroll;
+}
+
+.chat_container {
+    display: flex;
+    flex-direction: column;
+
+}
+
+.chat::-webkit-scrollbar {
+    width: 12px;
+}
+
+.chat::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+
+.chat::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+.chat_container .mess {
+    display: flex;
+    margin: 10px 0;
+    padding: 5px;
+}
+
+.chat_container .mess .user_ph {
+    display: block;
+    height: 50px;
+    width: 50px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 50%;
+}
+
+.chat_container .mess .mess {
+    display: flex;
+    flex-direction: column;
+    margin: 0 10px;
+    border: 1px solid #1b6d85;
+    border-radius: 5px;
+}
+
+.chat_container .mess .mess .name {
+    display: flex;
+}
+.chat_container .mess.even .mess .name {
+    display: flex;
+}
+.chat_container .mess.odd .mess .name {
+    flex-direction: row-reverse;
+}
+
+.chat_container .mess .mess h3 {
+    margin-top: 0;
+    font-size: 18px;
+    font-weight: 800;
+    text-align: left;
+}
+
+#form_chat {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+}
+
+#form_chat textarea {
+    width: 100%;
+    height: 100px;
+    border-radius: 5px;
+    background: #333;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 15px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.att {
+    text-decoration: underline;
+    text-align: left;
+    font-size: 11px;
+    color: #cecece;
+    transition: all .4s ease;
+}
+
+.att:hover {
+    color: #fff;
+}
+
+#form_chat textarea:focus {
+    outline: none;
+}
+
+.chat_container .mess .mess span {
+    color: #919191;
+    font-size: 8px;
+    font-weight: 800;
+    margin: 0 10px;
+}
+
+.chat_container .mess.odd .mess h3 {
+    text-align: right;
+}
+
+.chat_container .mess.even .mess h3 {
+    text-align: left;
+}
+
+.chat_container .mess.odd .mess p {
+    text-align: left;
+    max-width: 500px;
+}
+
+.chat_container .mess.even .mess p {
+    text-align: left;
+    max-width: 500px;
+}
+
+.chat {
+    width: 100%;
+}
+
+.chat_container .mess .user_ph img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 50px;
+    max-width: 50px;
+    height: auto;
+    width: auto;
+    border-radius: 0;
+}
+
+.chat_container .mess.odd {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-self: flex-end;
+}
+
+.chat_container .mess.even {
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
 .my_nav {
-    min-width: 250px;
+    min-width: 200px;
     display: flex !important;
     flex-direction: column !important;
     text-align: left;
     text-decoration: none !important;
+}
+
+.alert-danger {
+    width: 100%;
+    padding: 20px;
+    border-radius: 5px !important;
+    margin-bottom: 15px !important;
+    text-align: left;
 }
 
 .my_nav li {
@@ -235,7 +394,7 @@ main {
 }
 
 main section {
-    max-height: 70vh;
+    max-height: 60vh;
     overflow-y: scroll;
 }
 

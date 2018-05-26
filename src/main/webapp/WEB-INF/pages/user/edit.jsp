@@ -15,6 +15,9 @@
     <div class="site-wrapper-inner">
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
+            <div class="alert-danger">
+                <strong>Помилка!</strong> щось сталось.
+            </div>
             <div class="my_container">
                 <u class="nav masthead-nav my_nav">
                     <li><a href="/users/edit">Редагувати профіль</a></li>
