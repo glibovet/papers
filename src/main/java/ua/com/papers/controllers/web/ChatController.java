@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ua.com.papers.pojo.chat.Greeting;
 import ua.com.papers.pojo.chat.HelloMessage;
+import ua.com.papers.pojo.view.MessageView;
 
 @Controller
 @RequestMapping(value = "/chat")
@@ -36,11 +37,11 @@ public class ChatController {
 
     @MessageMapping("/papers/{chatId}")
     @SendTo("/topic/papers/{chatId}")
-    public Greeting greeting(@DestinationVariable(value = "chatId") String chatId,
-                             HelloMessage message) throws Exception {
+    public MessageView greeting(@DestinationVariable(value = "chatId") String chatId,
+                                MessageView message) throws Exception {
         System.out.println("chatId "+chatId);
         Thread.sleep(3000); // simulated delay
-        return new Greeting("Hello, " + message.getName() + "!");
+        return message;
     }
 
 }

@@ -21,7 +21,7 @@
                 setConnected(true);
                 console.log('Connected: ' + frame);
                 stompClient.subscribe('/topic/papers/'+${chatId}, function(greeting){
-                    showGreeting(JSON.parse(greeting.body).content);
+                    showGreeting(JSON.parse(greeting.body).text);
                 });
             });
         }
@@ -34,7 +34,12 @@
 
         function sendName() {
             var name = document.getElementById('name').value;
-            stompClient.send("/app/papers/"+${chatId}, {}, JSON.stringify({ 'name': name }));
+            stompClient.send("/app/papers/"+${chatId}, {}, JSON.stringify({
+                'userId': '1',
+                'chatId': ${chatId},
+                'text' : name,
+                'date' : new Date(),
+                'attachment' : 'attachment'}));
         }
 
         function showGreeting(message) {
