@@ -28,7 +28,7 @@
                 <div class="inner cover">
                     <li><a href="/users/received-contacts/">Отримані запити</a></li>
                     <div class="lead row">
-                        <spring:form method="post"  modelAttribute="searchUsersView" action="/users/search">
+                        <spring:form method="post"  modelAttribute="searchUsersView" action="/users/contacts">
                             <div class="col-md-4 form-group">
                                 <label>Прізвище</label>
                                 <spring:input path="lastName" type="text" class="form-control" placeholder="Іванов" value="${searchUsersView.lastName}"/>

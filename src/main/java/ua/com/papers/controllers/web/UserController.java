@@ -38,18 +38,21 @@ public class UserController {
     private IStorageService storageService;
 
     @RequestMapping(value = {"/{id}"}, method = RequestMethod.GET)
-    public ModelAndView profile(@PathVariable int id, ModelAndView modelAndView){
+    public String profile(@PathVariable int id, Model model){
         try {
-            UserEntity user = userService.getUserById(id);
             UserEntity currentUser = sessionUtils.getCurrentUser();
-            modelAndView.addObject("user", user);
+            if(currentUser == null){
+                return "/";
+            }
+            UserEntity user = userService.getUserById(id);
+            model.addAttribute("user", user);
             ContactEntity contact = userService.getContactByUsers(currentUser, user);
-            modelAndView.addObject("contact", contact);
-            modelAndView.setViewName("user/profile");
+            model.addAttribute("contact", contact);
+            model.addAttribute("user/profile");
         } catch (NoSuchEntityException e) {
             // return to 404
         }
-        return modelAndView;
+        return "user/profile";
     }
 
     @RequestMapping(value = "/edit")
@@ -85,13 +88,31 @@ public class UserController {
     }
 
     @RequestMapping(value = "/contacts")
-    public String allContacts(Model model) {
+    public String allContacts(Model model,
+                              @ModelAttribute("searchUsersView") SearchUsersView searchUsersView) {
         UserEntity user = sessionUtils.getCurrentUser();
         if (user == null)
             return "/";
-        model.addAttribute("user", user);
-        model.addAttribute("contacts", userService.getAcceptedContacts(user));
-        model.addAttribute("searchUsersView", new SearchUsersView());
+        model.addAttribute("currentUser", user);
+        Set<UserEntity> contacts = userService.getAcceptedContacts(user);
+        System.out.println("contacts "+ contacts);
+        model.addAttribute("contacts", contacts);
+        model.addAttribute("searchUsersView", searchUsersView);
+        System.out.println("searchUsersView "+ searchUsersView);
+        List<ContactEntity> receivedContactRequests = userService.getReceivedContactRequests(user);
+        System.out.println("receivedContactRequests "+ receivedContactRequests);
+        model.addAttribute("receivedContactRequests", receivedContactRequests);
+        if(searchUsersView.getName() != null || searchUsersView.getLastName() != null) {
+            List<UserEntity> searchResults = userService.findByNames(searchUsersView.getName(), searchUsersView.getLastName());
+            System.out.println("searchResults "+ searchResults);
+//            for(UserEntity contact : contacts){
+//                if(searchResults.contains(contact)){
+//                    searchResults.remove(contact);
+//                }
+//            }
+//            System.out.println("searchResults "+ searchResults);
+            model.addAttribute("searchResults", searchResults);
+        }
         return "user/contacts";
     }
 

@@ -181,10 +181,9 @@ public class UserServiceImpl implements IUserService {
     @Override
     @Transactional
     public List<UserEntity> findByNames(String name, String lastName) {
-        List<UserEntity> users = usersRepository.findByNameIgnoreCaseContainingAndLastNameIgnoreCaseContaining(name, lastName);
-        System.out.println("users size " + users.size());
-        System.out.println("users "+users);
-        return users;
+        name = name == null ? "" : name;
+        lastName = lastName == null ? "" : lastName;
+        return usersRepository.findByNameIgnoreCaseContainingAndLastNameIgnoreCaseContaining(name, lastName);
     }
 
     @Override
