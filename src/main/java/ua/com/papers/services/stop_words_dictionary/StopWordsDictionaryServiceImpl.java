@@ -12,6 +12,8 @@ import ua.com.papers.pojo.entities.StopWordsDictionaryEntity;
 import ua.com.papers.services.publications_document_similarity.IPublicationsCosineSimilarityService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 
 @Service
@@ -33,6 +35,17 @@ public class StopWordsDictionaryServiceImpl implements IStopWordsDictionaryServi
     public boolean wordExistsInDictionary(String word) {
         List<StopWordsDictionaryEntity> list = stopWordsDictionaryRepository.getDictionaryItemsByWord(word);
         return list.size() != 0;
+    }
+
+    public HashSet<String> getWords() {
+        HashSet<String> set =
+                new HashSet<String>();
+        List<StopWordsDictionaryEntity> list = this.getAllStopWordsList();
+        for(StopWordsDictionaryEntity entity : list) {
+            set.add(entity.getWord());
+        }
+
+        return set;
     }
 
 }

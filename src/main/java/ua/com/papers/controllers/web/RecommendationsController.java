@@ -41,7 +41,8 @@ public class RecommendationsController {
     @Autowired
     private MapUtils mapUtils;
 
-    @RequestMapping(value = "/recommendations/to-publication/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/recommendations/to-publication/{id}",
+            method = RequestMethod.GET)
     public String showForSelectedPublicationPage(ModelMap model, @PathVariable Integer id) throws NoSuchEntityException {
         PublicationEntity publication = publicationService.getPublicationById(id);
         List<PublicationsCosineSimilarityEntity> recommendations = publicationsCosineSimilarityService.findSimilar(publication, new PageRequest(0, 5));
@@ -52,8 +53,8 @@ public class RecommendationsController {
         return "recommendations/showForSelectedPublication";
     }
 
-    // recommendaations, based on interaction with the system
-    @RequestMapping(value = "/recommendations/based-on-interactions", method = RequestMethod.GET)
+    @RequestMapping(value = "/recommendations/based-on-interactions",
+            method = RequestMethod.GET)
     public String showBasedOnInteractionsPage(ModelMap model) {
         UserEntity user = this.sessionUtils.getCurrentUser();
         HashSet<PublicationEntity> recommendations = new HashSet<>();

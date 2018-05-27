@@ -42,7 +42,7 @@
                     <div class="col-sm-offset-1 col-sm-10">
                         <c:choose>
                             <c:when test="${recommendations.size() == 0}">
-                                <h4>До цієї публікації поки що немає рекомендацій :(</h4>
+                                <h3>До цієї публікації поки що немає рекомендацій :(</h3>
                             </c:when>
                             <c:otherwise>
                                 <h3>Рекомендації</h3>
@@ -54,7 +54,6 @@
                 <div class="row">
                     <div class="col-sm-offset-1 col-sm-10">
                         <c:forEach var="recommendation" items="${recommendations}">
-                            <%--TODO: rework--%>
                             <c:choose>
                                 <c:when test="${recommendation.publication1.id == publication.id}">
                                     <c:set var = "item" scope = "session" value = "${recommendation.publication2}"/>

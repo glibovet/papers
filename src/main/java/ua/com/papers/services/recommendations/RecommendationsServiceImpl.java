@@ -37,59 +37,86 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
     @Autowired
     private IPublicationService publicationService;
 
+//    public void generateMain() {
+//        // 1. Prepare documents collection: Create document with publication id, text and list of words.
+//        List<Document> documents = documentsProcessingService.prepareDocumentsCollection();
+//
+//        // 2. Calculate tf-idf for every word in every document.
+//        this.tfIdfService.calculateTfIdfForDocuments(documents);
+//
+//        // 3. Sort tf-idf list by value in every document
+//        for(Document document : documents) {
+//            Collections.sort(document.getTfIdfItems());
+//        }
+//
+//        // 4. Create dictionary - dictionary can be created only after all key words for documents have been fined
+//        HashSet<String> dictionary = new HashSet<>();
+//        for(Document document : documents) {
+//            for (int i=0; i< 15; i++) {
+//                dictionary.add(document.getTfIdfItems().get(i).getWord());
+//            }
+//        }
+//
+//        // 5. Delete previous Cosine similarity calculations
+//        publicationsCosineSimilarityService.deleteAll();
+//
+//        // 6. Calculate cosine similarity between all pairs of documents and save into db
+//        this.cosineSimilarityService.processDocuments(documents, dictionary);
+//    }
+
     public void generate() {
         try {
             FileWriter fw = new FileWriter("C:/dev/logs.txt");
             BufferedWriter bw = new BufferedWriter(fw);
 
             long startTime = System.currentTimeMillis();
-            // 1. Delete previous Cosine similarity calculations
-            publicationsCosineSimilarityService.deleteAll();
-            long estimatedTime = System.currentTimeMillis() - startTime;
-            //System.out.println("1. DELETE ALL FROM DB TAKES: " + estimatedTime);
-            bw.write("1. DELETE ALL FROM DB TAKES: " + estimatedTime + "\n");
-
-            startTime = System.currentTimeMillis();
-            // 2. Prepare documents collection: Create document with publication id, text and list of words.
+            // 1. Prepare documents collection: Create document with publication id, text and list of words.
             List<Document> documents = documentsProcessingService.prepareDocumentsCollection();
-            estimatedTime = System.currentTimeMillis() - startTime;
-            //System.out.println("2. PROCESSING DOCUMENTS TAKES: " + estimatedTime);
-            bw.write("2. PROCESSING DOCUMENTS TAKES: " + estimatedTime + "\\r\\n");
-
+            long estimatedTime = System.currentTimeMillis() - startTime;
+            bw.write("1. PROCESSING DOCUMENTS TAKES: " + estimatedTime + ";  ");
+            System.out.println("------processed dosc------");
             startTime = System.currentTimeMillis();
-            // 3. Calculate tf-idf for every word in every document.
+            // 2. Calculate tf-idf for every word in every document.
             this.tfIdfService.calculateTfIdfForDocuments(documents);
             estimatedTime = System.currentTimeMillis() - startTime;
-            //System.out.println("3. CALCULATING TF-IDF TAKES: " + estimatedTime);
-            bw.write("3. CALCULATING TF-IDF TAKES: " + estimatedTime + "\\r\\n");
-
+            bw.write("2. CALCULATING TF-IDF TAKES: " + estimatedTime + "; ");
+            System.out.println("------calculated tf-idf------");
             startTime = System.currentTimeMillis();
-            // 4. Sort tf-idf list by value in every document
+            // 3. Sort tf-idf list by value in every document
             for(Document document : documents) {
                 Collections.sort(document.getTfIdfItems());
             }
             estimatedTime = System.currentTimeMillis() - startTime;
-//            System.out.println("4. SORTING TF-IDF COLLECTION TAKES: " + estimatedTime);
-            bw.write("4. SORTING TF-IDF COLLECTION TAKES: " + estimatedTime + "\\r\\n");
-
+            bw.write("3. SORTING TF-IDF COLLECTION TAKES: " + estimatedTime + "; ");
+            System.out.println("------sorted tf-idf------");
             startTime = System.currentTimeMillis();
-            // 5. Create dictionary - dictionary can be created only after all key words for documents have been fined
+            // 4. Create dictionary - dictionary can be created only after all key words for documents have been fined
             HashSet<String> dictionary = new HashSet<>();
             for(Document document : documents) {
-                for (int i=0; i< 15; i++) {
+                int numberOfItems = 10;
+                if(document.getTfIdfItems().size() < 10) {
+                    numberOfItems = document.getTfIdfItems().size();
+                }
+                for (int i=0; i< numberOfItems; i++) {
                     dictionary.add(document.getTfIdfItems().get(i).getWord());
                 }
             }
             estimatedTime = System.currentTimeMillis() - startTime;
-//            System.out.println("5. CREATING DICTIONARY TAKES: " + estimatedTime);
-            bw.write("5. CREATING DICTIONARY TAKES: " + estimatedTime + "\\r\\n");
+            bw.write("4. CREATING DICTIONARY TAKES: " + estimatedTime + "; ");
+            System.out.println("------creted dict------");
 
+            startTime = System.currentTimeMillis();
+            // 5. Delete previous Cosine similarity calculations
+            publicationsCosineSimilarityService.deleteAll();
+            estimatedTime = System.currentTimeMillis() - startTime;
+            bw.write("5. DELETE ALL FROM DB TAKES: " + estimatedTime + "; ");
+            System.out.println("------deleted from db------");
             startTime = System.currentTimeMillis();
             // 6. Calculate cosine similarity between all pairs of documents and save into db
             this.cosineSimilarityService.processDocuments(documents, dictionary);
             estimatedTime = System.currentTimeMillis() - startTime;
-//            System.out.println("5. CALCULATING CS TAKES: " + estimatedTime);
-            bw.write("5. CALCULATING CS TAKES: " + estimatedTime + "\\r\\n");
+            bw.write("6. CALCULATING CS TAKES: " + estimatedTime + "; ");
+            System.out.println("------calculated cs------");
 
             bw.close();
             fw.close();
@@ -101,6 +128,8 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
     public HashSet<PublicationEntity> prepareBasedOnInteractions(Map<Integer, Double> hm) {
         HashSet<PublicationEntity> results = new HashSet<>();
         int i = 0;
+        // Get 4 publication with highest CTR value and get 3 recommendations for each publications.
+        // Duplicates will be ignored.
         for (Map.Entry<Integer, Double> entry : hm.entrySet()) {
             if (i == 4) break;
             Integer publicationId = entry.getKey();
@@ -108,13 +137,10 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
                 PublicationEntity publication = publicationService.getPublicationById(publicationId);
                 List<PublicationsCosineSimilarityEntity> pcs = publicationsCosineSimilarityService.findSimilar(publication, new PageRequest(0, 3));
                 for(PublicationsCosineSimilarityEntity item : pcs) {
-                    //System.out.println("PUB="+publicationId+"; P1="+item.getPublication1().getId()+"; P2="+item.getPublication2().getId()+".");
                     if(item.getPublication1().getId().equals(publicationId)) {
-                        //System.out.println("*added "+item.getPublication2().getId());
                         results.add(item.getPublication2());
                     } else {
                         results.add(item.getPublication1());
-                        //System.out.println("added "+item.getPublication1().getId());
                     }
                 }
             } catch(NoSuchEntityException e) {

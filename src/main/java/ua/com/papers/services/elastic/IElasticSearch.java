@@ -23,4 +23,5 @@ public interface IElasticSearch {
     boolean indexAll() throws ForbiddenException, ElasticSearchException, PublicationWithoutFileException;
 
     List<PublicationDTO> search(String query, int offset);
+    List<PublicationDTO> getAllPublications();
 }

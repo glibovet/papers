@@ -19,6 +19,8 @@ import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.highlight.HighlightBuilder;
 import org.elasticsearch.search.highlight.HighlightField;
+import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.search.sort.SortParseElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,6 +50,7 @@ import java.util.Map;
 
 import static org.elasticsearch.client.Requests.createIndexRequest;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 /**
@@ -167,6 +170,29 @@ public class ElasticSearchImpl implements IElasticSearch {
             initializeClient();
         SearchHits searchHits = query(query, offset);
         return mapSearchHits(searchHits);
+    }
+
+    public List<PublicationDTO> getAllPublications() {
+        if (client == null)
+            initializeClient();
+        QueryBuilder qb = matchAllQuery();
+        List<PublicationDTO> publicationDTOs = new ArrayList<>();
+        SearchResponse scrollResp = client.prepareSearch()
+                .setScroll(new TimeValue(60000))
+                .setQuery(qb)
+                .addFields("body.content")
+                .setSize(100).execute().actionGet(); //100 hits per shard will be returned for each scroll
+        //Scroll until no hits are returned
+        while (true) {
+            publicationDTOs.addAll(mapSearchHits(scrollResp.getHits()));
+            scrollResp = client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute().actionGet();
+            //Break condition: No hits are returned
+            if (scrollResp.getHits().getHits().length == 0) {
+                break;
+            }
+        }
+
+        return publicationDTOs;
     }
 
     private SearchHits query(String query, int offset){

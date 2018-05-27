@@ -5,6 +5,7 @@ import ua.com.papers.pojo.temporary.Document;
 import ua.com.papers.pojo.temporary.TfIdfItem;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -19,8 +20,8 @@ public class TfIdfServiceImpl implements ITfIdfService {
     private Double calculateIDF(List<Document> documents, String word) {
         double n = 0;
         for (Document document : documents) {
-            List<String> list = document.getWords();
-            if(list.contains(word)) {
+            HashSet<String> set = document.getUniqueWords();
+            if(set.contains(word)) {
                 n++;
             }
         }
@@ -28,7 +29,7 @@ public class TfIdfServiceImpl implements ITfIdfService {
         return Math.log(documents.size() / n);
     }
 
-    private Double calculateTfIdfForWord(List documents, List<String> words,  String word) {
+    private Double calculateTfIdfForWord(List<Document> documents, List<String> words,  String word) {
         double tf = this.calculateTF(words, word);
         double idf = this.calculateIDF(documents, word);
 

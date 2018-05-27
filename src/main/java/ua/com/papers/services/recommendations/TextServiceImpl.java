@@ -9,6 +9,7 @@ import ua.com.papers.services.stop_words_dictionary.IStopWordsDictionaryService;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -81,18 +82,31 @@ public class TextServiceImpl implements ITextService{
      * @param text
      * @return List<String>
      */
-    public List<String> breakTextIntoTokens(String text) {
-        // LinkedHashSet
+    public List<String> breakTextIntoTokens(String text, HashSet<String> stopWords) {
         List<String> words = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer(text);
         while (st.hasMoreTokens()) {
-            String word = this.getStemmed(this.normalizeString(st.nextToken()));
-            if (word.length() > 2 && !this.stopWordsDictionaryService.wordExistsInDictionary(word)) {
-                words.add(word);
+            try {
+                String word = this.getStemmed(this.normalizeString(st.nextToken()));
+                if (word.length() > 2 && !stopWords.contains(word)) {
+                    words.add(word);
+                }
+            }
+            // Unexpected error happens in stemmer
+            catch(StringIndexOutOfBoundsException e){
+
             }
         }
 
         return words;
+    }
+
+    public HashSet<String> getUniqueTokens(List<String> words) {
+        HashSet<String> set = new HashSet<>();
+        for(String s : words) {
+            set.add(s);
+        }
+        return set;
     }
 
 }
