@@ -41,23 +41,20 @@ public class UserController {
     public String profile(@PathVariable int id, Model model){
         try {
             UserEntity currentUser = sessionUtils.getCurrentUser();
-            if(currentUser == null){
-                return "/";
-            }
             UserEntity user = userService.getUserById(id);
             model.addAttribute("user", user);
             ContactEntity contact = userService.getContactByUsers(currentUser, user);
             model.addAttribute("contact", contact);
-            model.addAttribute("user/profile");
         } catch (NoSuchEntityException e) {
-            // return to 404
+            return "/";
         }
         return "user/profile";
     }
 
     @RequestMapping(value = "/edit")
-    public String editProfile(Model model) {
-        UserEntity user = sessionUtils.getCurrentUser();
+    public String editProfile(Model model) throws NoSuchEntityException {
+        UserEntity currentUser = sessionUtils.getCurrentUser();
+        UserEntity user = userService.getUserById(currentUser.getId());
         if (user == null)
             return "/";
         model.addAttribute("user", user);
@@ -83,7 +80,7 @@ public class UserController {
 
     @RequestMapping(value = "/image/{id}")
     @ResponseBody
-    public byte[] getProfileImage(@PathVariable(value = "id") int userId) throws IOException, NoSuchEntityException {
+    public byte[] getProfileImage(@PathVariable(value = "id") int userId) throws IOException {
         return storageService.getProfileImage(userId);
     }
 
@@ -169,14 +166,6 @@ public class UserController {
             return "/";
         }
         return "redirect:/users/"+id;
-    }
-
-    @RequestMapping(value = {"/received-contacts/"}, method = RequestMethod.GET)
-    public String receivedContacts(Model model){
-        UserEntity user = sessionUtils.getCurrentUser();
-        List<ContactEntity> contacts = userService.getReceivedContactRequests(user);
-        model.addAttribute("contacts", contacts);
-        return "/user/receivedContactRequests";
     }
 
     @RequestMapping(value = {"/accept-contact/{id}"}, method = RequestMethod.GET)

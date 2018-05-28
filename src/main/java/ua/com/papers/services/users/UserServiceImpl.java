@@ -266,7 +266,7 @@ public class UserServiceImpl implements IUserService {
                 result.add(c.getUserFrom());
             }
         }
-        System.out.println(result);
+        System.out.println("result " + result);
         return result;
     }
 

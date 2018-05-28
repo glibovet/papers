@@ -17,29 +17,21 @@
     <div class="site-wrapper-inner">
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
-            <c:if test="${error != null}">
-                <div class="alert-danger">
-                    <strong>Помилка! </strong> ${error}
-                </div>
-            </c:if>
+            <jsp:include page="../common/error_field.jsp"/>
             <div class="my_container">
-                <u class="nav masthead-nav my_nav">
-                    <li><a href="/users/edit">Редагувати інформацію</a></li>
-                    <li><a href="/users/contacts">Контакти</a></li>
-                    <li><a href="/users/add-contact/${user.id}">Встановити контакт</a></li>
-                </u>
+                <jsp:include page="../common/navigation.jsp"/>
                 <div class="inner cover">
 
                     <main>
 
                         <input id="tab1" type="radio" name="tabs" checked class="tab1">
-                        <label for="tab1">contacts</label>
+                        <label for="tab1">Мої контакти</label>
 
                         <input id="tab2" type="radio" name="tabs" class="tab2">
-                        <label for="tab2">Заявки в друзья</label>
+                        <label for="tab2">Запрошення</label>
 
                         <input id="tab3" type="radio" name="tabs" class="tab3">
-                        <label for="tab3">Dropbox</label>
+                        <label for="tab3">Пошук контактів</label>
 
                         <section id="content1">
                             <div id="search_result" class="search_result">
@@ -51,7 +43,7 @@
                                         <div class="info">
                                             <a href="/users/${contact.id}">${contact.name} ${contact.lastName}</a>
                                             <div class="buttons">
-                                                <button class="btn btn-danger btn-block">udalit</button>
+                                                <button class="btn btn-danger btn-block">Видалити</button>
                                             </div>
                                         </div>
                                     </div>
@@ -69,8 +61,8 @@
                                         <div class="info">
                                             <a href="/users/${contact.userFrom.id}">${contact.userFrom.name} ${contact.userFrom.lastName}</a>
                                             <div class="buttons">
-                                                <button class="btn btn-success btn-block">accept</button>
-                                                <button class="btn btn-danger btn-block">decline</button>
+                                                <button class="btn btn-success btn-block">Прийняти</button>
+                                                <button class="btn btn-danger btn-block">Відхилити</button>
                                             </div>
                                         </div>
                                     </div>
@@ -107,8 +99,7 @@
                                         <div class="info">
                                             <a href="/users/${contact.id}">${contact.name} ${contact.lastName}</a>
                                             <div class="buttons">
-                                                <button class="btn btn-success btn-block">accept</button>
-                                                <button class="btn btn-danger btn-block">decline</button>
+                                                <button class="btn btn-success btn-block">Додати в контакти</button>
                                             </div>
                                         </div>
                                     </div>

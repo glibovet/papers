@@ -8,7 +8,6 @@
 <head>
     <title>Контакти</title>
     <jsp:include page="../common/include_resources.jsp"/>
-    <script src="/resources/js/user/contacts.js"></script>
 </head>
 
 
@@ -17,20 +16,23 @@
     <div class="site-wrapper-inner">
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
-            <c:if test="${error != null}">
-                <div class="alert-danger">
-                    <strong>Помилка! </strong> ${error}
-                </div>
-            </c:if>
+            <jsp:include page="../common/error_field.jsp"/>
             <div class="my_container">
-                <u class="nav masthead-nav my_nav">
-                    <li><a href="/users/edit">Редагувати інформацію</a></li>
-                    <li><a href="/users/contacts">Контакти</a></li>
-                    <li><a href="/users/add-contact/${user.id}">Встановити контакт</a></li>
-                </u>
-                <div class="inner cover">
-
-
+                <jsp:include page="../common/navigation.jsp"/>
+                <div id="search_result" class="search_result">
+                    <c:forEach items="${chats}" var="chat">
+                        <div class="folder">
+                            <div class="user_img">
+                                <img class="user_ph" src="/users/image/99"/>
+                            </div>
+                            <div class="info">
+                                <a href="/chat/${chat.id}">${chat.name}</a>
+                                <%--<div class="buttons">--%>
+                                    <%--<button class="btn btn-danger btn-block">udalit</button>--%>
+                                <%--</div>--%>
+                            </div>
+                        </div>
+                    </c:forEach>
                 </div>
             </div>
         </div>

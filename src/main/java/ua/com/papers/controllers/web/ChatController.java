@@ -57,6 +57,7 @@ public class ChatController {
         Set<ChatEntity> chats = user.getChats();
         System.out.println(chats);
         model.addAttribute("chats", chats);
+        model.addAttribute("currentUser", user);
         return "user/allChats";
     }
 

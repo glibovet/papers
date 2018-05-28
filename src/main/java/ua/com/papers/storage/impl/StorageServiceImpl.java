@@ -214,12 +214,24 @@ public class StorageServiceImpl implements IStorageService {
     }
 
     @Override
-    public byte[] getProfileImage (int userId) throws IOException, NoSuchEntityException {
-        UserEntity user = userService.getUserById(userId);
+    public byte[] getProfileImage (int userId) throws IOException {
+        UserEntity user = null;
+        try {
+            user = userService.getUserById(userId);
+        } catch (NoSuchEntityException e) {
+            return getDefaultProfileImage();
+        }
         final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +'/' + userId + '/'+user.getPhoto());
         if(!serverFile.exists()){
-            return null;
+            return getDefaultProfileImage();
         }
+        return Files.readAllBytes(serverFile.toPath());
+    }
+
+    private byte[] getDefaultProfileImage () throws IOException {
+        System.out.println("getDefaultProfileImage");
+        final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +"/default.png");
+        System.out.println(serverFile.getAbsolutePath());
         return Files.readAllBytes(serverFile.toPath());
     }
 

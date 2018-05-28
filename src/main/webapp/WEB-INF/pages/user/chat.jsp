@@ -17,17 +17,9 @@
     <div class="site-wrapper-inner">
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
-            <c:if test="${error != null}">
-                <div class="alert-danger">
-                    <strong>Помилка! </strong> ${error}
-                </div>
-            </c:if>
+            <jsp:include page="../common/error_field.jsp"/>
             <div class="my_container">
-                <u class="nav masthead-nav my_nav">
-                    <li><a href="/users/edit">Редагувати профіль</a></li>
-                    <li><a href="/users/contacts">Контакти</a></li>
-                    <li><a href="/chat/1">Повідомлення</a></li>
-                </u>
+                <jsp:include page="../common/navigation.jsp"/>
                 <div style="width: 100%">
                     <div id = "chat" class="chat">
                         <div id = "chat_container" class="chat_container">

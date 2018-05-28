@@ -15,19 +15,11 @@
     <div class="site-wrapper-inner">
         <div class="cover-container">
             <jsp:include page="../common/header.jsp"/>
-            <c:if test="${error != null}">
-                <div class="alert-danger">
-                    <strong>Помилка! </strong> ${error}
-                </div>
-            </c:if>
+            <jsp:include page="../common/error_field.jsp"/>
             <div class="my_container">
-                <u class="nav masthead-nav my_nav">
-                    <li><a href="/users/edit">Редагувати інформацію</a></li>
-                    <li><a href="/users/contacts">Контакти</a></li>
-                    <li><a href="/users/add-contact/${user.id}">Встановити контакт</a></li>
-                </u>
+                <jsp:include page="../common/navigation.jsp"/>
                 <div class="inner cover">
-                    <h2 style="text-align: left">Додати до контактів Влад Новіков</h2>
+                    <h2 style="text-align: left">Додати до контактів</h2>
                     <form method="post" action="/users/send-request?${_csrf.parameterName}=${_csrf.token}"
                           enctype="multipart/form-data" class="textarea-fotm">
                         <textarea type="text" name="message" class="form-control"
