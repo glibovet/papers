@@ -47,6 +47,10 @@ public class UserEntity {
     @OneToMany(mappedBy="userTo", fetch=FetchType.EAGER)
     private Set<ContactEntity> receivedContactRequests;
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "user_to_chat", joinColumns = { @JoinColumn(name = "user_id") }, inverseJoinColumns = { @JoinColumn(name = "chat_id") })
+    private Set<ChatEntity> chats;
+
     @PrePersist
     protected void onCreate() {
         active = false;
@@ -132,6 +136,18 @@ public class UserEntity {
 
     public Set<ContactEntity> getReceivedContactRequests() {
         return receivedContactRequests;
+    }
+
+    public void setReceivedContactRequests(Set<ContactEntity> receivedContactRequests) {
+        this.receivedContactRequests = receivedContactRequests;
+    }
+
+    public Set<ChatEntity> getChats() {
+        return chats;
+    }
+
+    public void setChats(Set<ChatEntity> chats) {
+        this.chats = chats;
     }
 
     @Override

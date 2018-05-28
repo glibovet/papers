@@ -21,6 +21,7 @@
                 <u class="nav masthead-nav my_nav">
                     <li><a href="/users/edit">Редагувати профіль</a></li>
                     <li><a href="/users/contacts">Контакти</a></li>
+                    <li><a href="/chat/">Чати</a></li>
                     <li><a href="/chat/1">Повідомлення</a></li>
                 </u>
 

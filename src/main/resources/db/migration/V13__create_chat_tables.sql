@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `papers`.`message` (
   `chat_id` INT(11) NOT NULL,
   `text` TEXT NOT NULL,
   `date` DATETIME NOT NULL,
+  `attachment` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   INDEX `message_to_user_idx` (`user_id` ASC),
   INDEX `fk_message_to_chat_idx` (`chat_id` ASC),
@@ -77,7 +78,7 @@ CREATE TABLE `papers`.`contacts` (
   `user_to` INT(11) NOT NULL,
   `isAccepted` TINYINT(1) NOT NULL,
   `message` VARCHAR(500) NULL,
-  `attachment` VARCHAR(500) NULL,
+  `attachment` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_from_user_to_user_idx` (`user_from` ASC),
   INDEX `fk_to_user_to_user_idx` (`user_to` ASC),
@@ -91,6 +92,8 @@ CREATE TABLE `papers`.`contacts` (
   REFERENCES `papers`.`users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
+
+
 
 
 

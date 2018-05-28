@@ -5,9 +5,11 @@ import java.util.Date;
 public class MessageView {
 
     private Integer userId;
+    private String userName;
+    private String userLastName;
     private Integer chatId;
     private String text;
-    private Date date;
+    private String date;
     private String attachment;
 
     public Integer getUserId() {
@@ -34,11 +36,11 @@ public class MessageView {
         this.text = text;
     }
 
-    public Date getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
@@ -48,6 +50,22 @@ public class MessageView {
 
     public void setAttachment(String attachment) {
         this.attachment = attachment;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getUserLastName() {
+        return userLastName;
+    }
+
+    public void setUserLastName(String userLastName) {
+        this.userLastName = userLastName;
     }
 
     @Override

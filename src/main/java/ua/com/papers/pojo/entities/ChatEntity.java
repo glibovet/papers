@@ -1,7 +1,7 @@
 package ua.com.papers.pojo.entities;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "chat")
@@ -22,6 +22,9 @@ public class ChatEntity {
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_to_chat", joinColumns = { @JoinColumn(name = "chat_id") }, inverseJoinColumns = { @JoinColumn(name = "user_id") })
     private Set<UserEntity> members;
+
+    @OneToMany(mappedBy="chat", fetch=FetchType.EAGER)
+    private Set<MessageEntity> messages;
 
     public Integer getId() {
         return id;
@@ -53,5 +56,39 @@ public class ChatEntity {
 
     public void setMembers(Set<UserEntity> members) {
         this.members = members;
+    }
+
+    public java.util.List<MessageEntity> getMessages() {
+        List<MessageEntity> list = new ArrayList<>(messages);
+        Collections.sort(list);
+        return list;
+    }
+
+    public void setMessages(Set<MessageEntity> messages) {
+        this.messages = messages;
+    }
+
+    @Override
+    public String toString() {
+        return "ChatEntity{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", initiatorUser=" + initiatorUser +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChatEntity that = (ChatEntity) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id, name);
     }
 }
