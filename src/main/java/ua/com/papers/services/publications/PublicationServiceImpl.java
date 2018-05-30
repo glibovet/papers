@@ -172,6 +172,12 @@ public class PublicationServiceImpl implements IPublicationService {
 
     @Override
     @Transactional
+    public int countPublications(PublicationCriteria criteria){
+        return criteriaRepository.count(criteria);
+    }
+
+    @Override
+    @Transactional
     public void removePublicationsFromIndex() {
         publicationRepository.removePublicationsFromIndex();
     }
