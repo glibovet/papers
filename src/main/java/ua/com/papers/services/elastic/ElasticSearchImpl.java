@@ -161,6 +161,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         criteria.setOffset(0);
         List<PublicationEntity> entities = null;
         int countOfIndexed = 0;
+        log.info("---------------We are start indexing ---------");
         try {
             entities = publicationService.getPublications(criteria);
             while(entities!=null&&entities.size()>0) {
