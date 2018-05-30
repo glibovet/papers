@@ -149,6 +149,11 @@ public class ElasticSearchImpl implements IElasticSearch{
         if (!indexExist()){
             return createIndex();
         }
+        new Thread(()-> indexingAllPublications()).start();
+        return true;
+    }
+
+    private void indexingAllPublications(){
         PublicationCriteria criteria = new PublicationCriteria();
         criteria.setLimit(BATCH_INDEX_NUMBER);
         int offset = 0;
@@ -169,14 +174,13 @@ public class ElasticSearchImpl implements IElasticSearch{
                     }
                 }
                 criteria.setOffset(criteria.getOffset()+BATCH_INDEX_NUMBER);
-                log.info("We are indexing offset"+criteria.getOffset());
+                log.info("---------------We are indexing offset"+criteria.getOffset());
                 entities = publicationService.getPublications(criteria);
             }
 
-        } catch (NoSuchEntityException e) {
-            e.printStackTrace();
+        } catch (NoSuchEntityException|ForbiddenException e) {
+            log.error(e.getMessage());
         }
-        return true;
     }
 
     @Override
