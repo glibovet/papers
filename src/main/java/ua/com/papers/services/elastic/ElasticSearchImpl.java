@@ -156,11 +156,11 @@ public class ElasticSearchImpl implements IElasticSearch{
     private void indexingAllPublications(){
         PublicationCriteria criteria = new PublicationCriteria();
         criteria.setLimit(BATCH_INDEX_NUMBER);
-        int offset = 0;
         criteria.setIn_index(false);
         criteria.setStatus(PublicationStatusEnum.ACTIVE);
-        criteria.setOffset(offset);
+        criteria.setOffset(0);
         List<PublicationEntity> entities = null;
+        int countOfIndexed = 0;
         try {
             entities = publicationService.getPublications(criteria);
             while(entities!=null&&entities.size()>0) {
@@ -168,13 +168,14 @@ public class ElasticSearchImpl implements IElasticSearch{
                     try {
                         if (!entity.isInIndex() && entity.getFileLink() != null) {
                             indexPublication(entity);
+                            countOfIndexed++;
                         }
                     } catch (ValidationException | NoSuchEntityException | ServiceErrorException | PublicationWithoutFileException e) {
                         // nothing to do
                     }
                 }
-                criteria.setOffset(criteria.getOffset()+BATCH_INDEX_NUMBER);
-                log.info("---------------We are indexing offset"+criteria.getOffset());
+                if (countOfIndexed%100!=0)
+                    log.info("---------------We are indexed "+countOfIndexed);
                 entities = publicationService.getPublications(criteria);
             }
 
