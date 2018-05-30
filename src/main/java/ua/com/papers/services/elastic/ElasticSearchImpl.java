@@ -172,7 +172,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                             countOfIndexed++;
                         }
                     } catch (ValidationException | NoSuchEntityException | ServiceErrorException | PublicationWithoutFileException e) {
-                        // nothing to do
+                        log.error(e.getMessage());
                     }
                 }
                 if (countOfIndexed%100!=0)
