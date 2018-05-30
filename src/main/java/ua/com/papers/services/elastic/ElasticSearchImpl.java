@@ -37,6 +37,7 @@ import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.RolesEnum;
+import ua.com.papers.pojo.enums.UploadStatus;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.utils.SessionUtils;
 import ua.com.papers.storage.IStorageService;
@@ -159,6 +160,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         criteria.setIn_index(false);
         criteria.setStatus(PublicationStatusEnum.ACTIVE);
         criteria.setOffset(0);
+        criteria.setUpload_status(UploadStatus.UPLOADED);
         List<PublicationEntity> entities = null;
         int countOfIndexed = 0;
         log.info("---------------We are start indexing ---------");
@@ -171,7 +173,14 @@ public class ElasticSearchImpl implements IElasticSearch{
                             indexPublication(entity);
                             countOfIndexed++;
                         }
-                    } catch (ValidationException | NoSuchEntityException | ServiceErrorException | PublicationWithoutFileException e) {
+                    }catch (PublicationWithoutFileException e){
+                        try {
+                            entity.setUploadStatus(UploadStatus.FAILED);
+                            publicationService.updatePublication(entity);
+                        } catch (ServiceErrorException |ValidationException  e1) {
+                            log.error(e.getMessage());
+                        }
+                    } catch (ValidationException | NoSuchEntityException | ServiceErrorException e) {
                         log.error(e.getMessage());
                     }
                 }
