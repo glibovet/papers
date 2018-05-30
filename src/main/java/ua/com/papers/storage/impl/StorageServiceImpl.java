@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.crawler.core.main.util.UrlUtils;
 import ua.com.papers.crawler.util.Preconditions;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.not_found.PublicationWithoutFileException;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.StorageException;
@@ -172,12 +173,12 @@ public class StorageServiceImpl implements IStorageService {
     }
 
     @Override
-    public byte[] getPaperAsByteArray(Integer paperId) throws NoSuchEntityException, ServiceErrorException, ForbiddenException {
+    public byte[] getPaperAsByteArray(Integer paperId) throws NoSuchEntityException, ServiceErrorException, ForbiddenException, PublicationWithoutFileException {
         PublicationEntity entity = publicationService.getPublicationById(paperId);
         return getPaperAsByteArray(entity);
     }
 
-    public byte[] getPaperAsByteArray(PublicationEntity publication) throws ServiceErrorException, ForbiddenException, NoSuchEntityException {
+    public byte[] getPaperAsByteArray(PublicationEntity publication) throws ServiceErrorException, ForbiddenException, PublicationWithoutFileException {
         if (publication == null)
             throw new ServiceErrorException();
         if (!publicationValidateService.isPublicationAvailable(publication))
@@ -185,11 +186,11 @@ public class StorageServiceImpl implements IStorageService {
 
         File publicationFolder = new File(ROOT_DIR + PUBLICATIONS_FOLDER + '/' + publication.getId());
         if (!publicationFolder.exists())
-            throw new NoSuchEntityException("publication", "id: " + publication.getId());
+            throw new PublicationWithoutFileException();
 
         File publicationFile = fileByPartName(publicationFolder, publication.getId() + "");
         if (publicationFile == null) {
-            throw new NoSuchEntityException("publication", "no file for publication with id: " + publication.getId());
+            throw new PublicationWithoutFileException();
         }
 
         try {
