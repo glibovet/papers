@@ -18,11 +18,14 @@ import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.highlight.HighlightBuilder;
 import org.elasticsearch.search.highlight.HighlightField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ua.com.papers.criteria.impl.PublicationCriteria;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.not_found.PublicationWithoutFileException;
 import ua.com.papers.exceptions.service_error.ElasticSearchException;
@@ -32,6 +35,7 @@ import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.dto.search.PublicationDTO;
 import ua.com.papers.pojo.entities.AuthorMasterEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
+import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.utils.SessionUtils;
@@ -53,6 +57,8 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
  */
 @Service
 public class ElasticSearchImpl implements IElasticSearch{
+
+    private static final Logger log = LoggerFactory.getLogger(ElasticSearchImpl.class);
 
     private Client client;
 
@@ -143,18 +149,33 @@ public class ElasticSearchImpl implements IElasticSearch{
         if (!indexExist()){
             return createIndex();
         }
-
-        List<PublicationEntity> entities = publicationService.getAllPublications();
-        for (PublicationEntity entity : entities) {
-            try {
-                if (!entity.isInIndex() && entity.getFileLink() != null) {
-                    indexPublication(entity);
+        PublicationCriteria criteria = new PublicationCriteria();
+        criteria.setLimit(BATCH_INDEX_NUMBER);
+        int offset = 0;
+        criteria.setIn_index(false);
+        criteria.setStatus(PublicationStatusEnum.ACTIVE);
+        criteria.setOffset(offset);
+        List<PublicationEntity> entities = null;
+        try {
+            entities = publicationService.getPublications(criteria);
+            while(entities!=null&&entities.size()>0) {
+                for (PublicationEntity entity : entities) {
+                    try {
+                        if (!entity.isInIndex() && entity.getFileLink() != null) {
+                            indexPublication(entity);
+                        }
+                    } catch (ValidationException | NoSuchEntityException | ServiceErrorException | PublicationWithoutFileException e) {
+                        // nothing to do
+                    }
                 }
-            } catch (ValidationException | NoSuchEntityException | ServiceErrorException | PublicationWithoutFileException e) {
-                // nothing to do
+                criteria.setOffset(criteria.getOffset()+BATCH_INDEX_NUMBER);
+                log.info("We are indexing offset"+criteria.getOffset());
+                entities = publicationService.getPublications(criteria);
             }
-        }
 
+        } catch (NoSuchEntityException e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
@@ -375,4 +396,6 @@ public class ElasticSearchImpl implements IElasticSearch{
     private String papersType;
 
     private final HighlightBuilder DEFAULT_HIGHLIGHTER;
+
+    private static final int BATCH_INDEX_NUMBER = 25;
 }

@@ -75,7 +75,7 @@
     <servlet-name>mvc-dispatcher</servlet-name>
     <url-pattern>/</url-pattern>
   </servlet-mapping>
-
+<!--
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>HTTPSOnly</web-resource-name>
@@ -96,5 +96,5 @@
       <transport-guarantee>NONE</transport-guarantee>
     </user-data-constraint>
   </security-constraint>
-
+-->
 </web-app>

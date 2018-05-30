@@ -37,6 +37,7 @@ public interface IPublicationService {
     int updatePublication(PublicationEntity view) throws ServiceErrorException, ValidationException;
 
     int countPublications(String restriction) throws WrongRestrictionException;
+    int countPublications(PublicationCriteria criteria);
 
     void removePublicationsFromIndex();
 
