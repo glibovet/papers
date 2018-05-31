@@ -37,34 +37,39 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
     @Autowired
     private IPublicationService publicationService;
 
-//    public void generateMain() {
-//        // 1. Prepare documents collection: Create document with publication id, text and list of words.
-//        List<Document> documents = documentsProcessingService.prepareDocumentsCollection();
-//
-//        // 2. Calculate tf-idf for every word in every document.
-//        this.tfIdfService.calculateTfIdfForDocuments(documents);
-//
-//        // 3. Sort tf-idf list by value in every document
-//        for(Document document : documents) {
-//            Collections.sort(document.getTfIdfItems());
-//        }
-//
-//        // 4. Create dictionary - dictionary can be created only after all key words for documents have been fined
-//        HashSet<String> dictionary = new HashSet<>();
-//        for(Document document : documents) {
-//            for (int i=0; i< 15; i++) {
-//                dictionary.add(document.getTfIdfItems().get(i).getWord());
-//            }
-//        }
-//
-//        // 5. Delete previous Cosine similarity calculations
-//        publicationsCosineSimilarityService.deleteAll();
-//
-//        // 6. Calculate cosine similarity between all pairs of documents and save into db
-//        this.cosineSimilarityService.processDocuments(documents, dictionary);
-//    }
-
     public void generate() {
+        // 1. Prepare documents collection: Create document with publication id, text and list of words.
+        List<Document> documents = documentsProcessingService.prepareDocumentsCollection();
+
+        // 2. Calculate tf-idf for every word in every document.
+        this.tfIdfService.calculateTfIdfForDocuments(documents);
+
+        // 3. Sort tf-idf list by value in desc order in every document
+        for(Document document : documents) {
+            Collections.sort(document.getTfIdfItems());
+            Collections.reverse(document.getTfIdfItems());
+        }
+
+        // 4. Create dictionary - dictionary can be created only after all key words for documents have been fined
+        HashSet<String> dictionary = new HashSet<>();
+        for(Document document : documents) {
+            int numberOfItems = 15;
+            if(document.getTfIdfItems().size() < 15) {
+                numberOfItems = document.getTfIdfItems().size();
+            }
+            for (int i=0; i< numberOfItems; i++) {
+                dictionary.add(document.getTfIdfItems().get(i).getWord());
+            }
+        }
+
+        // 5. Delete previous Cosine similarity calculations
+        publicationsCosineSimilarityService.deleteAll();
+
+        // 6. Calculate cosine similarity between all pairs of documents and save into db
+        this.cosineSimilarityService.processDocuments(documents, dictionary);
+    }
+
+    public void generateWithTime() {
         try {
             FileWriter fw = new FileWriter("C:/dev/logs.txt");
             BufferedWriter bw = new BufferedWriter(fw);
@@ -85,6 +90,7 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
             // 3. Sort tf-idf list by value in every document
             for(Document document : documents) {
                 Collections.sort(document.getTfIdfItems());
+                Collections.reverse(document.getTfIdfItems());
             }
             estimatedTime = System.currentTimeMillis() - startTime;
             bw.write("3. SORTING TF-IDF COLLECTION TAKES: " + estimatedTime + "; ");

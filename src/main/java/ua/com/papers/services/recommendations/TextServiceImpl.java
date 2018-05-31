@@ -19,22 +19,6 @@ public class TextServiceImpl implements ITextService{
     @Autowired
     private IUkrainianStemmer stemmer;
 
-    @Autowired
-    private IStopWordsDictionaryService stopWordsDictionaryService;
-
-    /**
-     * @param document
-     * @return String
-     * @throws IOException
-     */
-    private String getText(PDDocument document) throws IOException {
-        PDFTextStripper pdfStripper = new PDFTextStripper();
-        String text = pdfStripper.getText(document);
-        document.close();
-
-        return text;
-    }
-
     /**
      * @param word
      * @return String
@@ -55,7 +39,7 @@ public class TextServiceImpl implements ITextService{
      * @param text
      * @return List<String>
      */
-    public List<String> breakTextIntoUniGramsAndBiGrams(String text) {
+    public List<String> breakTextIntoUniGramsAndBiGrams(String text, HashSet<String> stopWords) {
         // LinkedHashSet
         List<String> words = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer(text);
@@ -64,9 +48,9 @@ public class TextServiceImpl implements ITextService{
             String temp = this.getStemmed(this.normalizeString(st.nextToken()));
             while (st.hasMoreTokens()) {
                 String word = this.getStemmed(this.normalizeString(st.nextToken()));
-                if (temp.length() > 2 && !this.stopWordsDictionaryService.wordExistsInDictionary(temp)) {
+                if (temp.length() > 2 && !stopWords.contains(word)) {
                     words.add(temp);
-                    if (word.length() > 2 && !this.stopWordsDictionaryService.wordExistsInDictionary(word)) {
+                    if (word.length() > 2 && !stopWords.contains(word)) {
                         words.add(temp + " " + word);
                     }
                 }
@@ -77,36 +61,28 @@ public class TextServiceImpl implements ITextService{
         return words;
     }
 
-    /**
-     *
-     * @param text
-     * @return List<String>
-     */
-    public List<String> breakTextIntoTokens(String text, HashSet<String> stopWords) {
-        List<String> words = new ArrayList<String>();
-        StringTokenizer st = new StringTokenizer(text);
-        while (st.hasMoreTokens()) {
-            try {
-                String word = this.getStemmed(this.normalizeString(st.nextToken()));
-                if (word.length() > 2 && !stopWords.contains(word)) {
-                    words.add(word);
-                }
-            }
-            // Unexpected error happens in stemmer
-            catch(StringIndexOutOfBoundsException e){
-
-            }
-        }
-
-        return words;
-    }
-
-    public HashSet<String> getUniqueTokens(List<String> words) {
-        HashSet<String> set = new HashSet<>();
-        for(String s : words) {
-            set.add(s);
-        }
-        return set;
-    }
+//    /**
+//     *
+//     * @param text
+//     * @return List<String>
+//     */
+//    public List<String> breakTextIntoTokens(String text, HashSet<String> stopWords) {
+//        List<String> words = new ArrayList<String>();
+//        StringTokenizer st = new StringTokenizer(text);
+//        while (st.hasMoreTokens()) {
+//            try {
+//                String word = this.getStemmed(this.normalizeString(st.nextToken()));
+//                if (word.length() > 2 && !stopWords.contains(word)) {
+//                    words.add(word);
+//                }
+//            }
+//            // Unexpected error happens in stemmer
+//            catch(StringIndexOutOfBoundsException e){
+//
+//            }
+//        }
+//
+//        return words;
+//    }
 
 }

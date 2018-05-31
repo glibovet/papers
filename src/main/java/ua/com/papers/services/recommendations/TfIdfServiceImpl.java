@@ -38,9 +38,16 @@ public class TfIdfServiceImpl implements ITfIdfService {
 
     public void calculateTfIdfForDocuments(List<Document> documents) {
         for (Document document : documents) {
+            // temp: for checking existance
+            HashSet<String> hs = new HashSet<>();
             List<String> words = document.getWords();
             for (String s : words) {
-                document.addTfIdfItem(new TfIdfItem(s, this.calculateTfIdfForWord(documents, words, s)));
+                Double val = this.calculateTfIdfForWord(documents, words, s);
+                String key = s+"val";
+                if(!hs.contains(key)) {
+                    hs.add(key);
+                    document.addTfIdfItem(new TfIdfItem(s, val));
+                }
             }
         }
 

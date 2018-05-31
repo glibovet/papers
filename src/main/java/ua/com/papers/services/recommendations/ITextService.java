@@ -7,6 +7,5 @@ import java.util.HashSet;
 import java.util.List;
 
 public interface ITextService {
-    List<String> breakTextIntoUniGramsAndBiGrams(String text);
-    List<String> breakTextIntoTokens(String text,HashSet<String> stopWords);
+    List<String> breakTextIntoUniGramsAndBiGrams(String text, HashSet<String> stopWords);
 }

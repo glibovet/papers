@@ -46,14 +46,17 @@ public class DocumentsProcessingServiceImpl implements IDocumentsProcessingServi
         List<PublicationDTO> publications = elasticSearch.getAllPublications();
         HashSet<String> stopWords = stopWordsDictionaryService.getWords();
         for(PublicationDTO item : publications) {
-            Integer publicationId = item.getId();
-            PublicationEntity publication = publicationRepository.findOne(publicationId);
-            if (publication != null) {
-                String text = item.getBody();
-                List<String> words = this.textService.breakTextIntoTokens(text, stopWords);
-                HashSet<String> uniqueWords = new HashSet<>();
-                uniqueWords.addAll(words);
-                list.add(new Document(publication, text, words, uniqueWords));
+            if((item.getLink().substring(0,21)).equals("http://nz.ukma.edu.ua")) {
+                Integer publicationId = item.getId();
+                PublicationEntity publication = publicationRepository.findOne(publicationId);
+                if (publication != null) {
+                    String text = item.getBody();
+//                List<String> words = this.textService.breakTextIntoTokens(text, stopWords);
+                    List<String> words = this.textService.breakTextIntoUniGramsAndBiGrams(text, stopWords);
+                    HashSet<String> uniqueWords = new HashSet<>();
+                    uniqueWords.addAll(words);
+                    list.add(new Document(publication, text, words, uniqueWords));
+                }
             }
         }
 

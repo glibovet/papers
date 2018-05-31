@@ -67,7 +67,7 @@
                                 <h4>${item.title}</h4>
                                 <p>
                                     Автор(и):
-                                    <c:forEach var="author" items="${publication.authors}">
+                                    <c:forEach var="author" items="${item.authors}">
                                         ${author.lastName} ${author.initials}
                                     </c:forEach>
                                 </p>

@@ -56,10 +56,10 @@ public class Document {
     }
 
     public Double findTfIdfValue(String word) {
-//      I need subList of 10 elements because dictionary contains 10 words from every document,
+//      I need subList of 15 elements because dictionary contains 15 words from every document,
 //      but this.getTfIdfItems() contains all words.
-        int numberOfWords = 10;
-        if(this.words.size() < 10) {
+        int numberOfWords = 15;
+        if(this.words.size() < 15) {
             numberOfWords = this.words.size();
         }
         for(TfIdfItem item : this.getTfIdfItems().subList(0, numberOfWords)) {
