@@ -76,7 +76,7 @@ INSERT INTO `papers`.`permissions` (`name`) VALUES ('ROLE_SCIENTIST');
 
 INSERT INTO `papers`.`role_permissions` (`role_id`, `permission_id`) VALUES (4,1);
 INSERT INTO `papers`.`role_permissions` (`role_id`, `permission_id`) VALUES (5,1);
-INSERT INTO `papers`.`role_permissions` (`role_id`, `permission_id`) VALUES (5,2);
+INSERT INTO `papers`.`role_permissions` (`role_id`, `permission_id`) VALUES (5,4);
 
 CREATE TABLE `papers`.`contacts` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,

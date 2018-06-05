@@ -49,7 +49,9 @@
 
                 <div class="my_content">
                     <h2 class="user_name">${user.name} ${user.lastName}</h2>
-                    <c:if test="${currentUser.id == user.id || currentUser.roleEntity.name == 'scientist' || (contact != null && contact.accepted)}">
+                    <c:if test="${currentUser.id == user.id ||
+                                    currentUser.roleEntity.name == 'scientist' ||
+                                    (contact != null && contact.accepted)}">
                         <p class="user_email">${user.email}</p>
                     </c:if>
                     <p class="user_descr">

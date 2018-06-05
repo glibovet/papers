@@ -75,14 +75,14 @@
                             <spring:form method="post" modelAttribute="searchUsersView" action="/users/contacts">
                                 <div class="col-md-4 form-group">
                                     <label>
-                                        <spring:input path="lastName" type="text" class="form-control"
-                                                      placeholder="Прізвище" value="${searchUsersView.lastName}"/>
+                                        <spring:input path="name" type="text" class="form-control" placeholder="Ім'я"
+                                                      value="${searchUsersView.name}"/>
                                     </label>
                                 </div>
                                 <div class="col-md-4 form-group">
                                     <label>
-                                        <spring:input path="name" type="text" class="form-control" placeholder="Ім'я"
-                                                      value="${searchUsersView.name}"/>
+                                        <spring:input path="lastName" type="text" class="form-control"
+                                                      placeholder="Прізвище" value="${searchUsersView.lastName}"/>
                                     </label>
                                 </div>
                                 <div class="col-md-4 form-group">
