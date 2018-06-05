@@ -31,18 +31,39 @@
                         </c:if>
                         <c:if test="${contact != null}">
                             <c:if test="${contact.accepted}">
-                                <li><a href="/users/delete-contact/${user.id}">Видалити контакт</a></li>
+                                <form id="delete-contact" action="/users/delete-contact" method="post" class="nav masthead-nav my_nav">
+                                    <input type="hidden" name="contactId" value="${contact.id}" />
+                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                    <li><a href="#" onclick="document.getElementById('delete-contact').submit();">Видалити контакт</a></li>
+                                </form>
                             </c:if>
                             <c:if test="${!contact.accepted && contact.userFrom.id == currentUserId}">
-                                <li><a href="/users/delete-contact/${user.id}">Відмінити запрошення</a></li>
+                                <form id="delete-contact" action="/users/delete-contact" method="post" class="nav masthead-nav my_nav">
+                                    <input type="hidden" name="contactId" value="${contact.id}" />
+                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                    <li><a href="#" onclick="document.getElementById('delete-contact').submit();">Відмінити запрошення</a></li>
+                                </form>
                             </c:if>
                             <c:if test="${!contact.accepted && contact.userTo.id == currentUserId}">
-                                <li><a href="/users/accept-contact/${contact.id}">Прийняти запрошення</a></li>
-                                <li><a href="/users/delete-contact/${contact.id}">Відхилити запрошення</a></li>
+                                <form id="accept-contact" action="/users/accept-contact" method="post" class="nav masthead-nav my_nav">
+                                    <input type="hidden" name="contactId" value="${contact.id}" />
+                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                    <li><a href="#" onclick="document.getElementById('accept-contact').submit();">Прийняти запрошення</a></li>
+                                </form>
+                                <form id="reject-contact" action="/users/delete-contact" method="post" class="nav masthead-nav my_nav">
+                                    <input type="hidden" name="contactId" value="${contact.id}" />
+                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                    <li><a href="#" onclick="document.getElementById('reject-contact').submit();">Відхилити запрошення</a></li>
+                                </form>
                             </c:if>
                         </c:if>
                         <c:if test="${user.id != currentUserId && contact == null}">
-                            <li><a href="/users/add-contact/${user.id}">Встановити контакт</a></li>
+                            <form id="add-contact" action="/users/add-contact" method="post" class="nav masthead-nav my_nav">
+                                <input type="hidden" name="userId" value="${user.id}" />
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                <li><a href="#" onclick="document.getElementById('add-contact').submit();">Встановити контакт</a></li>
+                            </form>
+
                         </c:if>
                     </u>
                 </div>

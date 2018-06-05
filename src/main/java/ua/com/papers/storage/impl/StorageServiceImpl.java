@@ -216,7 +216,7 @@ public class StorageServiceImpl implements IStorageService {
         if(!fileContainer.exists()) {
             fileContainer.mkdirs();
         }
-        String fileName = contact.getId() + "." + FilenameUtils.getExtension(file.getOriginalFilename());
+        String fileName = FilenameUtils.getBaseName(file.getOriginalFilename())+ "." + FilenameUtils.getExtension(file.getOriginalFilename());
         final File serverFile = new File(fileContainer.getAbsolutePath() + '/' + fileName);
         copyFile(file, serverFile);
         contact.setAttachment(fileName);

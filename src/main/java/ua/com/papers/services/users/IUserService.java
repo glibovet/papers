@@ -53,7 +53,7 @@ public interface IUserService {
 
     ContactEntity update(ContactEntity contact);
 
-    void deleteContact(UserEntity userFrom, UserEntity userTo);
+    void deleteContact(ContactEntity contact);
 
     ContactEntity getContactByUsers(UserEntity userFrom, UserEntity userTo);
 

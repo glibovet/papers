@@ -14,6 +14,7 @@ import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.ContactEntity;
 import ua.com.papers.pojo.entities.UserEntity;
+import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.view.SearchUsersView;
 import ua.com.papers.pojo.view.UserView;
 import ua.com.papers.services.users.IUserService;
@@ -128,15 +129,10 @@ public class UserController {
         return "user/contacts";
     }
 
-    @RequestMapping(value = {"/add-contact/{id}"}, method = RequestMethod.GET)
-    public String addContact(@PathVariable int id, Model model){
-        try {
-            UserEntity user = userService.getUserById(id);
-            model.addAttribute("user", user);
-        } catch (NoSuchEntityException e) {
-            // return to 404
-            return "/";
-        }
+    @RequestMapping(value = {"/add-contact"}, method = RequestMethod.POST)
+    public String addContact(@RequestParam(value = "userId") int userId, Model model) throws NoSuchEntityException {
+        UserEntity user = userService.getUserById(userId);
+        model.addAttribute("user", user);
         return "user/addContact";
     }
 
@@ -150,6 +146,14 @@ public class UserController {
         System.out.println(attachment.getOriginalFilename());
         UserEntity currentUser = sessionUtils.getCurrentUser();
         UserEntity user = userService.getUserById(id);
+        if(currentUser.getRoleEntity().getName().equals(RolesEnum.student) &&
+                user.getRoleEntity().getName().equals(RolesEnum.scientist) &&
+                attachment.isEmpty()){
+            model.addAttribute("error", "Ви маєте додати документ");
+            model.addAttribute("user", user);
+            model.addAttribute("message", message);
+            return "user/addContact";
+        }
         if(userService.isConnected(sessionUtils.getCurrentUser().getId(), id) ){
             return "redirect:/users/"+id;
         }
@@ -158,24 +162,19 @@ public class UserController {
         return "redirect:/users/"+id;
     }
 
-    @RequestMapping(value = {"/delete-contact/{id}"}, method = RequestMethod.GET)
-    public String deleteContact(@PathVariable int id, Model model){
-        try {
-            UserEntity user = userService.getUserById(id);
-            userService.deleteContact(sessionUtils.getCurrentUser(), user);
-        } catch (NoSuchEntityException e) {
-            // return to 404
-            return "/";
-        }
-        return "redirect:/users/"+id;
+    @RequestMapping(value = {"/delete-contact"}, method = RequestMethod.POST)
+    public String deleteContact(@RequestParam(value = "contactId") int contactId, Model model) throws NoSuchEntityException {
+        ContactEntity contact = userService.getContactById(contactId);
+        userService.deleteContact(contact);
+        return "redirect:/users/"+contact.getUserFrom().getId();
     }
 
-    @RequestMapping(value = {"/accept-contact/{id}"}, method = RequestMethod.GET)
-    public String acceptContact(@PathVariable int id, Model model){
+    @RequestMapping(value = {"/accept-contact"}, method = RequestMethod.POST)
+    public String acceptContact(@RequestParam(value = "contactId") int contactId, Model model){
         UserEntity user = sessionUtils.getCurrentUser();
-        ContactEntity contact = userService.getContactById(id);
+        ContactEntity contact = userService.getContactById(contactId);
         if(contact == null || user.getId() != contact.getUserTo().getId()){
-            return "redirect:/users/"+id;
+            return "redirect:/users/"+user.getId();
         }
         userService.acceptContactRequest(contact);
         return "redirect:/users/"+contact.getUserFrom().getId();

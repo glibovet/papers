@@ -305,10 +305,8 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public void deleteContact(UserEntity userFrom, UserEntity userTo) {
-        ContactEntity contact = contactsRepository.findByUserFromAndUserTo(userFrom, userTo);
-        if(contact == null) contact = contactsRepository.findByUserFromAndUserTo(userTo, userFrom);
-        System.out.println("deleteContact "+contact);
+    public void deleteContact(ContactEntity contact) {
+        if(contact == null) return;
         contactsRepository.delete(contact);
     }
 
