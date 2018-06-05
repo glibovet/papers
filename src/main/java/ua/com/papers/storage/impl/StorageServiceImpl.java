@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.crawler.core.main.util.UrlUtils;
 import ua.com.papers.crawler.util.Preconditions;
@@ -33,6 +34,7 @@ import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.util.Optional;
 
@@ -193,8 +195,17 @@ public class StorageServiceImpl implements IStorageService {
     }
 
     @Override
-    public File getContactRequestAttachment (ContactEntity contact) throws IOException {
-        return new File(ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER +'/' + contact.getId() + '/'+contact.getAttachment());
+    public void getContactRequestAttachment (HttpServletResponse response, ContactEntity contact) throws IOException {
+        File file = new File(ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER +'/' + contact.getId() + '/'+contact.getAttachment());
+        String mimeType= URLConnection.guessContentTypeFromName(file.getName());
+        if(mimeType==null){
+            mimeType = "application/octet-stream";
+        }
+        System.out.println("mimetype : "+mimeType);
+        response.setHeader("Content-Disposition", String.format("inline; filename=\"" + file.getName() +"\""));
+        response.setContentLength((int)file.length());
+        InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+        FileCopyUtils.copy(inputStream, response.getOutputStream());
     }
 
     @Override
@@ -230,7 +241,7 @@ public class StorageServiceImpl implements IStorageService {
 
     private byte[] getDefaultProfileImage () throws IOException {
         System.out.println("getDefaultProfileImage");
-        final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +"/default.png");
+        final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +"/default.jpg");
         System.out.println(serverFile.getAbsolutePath());
         return Files.readAllBytes(serverFile.toPath());
     }

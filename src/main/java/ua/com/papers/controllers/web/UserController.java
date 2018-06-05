@@ -2,6 +2,7 @@ package ua.com.papers.controllers.web;
 
 import org.elasticsearch.index.mapper.SourceToParse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
@@ -43,6 +44,7 @@ public class UserController {
             UserEntity currentUser = sessionUtils.getCurrentUser();
             UserEntity user = userService.getUserById(id);
             model.addAttribute("user", user);
+            model.addAttribute("currentUser", currentUser);
             ContactEntity contact = userService.getContactByUsers(currentUser, user);
             model.addAttribute("contact", contact);
         } catch (NoSuchEntityException e) {
@@ -182,23 +184,14 @@ public class UserController {
     @RequestMapping(value = "/attachment/{id}")
     @ResponseBody
     public void getContactRequestAttachment(HttpServletResponse response,
-                                            @PathVariable(value = "id") int contactId) throws IOException, NoSuchEntityException {
+                                            @PathVariable(value = "id") int contactId) throws IOException {
         ContactEntity contact = userService.getContactById(contactId);
         UserEntity user = sessionUtils.getCurrentUser();
         if(contact == null ||
                 (contact.getUserTo().getId() != user.getId() && contact.getUserFrom().getId() != user.getId())){
             return;
         }
-        File file =  storageService.getContactRequestAttachment(contact);
-        String mimeType= URLConnection.guessContentTypeFromName(file.getName());
-        if(mimeType==null){
-            mimeType = "application/octet-stream";
-        }
-        System.out.println("mimetype : "+mimeType);
-        response.setHeader("Content-Disposition", String.format("inline; filename=\"" + file.getName() +"\""));
-        response.setContentLength((int)file.length());
-        InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-        FileCopyUtils.copy(inputStream, response.getOutputStream());
+        storageService.getContactRequestAttachment(response, contact);
     }
 
 }

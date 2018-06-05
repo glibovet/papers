@@ -40,5 +40,5 @@ public interface IStorageService {
 
     boolean uploadAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException;
 
-    File getContactRequestAttachment (ContactEntity contact) throws IOException;
+    void getContactRequestAttachment (HttpServletResponse response, ContactEntity contact) throws IOException;
 }

@@ -25,6 +25,10 @@
                         <c:set var="currentUserId">
                             <security:authentication property="principal.id"/>
                         </c:set>
+                        <c:if test="${(currentUser.id != user.id && currentUser.roleEntity.name == 'scientist') ||
+                        (contact != null && contact.accepted)}">
+                            <li><a href="/chat/message/${user.id}">Написати повідомлення</a></li>
+                        </c:if>
                         <c:if test="${contact != null}">
                             <c:if test="${contact.accepted}">
                                 <li><a href="/users/delete-contact/${user.id}">Видалити контакт</a></li>
@@ -45,7 +49,9 @@
 
                 <div class="my_content">
                     <h2 class="user_name">${user.name} ${user.lastName}</h2>
-                    <p class="user_email">${user.email}</p>
+                    <c:if test="${currentUser.id == user.id || currentUser.roleEntity.name == 'scientist' || (contact != null && contact.accepted)}">
+                        <p class="user_email">${user.email}</p>
+                    </c:if>
                     <p class="user_descr">
                         <c:if test="${user.roleEntity.name == 'student'}">
                             Студент

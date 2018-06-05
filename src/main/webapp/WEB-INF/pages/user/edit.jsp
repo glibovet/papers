@@ -48,14 +48,16 @@
                         <label>
                             <span>Я</span>
                             <spring:select class="form-control" path="role">
-                                <c:if test="${user.roleEntity.name == 'student'}" >
-                                    <spring:option selected="true" value="student">студент</spring:option>
-                                    <spring:option value="scientist">науковець</spring:option>
-                                </c:if>
-                                <c:if test="${user.roleEntity.name == 'scientist'}" >
-                                    <spring:option value="student">студент</spring:option>
-                                    <spring:option selected="true" value="scientist">науковець</spring:option>
-                                </c:if>
+                                <c:choose>
+                                    <c:when test="${user.roleEntity.name == 'scientist'}">
+                                        <spring:option value="student">студент</spring:option>
+                                        <spring:option selected="true" value="scientist">науковець</spring:option>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <spring:option selected="true" value="student">студент</spring:option>
+                                        <spring:option value="scientist">науковець</spring:option>
+                                    </c:otherwise>
+                                </c:choose>
                             </spring:select>
                         </label>
 

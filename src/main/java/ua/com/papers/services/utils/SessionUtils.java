@@ -76,13 +76,7 @@ public class SessionUtils {
     }};
 
     public void logeInUser(UserEntity entity) {
-        UserEntity user = usersRepository.findByEmail(entity.getEmail());
-        boolean enabled = true;
-        if (!user.isActive())
-            enabled = false;
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(),
-                enabled, true, true, true, getGrantedAuthorities(user));
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        Authentication auth = new UsernamePasswordAuthenticationToken(entity, entity.getPassword(), getGrantedAuthorities(entity));
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
