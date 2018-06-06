@@ -2,6 +2,7 @@ package ua.com.papers.storage.impl;
 
 import lombok.SneakyThrows;
 import lombok.val;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,9 +193,8 @@ public class StorageServiceImpl implements IStorageService {
         return true;
     }
 
-    @Override
-    public void getContactRequestAttachment (HttpServletResponse response, ContactEntity contact) throws IOException {
-        File file = new File(ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER +'/' + contact.getId() + '/'+contact.getAttachment());
+    private void getAttachment (HttpServletResponse response, int entityId, String attachmentName, String folder) throws IOException {
+        File file = new File(ROOT_DIR + folder +'/' + entityId + '/'+attachmentName);
         String mimeType= URLConnection.guessContentTypeFromName(file.getName());
         if(mimeType==null){
             System.out.println("mimetype is not detectable, will take default");
@@ -206,6 +206,16 @@ public class StorageServiceImpl implements IStorageService {
         response.setContentLength((int)file.length());
         InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
         FileCopyUtils.copy(inputStream, response.getOutputStream());
+    }
+
+    @Override
+    public void getMessageAttachment(HttpServletResponse response, MessageEntity message) throws IOException {
+        getAttachment(response, message.getId(), message.getAttachment(), MESSAGES_ATTACHMENTS_FOLDER);
+    }
+
+    @Override
+    public void getContactAttachment(HttpServletResponse response, ContactEntity contact) throws IOException {
+        getAttachment(response, contact.getId(), contact.getAttachment(), CONTACT_REQUESTS_ATTACHMENTS_FOLDER);
     }
 
     @Override
@@ -235,6 +245,18 @@ public class StorageServiceImpl implements IStorageService {
         String fileName = FilenameUtils.getName(file.getOriginalFilename());
         final File serverFile = new File(fileContainer.getAbsolutePath() + '/' + fileName);
         copyFile(file, serverFile);
+    }
+
+    public void moveContactAttachmentToMessage(MessageEntity message, ContactEntity contact) throws IOException {
+        File from = new File(ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER +'/' + contact.getId() + '/'+contact.getAttachment());
+        File fileContainer = new File(ROOT_DIR + MESSAGES_ATTACHMENTS_FOLDER + '/' + message.getId());
+        if(!fileContainer.exists()) {
+            fileContainer.mkdirs();
+        }
+        FileUtils.copyFileToDirectory(from, fileContainer);
+        message.setAttachment(contact.getAttachment());
+        chatService.update(message);
+        FileUtils.deleteDirectory(from.getParentFile());
     }
 
     @Override

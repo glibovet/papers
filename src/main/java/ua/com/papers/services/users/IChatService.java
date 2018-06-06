@@ -3,6 +3,7 @@ package ua.com.papers.services.users;
 import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.pojo.entities.ChatEntity;
+import ua.com.papers.pojo.entities.ContactEntity;
 import ua.com.papers.pojo.entities.MessageEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.pojo.view.MessageView;
@@ -22,4 +23,8 @@ public interface IChatService {
     MessageEntity createMessage (ChatEntity chat, UserEntity user, String text, MultipartFile attachment) throws IOException, ServiceErrorException;
 
     MessageEntity update(MessageEntity message);
+
+    MessageEntity createMessageFromContactRequest (ChatEntity chat, ContactEntity contact) throws IOException;
+
+    MessageEntity getMessageById(int messageId);
 }

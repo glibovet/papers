@@ -8,10 +8,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
@@ -22,7 +19,9 @@ import ua.com.papers.pojo.view.MessageView;
 import ua.com.papers.services.users.IChatService;
 import ua.com.papers.services.users.IUserService;
 import ua.com.papers.services.utils.SessionUtils;
+import ua.com.papers.storage.IStorageService;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -38,6 +37,8 @@ public class ChatController {
     private SessionUtils sessionUtils;
     @Autowired
     private IChatService chatService;
+    @Autowired
+    private IStorageService storageService;
 
     @RequestMapping(value = {"/{id}"}, method = RequestMethod.GET)
     public String mainChatPage(@PathVariable(value = "id") int id,
@@ -103,6 +104,19 @@ public class ChatController {
         ChatEntity chat = chatService.createChat(currentUser,user);
         chatService.createMessage(chat, currentUser, message, attachment);
         return "redirect:/chat/"+chat.getId();
+    }
+
+    @RequestMapping(value = "/message-attachment/{messageId}" , method = RequestMethod.GET)
+    @ResponseBody
+    public void getMessageAttachment(HttpServletResponse response,
+                                     @PathVariable(value = "messageId") int messageId) throws IOException {
+        MessageEntity message = chatService.getMessageById(messageId);
+        UserEntity user = sessionUtils.getCurrentUser();
+        if(message == null || !message.getChat().getMembers().contains(user)){
+            response.sendRedirect("/index");
+            return;
+        }
+        storageService.getMessageAttachment(response, message);
     }
 
 //    @RequestMapping(value = {"/test/{message}"}, method = RequestMethod.GET)

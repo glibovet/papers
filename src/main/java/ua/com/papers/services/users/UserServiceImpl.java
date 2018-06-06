@@ -26,10 +26,7 @@ import ua.com.papers.persistence.criteria.ICriteriaRepository;
 import ua.com.papers.persistence.dao.repositories.ContactsRepository;
 import ua.com.papers.persistence.dao.repositories.RolesRepository;
 import ua.com.papers.persistence.dao.repositories.UsersRepository;
-import ua.com.papers.pojo.entities.ContactEntity;
-import ua.com.papers.pojo.entities.PermissionEntity;
-import ua.com.papers.pojo.entities.RoleEntity;
-import ua.com.papers.pojo.entities.UserEntity;
+import ua.com.papers.pojo.entities.*;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.view.UserView;
@@ -72,6 +69,9 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private IStorageService storageService;
+
+    @Autowired
+    private IChatService chatService;
 
     @Override
     @Transactional
@@ -316,8 +316,10 @@ public class UserServiceImpl implements IUserService {
         return contact;
     }
 
-    public void acceptContactRequest (ContactEntity contact){
+    public void acceptContactRequest (ContactEntity contact) throws IOException {
         if(contact == null) return;
+        ChatEntity chat = chatService.createChat(contact.getUserFrom(), contact.getUserTo());
+        chatService.createMessageFromContactRequest(chat, contact);
         contact.setAccepted(true);
         contactsRepository.saveAndFlush(contact);
     }

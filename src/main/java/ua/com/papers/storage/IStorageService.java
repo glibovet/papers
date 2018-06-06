@@ -46,7 +46,11 @@ public interface IStorageService {
 
     boolean uploadRequestAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException;
 
-    void getContactRequestAttachment (HttpServletResponse response, ContactEntity contact) throws IOException;
+    void getMessageAttachment(HttpServletResponse response, MessageEntity message) throws IOException;
 
     boolean uploadMessageAttachment(MessageEntity message, MultipartFile file) throws IOException, ServiceErrorException;
+
+    void moveContactAttachmentToMessage(MessageEntity message, ContactEntity contact) throws IOException;
+
+    void getContactAttachment(HttpServletResponse response, ContactEntity contact) throws IOException;
 }

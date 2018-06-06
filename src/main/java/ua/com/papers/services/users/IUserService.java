@@ -57,7 +57,7 @@ public interface IUserService {
 
     ContactEntity getContactByUsers(UserEntity userFrom, UserEntity userTo);
 
-    void acceptContactRequest (ContactEntity contact);
+    void acceptContactRequest (ContactEntity contact) throws IOException;
 
     ContactEntity getContactById (int contactId);
 

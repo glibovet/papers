@@ -9,7 +9,7 @@ $(document).ready(function () {
     $('#text').keypress(function (e) {
         var key = e.which;
         if(key == 13) {
-            $('#sendButton').click();
+            sendMessage();
             return false;
         }
     });

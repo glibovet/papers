@@ -37,7 +37,7 @@
                                         <div class="name"><h3>${message.user.name} ${message.user.lastName}</h3> <span> ${message.date}</span></div>
                                         <p>${message.text}</p>
                                         <c:if test="${message.attachment != null}">
-                                            <a class="att" href="">Документ</a>
+                                            <a class="att" href="/chat/message-attachment/${message.id}">${message.attachment}</a>
                                         </c:if>
                                     </div>
                                 </div>
@@ -49,7 +49,7 @@
                             <label>
                                 <textarea id = "text"></textarea>
                             </label>
-                            <button id = "sendButton" class="btn btn-primary"  onclick="sendMessage();" style="width: 100px; margin: 0 auto">Відправити</button>
+                            <%--<button id = "sendButton" class="btn btn-primary"  onclick="sendMessage();" style="width: 100px; margin: 0 auto">Відправити</button>--%>
                         </div>
                     </div>
                 </div>

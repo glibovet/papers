@@ -44,25 +44,35 @@ public class ChatService implements IChatService {
     }
 
     @Override
+    public MessageEntity getMessageById(int messageId) {
+        return messageRepository.findOne(messageId);
+    }
+
+    @Override
     public MessageEntity createMessage (MessageView view, UserEntity user){
-        MessageEntity message = new MessageEntity();
-        message.setUser(user);
-        message.setText(view.getText());
-        message.setChat(chatRepository.findOne(view.getChatId()));
-        message.setDate(new Date());
-        message = messageRepository.saveAndFlush(message);
-        return message;
+        return createMessage(chatRepository.findOne(view.getChatId()), user, view.getText());
     }
 
     @Override
     public MessageEntity createMessage (ChatEntity chat, UserEntity user, String text, MultipartFile attachment) throws IOException, ServiceErrorException {
+        MessageEntity message = createMessage(chat, user, text);
+        storageService.uploadMessageAttachment(message, attachment);
+        return message;
+    }
+
+    public MessageEntity createMessageFromContactRequest (ChatEntity chat, ContactEntity contact) throws IOException {
+        MessageEntity message = createMessage(chat, contact.getUserFrom(), contact.getMessage());
+        storageService.moveContactAttachmentToMessage(message, contact);
+        return message;
+    }
+
+    private MessageEntity createMessage(ChatEntity chat, UserEntity user, String text) {
         MessageEntity message = new MessageEntity();
         message.setUser(user);
         message.setText(text);
         message.setChat(chat);
         message.setDate(new Date());
         message = messageRepository.saveAndFlush(message);
-        storageService.uploadMessageAttachment(message, attachment);
         return message;
     }
 

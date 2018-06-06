@@ -13,6 +13,7 @@ import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.ContactEntity;
+import ua.com.papers.pojo.entities.MessageEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.view.SearchUsersView;
@@ -170,7 +171,7 @@ public class UserController {
     }
 
     @RequestMapping(value = {"/accept-contact"}, method = RequestMethod.POST)
-    public String acceptContact(@RequestParam(value = "contactId") int contactId, Model model){
+    public String acceptContact(@RequestParam(value = "contactId") int contactId, Model model) throws IOException {
         UserEntity user = sessionUtils.getCurrentUser();
         ContactEntity contact = userService.getContactById(contactId);
         if(contact == null || user.getId() != contact.getUserTo().getId()){
@@ -190,7 +191,7 @@ public class UserController {
                 (contact.getUserTo().getId() != user.getId() && contact.getUserFrom().getId() != user.getId())){
             return;
         }
-        storageService.getContactRequestAttachment(response, contact);
+        storageService.getContactAttachment(response, contact);
     }
 
 }

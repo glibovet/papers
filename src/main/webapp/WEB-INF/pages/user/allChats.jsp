@@ -21,12 +21,18 @@
                 <jsp:include page="../common/navigation.jsp"/>
                 <div id="search_result" class="search_result">
                     <c:forEach items="${chats}" var="chat">
+                        <c:forEach items="${chat.members}" var="member">
+                            <c:set var = "salary"/>
+                            <c:if test="${currentUser.id != member.id}">
+                                <c:set var = "withUser" value="${member}"/>
+                            </c:if>
+                        </c:forEach>
                         <div class="folder">
                             <div class="user_img">
-                                <img class="user_ph" src="/users/image/99"/>
+                                <img class="user_ph" src="/users/image/${withUser.id}"/>
                             </div>
                             <div class="info">
-                                <a href="/chat/${chat.id}">${chat.name}</a>
+                                <a href="/chat/${chat.id}">${withUser.name} ${withUser.lastName}</a>
                                 <%--<div class="buttons">--%>
                                     <%--<button class="btn btn-danger btn-block">udalit</button>--%>
                                 <%--</div>--%>
