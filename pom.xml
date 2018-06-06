@@ -45,7 +45,7 @@
                  <jdbc.url>jdbc:mysql://mysql30587-papaers-server.mircloud.host:3306/papers?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;connectionCollation=utf8_general_ci&amp;characterSetResults=UTF-8</jdbc.url>
  -->
                 <jdbc.username>root</jdbc.username>
-                <jdbc.password>qwerty</jdbc.password>
+                <jdbc.password>root</jdbc.password>
                 <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
                 <jdbc.database.name>papers</jdbc.database.name>
                 <jdbc.database.server>localhost</jdbc.database.server>

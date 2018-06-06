@@ -26,8 +26,12 @@
                             <security:authentication property="principal.id"/>
                         </c:set>
                         <c:if test="${(currentUser.id != user.id && currentUser.roleEntity.name == 'scientist') ||
-                        (contact != null && contact.accepted)}">
-                            <li><a href="/chat/message/${user.id}">Написати повідомлення</a></li>
+                                        (contact != null && contact.accepted)}">
+                            <form id="new-message" action="/chat/message" method="post" class="nav masthead-nav my_nav">
+                                <input type="hidden" name="userId" value="${user.id}" />
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                <li><a href="#" onclick="document.getElementById('new-message').submit();">Написати повідомлення</a></li>
+                            </form>
                         </c:if>
                         <c:if test="${contact != null}">
                             <c:if test="${contact.accepted}">

@@ -180,7 +180,7 @@ public class UserController {
         return "redirect:/users/"+contact.getUserFrom().getId();
     }
 
-    @RequestMapping(value = "/attachment/{id}")
+    @RequestMapping(value = "/attachment/{id}" , method = RequestMethod.GET)
     @ResponseBody
     public void getContactRequestAttachment(HttpServletResponse response,
                                             @PathVariable(value = "id") int contactId) throws IOException {

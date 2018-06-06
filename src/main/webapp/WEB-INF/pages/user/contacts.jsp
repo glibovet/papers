@@ -60,6 +60,10 @@
                                         </div>
                                         <div class="info">
                                             <a href="/users/${contact.userFrom.id}">${contact.userFrom.name} ${contact.userFrom.lastName}</a>
+                                            <div>
+                                                <a href="/users/attachment/${contact.id}">${contact.attachment}</a>
+                                            </div>
+                                                ${contact.message}
                                             <div class="buttons">
                                                 <button class="btn btn-success btn-block">Прийняти</button>
                                                 <button class="btn btn-danger btn-block">Відхилити</button>

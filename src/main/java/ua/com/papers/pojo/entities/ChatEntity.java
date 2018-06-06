@@ -19,8 +19,7 @@ public class ChatEntity {
     @JoinColumn(name="initiator_user_id", nullable = false)
     private UserEntity initiatorUser;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "user_to_chat", joinColumns = { @JoinColumn(name = "chat_id") }, inverseJoinColumns = { @JoinColumn(name = "user_id") })
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "chats")
     private Set<UserEntity> members;
 
     @OneToMany(mappedBy="chat", fetch=FetchType.EAGER)

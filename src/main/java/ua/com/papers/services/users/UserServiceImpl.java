@@ -292,7 +292,7 @@ public class UserServiceImpl implements IUserService {
         contactEntity.setMessage(message);
         contactEntity = contactsRepository.saveAndFlush(contactEntity);
         if(!attachment.isEmpty()){
-            storageService.uploadAttachment(contactEntity, attachment);
+            storageService.uploadRequestAttachment(contactEntity, attachment);
         }
         return contactEntity;
     }

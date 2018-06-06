@@ -48,7 +48,9 @@ public class UserEntity {
     private Set<ContactEntity> receivedContactRequests;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "user_to_chat", joinColumns = { @JoinColumn(name = "user_id") }, inverseJoinColumns = { @JoinColumn(name = "chat_id") })
+    @JoinTable(name = "user_to_chat",
+            joinColumns = { @JoinColumn(name = "user_id") },
+            inverseJoinColumns = { @JoinColumn(name = "chat_id") })
     private Set<ChatEntity> chats;
 
     @PrePersist

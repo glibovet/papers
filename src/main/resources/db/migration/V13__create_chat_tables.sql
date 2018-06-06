@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `papers`.`chat` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NOT NULL,
+  `name` VARCHAR(45),
   `initiator_user_id` INT(11) NOT NULL,
   INDEX `fk_chat_to_user_idx` (`initiator_user_id` ASC),
   PRIMARY KEY (`id`),

@@ -5,7 +5,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Додати контакт</title>
+    <title>Написати повідомлення</title>
     <jsp:include page="../common/include_resources.jsp"/>
 </head>
 
@@ -25,7 +25,7 @@
                         <textarea type="text" name="message" class="form-control"
                                   cols="30" rows="10" placeholder="Повідомлення"></textarea>
                         <input class="file" type="file" name="attachment" placeholder="Прикріплення"/>
-                        <input type="hidden" name="id" value="${userId}">
+                        <input type="hidden" name="userId" value="${user.id}">
                         <button class="btn btn-lg btn-primary btn-block">Надіслати</button>
                     </form>
                 </div>

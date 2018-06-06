@@ -1,5 +1,6 @@
 package ua.com.papers.controllers.web;
 
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.elasticsearch.gateway.AsyncShardFetch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -10,6 +11,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import ua.com.papers.exceptions.not_found.NoSuchEntityException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.pojo.entities.ChatEntity;
 import ua.com.papers.pojo.entities.MessageEntity;
 import ua.com.papers.pojo.entities.UserEntity;
@@ -18,6 +23,7 @@ import ua.com.papers.services.users.IChatService;
 import ua.com.papers.services.users.IUserService;
 import ua.com.papers.services.utils.SessionUtils;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +47,7 @@ public class ChatController {
         ChatEntity chat = chatService.getChatById(id);
         Set<UserEntity> members = chat.getMembers();
         if(!members.contains(user)){
-            return "/";
+            return "redirect:/users/"+user.getId();
         }
         List<MessageEntity> messages = chat.getMessages();
         System.out.println("messages "+messages);
@@ -71,8 +77,40 @@ public class ChatController {
         System.out.println("chatId "+chatId);
         System.out.println("message: "+ message);
         MessageEntity messageEntity = chatService.createMessage(message, user);
-        message.setDate(new SimpleDateFormat("yyyy-mm-dd HH:mm:ss").format(messageEntity.getDate()));
+        message.setDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(messageEntity.getDate()));
         return message;
     }
+
+    @RequestMapping(value = {"/message"}, method = RequestMethod.POST)
+    public String newMessage(Model model, @RequestParam(value = "userId") int userId) throws NoSuchEntityException {
+        UserEntity user = userService.getUserById(userId);
+        UserEntity currentUser = sessionUtils.getCurrentUser();
+        ChatEntity chat = chatService.getChatByUsers(user, currentUser);
+        if(chat != null){
+            return "redirect:/chat/"+chat.getId();
+        }
+        model.addAttribute("user", user);
+        return "user/message";
+    }
+
+    @RequestMapping(value = {"/send-message"}, method = RequestMethod.POST)
+    public String sendMessage(Model model,
+                                 @RequestParam(value = "attachment") MultipartFile attachment,
+                                 @RequestParam(value = "message") String message,
+                                 @RequestParam(value = "userId") int userId) throws NoSuchEntityException, IOException, ServiceErrorException {
+        UserEntity currentUser = sessionUtils.getCurrentUser();
+        UserEntity user = userService.getUserById(userId);
+        ChatEntity chat = chatService.createChat(currentUser,user);
+        chatService.createMessage(chat, currentUser, message, attachment);
+        return "redirect:/chat/"+chat.getId();
+    }
+
+//    @RequestMapping(value = {"/test/{message}"}, method = RequestMethod.GET)
+//    public String testMessage(Model model, @PathVariable(value = "message") String message) throws NoSuchEntityException {
+//        UserEntity user = userService.getUserById(2);
+//        ChatEntity chat = chatService.getChatById(1);
+//        MessageEntity messageEntity = chatService.createMessage(chat, user, message);
+//        return "/index/index";
+//    }
 
 }

@@ -18,10 +18,12 @@ import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.ContactEntity;
+import ua.com.papers.pojo.entities.MessageEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publications.IPublicationValidateService;
+import ua.com.papers.services.users.IChatService;
 import ua.com.papers.services.users.IUserService;
 import ua.com.papers.storage.IStorage;
 import ua.com.papers.storage.IStorageService;
@@ -54,6 +56,8 @@ public class StorageServiceImpl implements IStorageService {
     private IPublicationValidateService publicationValidateService;
     @Autowired
     private TokenUtil tokenUtil;
+    @Autowired
+    private IChatService chatService;
 
     @Override
     @SneakyThrows(MalformedURLException.class)
@@ -181,15 +185,9 @@ public class StorageServiceImpl implements IStorageService {
     @Override
     @Transactional
     public boolean uploadProfileImage(UserEntity user, MultipartFile file) throws IOException, ServiceErrorException {
-        if(file.isEmpty()) return true;
-        File imageContainer = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER + '/' + user.getId());
-        if(!imageContainer.exists()) {
-            imageContainer.mkdirs();
-        }
-        String fileName = user.getId() + "." + FilenameUtils.getExtension(file.getOriginalFilename());
-        final File serverFile = new File(imageContainer.getAbsolutePath() + '/' + fileName);
-        copyFile(file, serverFile);
-        user.setPhoto(fileName);
+        if(file.isEmpty()) return false;
+        putFileToServer(user.getId(), PROFILE_IMAGES_FOLDER, file);
+        user.setPhoto(FilenameUtils.getName(file.getOriginalFilename()));
         userService.update(user);
         return true;
     }
@@ -199,9 +197,11 @@ public class StorageServiceImpl implements IStorageService {
         File file = new File(ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER +'/' + contact.getId() + '/'+contact.getAttachment());
         String mimeType= URLConnection.guessContentTypeFromName(file.getName());
         if(mimeType==null){
+            System.out.println("mimetype is not detectable, will take default");
             mimeType = "application/octet-stream";
         }
         System.out.println("mimetype : "+mimeType);
+        response.setContentType(mimeType);
         response.setHeader("Content-Disposition", String.format("inline; filename=\"" + file.getName() +"\""));
         response.setContentLength((int)file.length());
         InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
@@ -210,18 +210,31 @@ public class StorageServiceImpl implements IStorageService {
 
     @Override
     @Transactional
-    public boolean uploadAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException {
-        if(file.isEmpty()) return true;
-        File fileContainer = new File(ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER + '/' + contact.getId());
+    public boolean uploadRequestAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException {
+        putFileToServer(contact.getId(), CONTACT_REQUESTS_ATTACHMENTS_FOLDER, file);
+        contact.setAttachment(FilenameUtils.getName(file.getOriginalFilename()));
+        userService.update(contact);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean uploadMessageAttachment(MessageEntity message, MultipartFile file) throws IOException, ServiceErrorException {
+        putFileToServer(message.getId(), MESSAGES_ATTACHMENTS_FOLDER, file);
+        message.setAttachment(FilenameUtils.getName(file.getOriginalFilename()));
+        chatService.update(message);
+        return true;
+    }
+
+    private void putFileToServer(int entityId, String pathToFolder, MultipartFile file) throws IOException, ServiceErrorException {
+        if(file.isEmpty()) return;
+        File fileContainer = new File(ROOT_DIR + pathToFolder + '/' + entityId);
         if(!fileContainer.exists()) {
             fileContainer.mkdirs();
         }
-        String fileName = FilenameUtils.getBaseName(file.getOriginalFilename())+ "." + FilenameUtils.getExtension(file.getOriginalFilename());
+        String fileName = FilenameUtils.getName(file.getOriginalFilename());
         final File serverFile = new File(fileContainer.getAbsolutePath() + '/' + fileName);
         copyFile(file, serverFile);
-        contact.setAttachment(fileName);
-        userService.update(contact);
-        return true;
     }
 
     @Override
@@ -363,6 +376,7 @@ public class StorageServiceImpl implements IStorageService {
     private final String PUBLICATIONS_FOLDER = "/publications";
     private final String PROFILE_IMAGES_FOLDER = "/profiles";
     private final String CONTACT_REQUESTS_ATTACHMENTS_FOLDER = "/contact_requests";
+    private final String MESSAGES_ATTACHMENTS_FOLDER = "/messages";
 
     @Value("${remote_storage.use}")
     private boolean useRemote;
