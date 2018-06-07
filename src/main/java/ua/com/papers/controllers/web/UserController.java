@@ -142,9 +142,6 @@ public class UserController {
                                      @RequestParam(value = "attachment") MultipartFile attachment,
                                      @RequestParam(value = "message") String message,
                                      @RequestParam(value = "id") int id) throws NoSuchEntityException, IOException, ServiceErrorException {
-        System.out.println(message);
-        System.out.println(id);
-        System.out.println(attachment.getOriginalFilename());
         UserEntity currentUser = sessionUtils.getCurrentUser();
         UserEntity user = userService.getUserById(id);
         if(currentUser.getRoleEntity().getName().equals(RolesEnum.student) &&
@@ -159,7 +156,6 @@ public class UserController {
             return "redirect:/users/"+id;
         }
         ContactEntity contactEntity = userService.createContactRequest(currentUser, user, message, attachment);
-        System.out.println(contactEntity);
         return "redirect:/users/"+id;
     }
 

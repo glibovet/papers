@@ -59,8 +59,9 @@ public class ChatController {
     }
 
     @RequestMapping(value = {"/"}, method = RequestMethod.GET)
-    public String allChats(Model model) {
-        UserEntity user = sessionUtils.getCurrentUser();
+    public String allChats(Model model) throws NoSuchEntityException {
+        UserEntity currentUser = sessionUtils.getCurrentUser();
+        UserEntity user = userService.getUserById(currentUser.getId());
         Set<ChatEntity> chats = user.getChats();
         System.out.println(chats);
         model.addAttribute("chats", chats);

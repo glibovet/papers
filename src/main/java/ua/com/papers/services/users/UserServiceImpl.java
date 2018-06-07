@@ -1,5 +1,6 @@
 package ua.com.papers.services.users;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -319,8 +320,10 @@ public class UserServiceImpl implements IUserService {
 
     public void acceptContactRequest (ContactEntity contact) throws IOException {
         if(contact == null) return;
-        ChatEntity chat = chatService.createChat(contact.getUserFrom(), contact.getUserTo());
-        chatService.createMessageFromContactRequest(chat, contact);
+        if(StringUtils.isNotEmpty(contact.getMessage())){
+            ChatEntity chat = chatService.createChat(contact.getUserFrom(), contact.getUserTo());
+            chatService.createMessageFromContactRequest(chat, contact);
+        }
         contact.setAccepted(true);
         contactsRepository.saveAndFlush(contact);
     }
