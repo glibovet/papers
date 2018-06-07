@@ -7,6 +7,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
@@ -58,6 +60,8 @@ public class StorageServiceImpl implements IStorageService {
     private IPublicationValidateService publicationValidateService;
     @Autowired
     private TokenUtil tokenUtil;
+    @Autowired
+    private ApplicationContext appContext;
 
     @Override
     @SneakyThrows(MalformedURLException.class)
@@ -399,8 +403,8 @@ public class StorageServiceImpl implements IStorageService {
     }
 
     private byte[] getDefaultProfileImage () throws IOException {
-        final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +"/default.jpg");
-        return Files.readAllBytes(serverFile.toPath());
+        Resource resource = appContext.getResource("/resources/icons/default.png");
+        return Files.readAllBytes(resource.getFile().toPath());
     }
 
     private final String ROOT_DIR = System.getProperty("catalina.home") + "/papers";
