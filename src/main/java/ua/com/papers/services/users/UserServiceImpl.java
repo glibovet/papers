@@ -1,8 +1,10 @@
 package ua.com.papers.services.users;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.method.P;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +16,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.security.web.authentication.rememberme.AbstractRememberMeServices;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.convertors.Converter;
 import ua.com.papers.criteria.impl.UserCriteria;
 import ua.com.papers.exceptions.bad_request.WrongPasswordException;
@@ -21,24 +24,22 @@ import ua.com.papers.exceptions.conflict.EmailExistsException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.persistence.criteria.ICriteriaRepository;
+import ua.com.papers.persistence.dao.repositories.ContactsRepository;
 import ua.com.papers.persistence.dao.repositories.RolesRepository;
 import ua.com.papers.persistence.dao.repositories.UsersRepository;
-import ua.com.papers.pojo.entities.PermissionEntity;
-import ua.com.papers.pojo.entities.RoleEntity;
-import ua.com.papers.pojo.entities.UserEntity;
+import ua.com.papers.pojo.entities.*;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.view.UserView;
 import ua.com.papers.services.utils.SessionUtils;
+import ua.com.papers.storage.IStorageService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Created by Andrii on 18.08.2016.
@@ -63,6 +64,15 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private ICriteriaRepository criteriaRepository;
+
+    @Autowired
+    private ContactsRepository contactsRepository;
+
+    @Autowired
+    private IStorageService storageService;
+
+    @Autowired
+    private IChatService chatService;
 
     @Override
     @Transactional
@@ -147,14 +157,34 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional(rollbackFor=NoSuchEntityException.class)
-    public UserEntity update(UserEntity user) throws NoSuchEntityException {
-        UserEntity updatedUser = usersRepository.findOne(user.getId());
+    public UserEntity update(UserView userView) throws NoSuchEntityException {
+        UserEntity updatedUser = usersRepository.findOne(userView.getId());
         if (updatedUser == null)
-            throw new NoSuchEntityException(UserEntity.class.getName(),"userId"+user.getId());
-        updatedUser.setName(user.getName());
-        updatedUser.setEmail(user.getEmail());
+            throw new NoSuchEntityException(UserEntity.class.getName(),"userId"+userView.getId());
+        updatedUser.setName(userView.getName());
+        updatedUser.setLastName(userView.getLastName());
+        updatedUser.setRoleEntity(rolesRepository.findByName(userView.getRole()));
+        if(userView.getEmail() != null) {
+            updatedUser.setEmail(userView.getEmail());
+        }
         //TODO add oll other
+        usersRepository.saveAndFlush(updatedUser);
         return updatedUser;
+    }
+
+    @Override
+    @Transactional(rollbackFor=NoSuchEntityException.class)
+    public UserEntity update(UserEntity user) {
+        usersRepository.saveAndFlush(user);
+        return user;
+    }
+
+    @Override
+    @Transactional
+    public List<UserEntity> findByNames(String name, String lastName) {
+        name = name == null ? "" : name;
+        lastName = lastName == null ? "" : lastName;
+        return usersRepository.findByNameIgnoreCaseContainingAndLastNameIgnoreCaseContaining(name, lastName);
     }
 
     @Override
@@ -198,6 +228,10 @@ public class UserServiceImpl implements IUserService {
             entity.setName(view.getName());
         else view.setName(entity.getName());
 
+        if(view.getLastName() != null)
+            entity.setLastName(view.getLastName());
+        else view.setLastName(entity.getLastName());
+
         if(view.getEmail() != null)
             entity.setEmail(view.getEmail());
         else view.setEmail(entity.getEmail());
@@ -216,5 +250,94 @@ public class UserServiceImpl implements IUserService {
         }else if (entity.getRoleEntity()!=null){
             view.setRole(entity.getRoleEntity().getName());
         }
+    }
+
+    @Override
+    public Set<UserEntity> getAcceptedContacts (UserEntity user){
+        Set<UserEntity> result = new HashSet<>();
+        Set<ContactEntity> sentContactRequests = user.getSentContactRequests();
+        for(ContactEntity c:sentContactRequests){
+            if(c.isAccepted()){
+                result.add(c.getUserTo());
+            }
+        }
+        Set<ContactEntity> receivedContactRequests = user.getReceivedContactRequests();
+        for(ContactEntity c:receivedContactRequests){
+            if(c.isAccepted()){
+                result.add(c.getUserFrom());
+            }
+        }
+        System.out.println("result " + result);
+        return result;
+    }
+
+    @Override
+    public boolean isConnected (int firstId, int secondId) throws NoSuchEntityException {
+        UserEntity first = getUserById(firstId);
+        UserEntity second = getUserById(secondId);
+        Set<UserEntity> acceptedContacts = getAcceptedContacts(first);
+        for(UserEntity userEntity: acceptedContacts){
+            if(userEntity.getId() == second.getId()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public ContactEntity createContactRequest (UserEntity userFrom, UserEntity userTo, String message, MultipartFile attachment) throws IOException, ServiceErrorException {
+        ContactEntity contactEntity = new ContactEntity();
+        contactEntity.setUserFrom(userFrom);
+        contactEntity.setUserTo(userTo);
+        contactEntity.setAccepted(false);
+        contactEntity.setMessage(message);
+        contactEntity.setDate(new Date());
+        contactEntity = contactsRepository.saveAndFlush(contactEntity);
+        if(!attachment.isEmpty()){
+            storageService.uploadRequestAttachment(contactEntity, attachment);
+        }
+        return contactEntity;
+    }
+
+    @Override
+    @Transactional(rollbackFor=NoSuchEntityException.class)
+    public ContactEntity update(ContactEntity contact) {
+        contactsRepository.saveAndFlush(contact);
+        return contact;
+    }
+
+    @Override
+    public void deleteContact(ContactEntity contact) {
+        if(contact == null) return;
+        contactsRepository.delete(contact);
+    }
+
+    public ContactEntity getContactByUsers(UserEntity userFrom, UserEntity userTo){
+        ContactEntity contact = contactsRepository.findByUserFromAndUserTo(userFrom, userTo);
+        if(contact == null) contact = contactsRepository.findByUserFromAndUserTo(userTo, userFrom);
+        return contact;
+    }
+
+    public void acceptContactRequest (ContactEntity contact) throws IOException {
+        if(contact == null) return;
+        if(StringUtils.isNotEmpty(contact.getMessage())){
+            ChatEntity chat = chatService.getChatByUsers(contact.getUserFrom(), contact.getUserTo());
+            if(chat == null){
+                chat = chatService.createChat(contact.getUserFrom(), contact.getUserTo());
+            }
+            chatService.createMessageFromContactRequest(chat, contact);
+        }
+        contact.setAccepted(true);
+        contactsRepository.saveAndFlush(contact);
+    }
+
+    public ContactEntity getContactById (int contactId){
+        return contactsRepository.findOne(contactId);
+    }
+
+    public List<ContactEntity> getReceivedContactRequests(UserEntity user){
+        List<ContactEntity> contacts = contactsRepository.findByUserToAndIsAccepted(user, false);
+        System.out.println("getReceivedContactRequests "+contacts);
+        return contacts;
     }
 }

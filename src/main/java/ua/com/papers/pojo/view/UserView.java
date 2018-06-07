@@ -29,6 +29,8 @@ public class UserView {
 
     private String name;
 
+    private String lastName;
+
     private Boolean active;
 
     private RolesEnum role;
@@ -65,6 +67,14 @@ public class UserView {
         this.name = name;
     }
 
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
     public Boolean getActive() {
         return active;
     }
@@ -92,6 +102,7 @@ public class UserView {
         if (email != null ? !email.equals(userView.email) : userView.email != null) return false;
         if (password != null ? !password.equals(userView.password) : userView.password != null) return false;
         if (name != null ? !name.equals(userView.name) : userView.name != null) return false;
+        if (lastName != null ? !lastName.equals(userView.lastName) : userView.lastName != null) return false;
         if (active != null ? !active.equals(userView.active) : userView.active != null) return false;
         return role == userView.role;
 
@@ -103,6 +114,7 @@ public class UserView {
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
         result = 31 * result + (active != null ? active.hashCode() : 0);
         result = 31 * result + (role != null ? role.hashCode() : 0);
         return result;
@@ -115,6 +127,7 @@ public class UserView {
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", name='" + name + '\'' +
+                ", lastName='" + lastName + '\'' +
                 ", active=" + active +
                 ", role=" + role +
                 '}';

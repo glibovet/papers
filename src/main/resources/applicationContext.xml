@@ -137,6 +137,8 @@
         <security:intercept-url pattern="/resources/**" access="permitAll"/>
 
         <security:intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')"/>
+        <security:intercept-url pattern="/users/**" access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN')"/>
+        <security:intercept-url pattern="/chat/**" access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN')"/>
 
         <!-- access denied page -->
         <security:access-denied-handler error-page="/403"/>

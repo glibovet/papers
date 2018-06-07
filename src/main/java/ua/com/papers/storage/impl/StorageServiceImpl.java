@@ -2,12 +2,14 @@ package ua.com.papers.storage.impl;
 
 import lombok.SneakyThrows;
 import lombok.val;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.crawler.core.main.util.UrlUtils;
 import ua.com.papers.crawler.util.Preconditions;
@@ -17,9 +19,14 @@ import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.ContactEntity;
+import ua.com.papers.pojo.entities.MessageEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
+import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.services.publications.IPublicationService;
 import ua.com.papers.services.publications.IPublicationValidateService;
+import ua.com.papers.services.users.IChatService;
+import ua.com.papers.services.users.IUserService;
 import ua.com.papers.storage.IStorage;
 import ua.com.papers.storage.IStorageService;
 import ua.com.papers.utils.ResultCallback;
@@ -31,6 +38,7 @@ import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.util.Optional;
 
@@ -42,6 +50,8 @@ public class StorageServiceImpl implements IStorageService {
 
     @Autowired
     private IPublicationService publicationService;
+    @Autowired
+    private IUserService userService;
     @Autowired
     private IStorage storage;
     @Autowired
@@ -284,9 +294,121 @@ public class StorageServiceImpl implements IStorageService {
         } catch (Exception e) { }
     }
 
+    @Override
+    @Transactional
+    public boolean uploadProfileImage(UserEntity user, MultipartFile file) throws IOException, ServiceErrorException {
+        if(file.isEmpty()) return false;
+        putFileToServer(user.getId(), PROFILE_IMAGES_FOLDER, file);
+        user.setPhoto(FilenameUtils.getName(file.getOriginalFilename()));
+        userService.update(user);
+        return true;
+    }
+
+    private void getAttachment (HttpServletResponse response, int entityId, String attachmentName, String folder) throws IOException {
+        File file = new File(ROOT_DIR + folder +'/' + entityId + '/'+attachmentName);
+        String mimeType= URLConnection.guessContentTypeFromName(file.getName());
+        if(mimeType==null){
+            mimeType = "application/octet-stream";
+        }
+        response.setContentType(mimeType);
+        response.setHeader("Content-Disposition", String.format("inline; filename=\"" + file.getName() +"\""));
+        response.setContentLength((int)file.length());
+        InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
+        FileCopyUtils.copy(inputStream, response.getOutputStream());
+    }
+
+    @Override
+    public void getMessageAttachment(HttpServletResponse response, MessageEntity message) throws IOException {
+        getAttachment(response, message.getId(), message.getAttachment(), MESSAGES_ATTACHMENTS_FOLDER);
+    }
+
+    @Override
+    public void getContactAttachment(HttpServletResponse response, ContactEntity contact) throws IOException {
+        getAttachment(response, contact.getId(), contact.getAttachment(), CONTACT_REQUESTS_ATTACHMENTS_FOLDER);
+    }
+
+    @Override
+    @Transactional
+    public boolean uploadRequestAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException {
+        putFileToServer(contact.getId(), CONTACT_REQUESTS_ATTACHMENTS_FOLDER, file);
+        contact.setAttachment(FilenameUtils.getName(file.getOriginalFilename()));
+        userService.update(contact);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean uploadMessageAttachment(MessageEntity message, MultipartFile file) throws IOException, ServiceErrorException {
+        putFileToServer(message.getId(), MESSAGES_ATTACHMENTS_FOLDER, file);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean uploadMessageAttachment(MultipartFile file) throws IOException, ServiceErrorException {
+        putFileToServer(-1, MESSAGES_ATTACHMENTS_FOLDER, file);
+        return true;
+    }
+
+    private void putFileToServer(int entityId, String pathToFolder, MultipartFile file) throws IOException, ServiceErrorException {
+        if(file.isEmpty()) return;
+        File fileContainer = new File(ROOT_DIR + pathToFolder + '/' + entityId);
+        if(!fileContainer.exists()) {
+            fileContainer.mkdirs();
+        }
+        String fileName = FilenameUtils.getName(file.getOriginalFilename());
+        final File serverFile = new File(fileContainer.getAbsolutePath() + '/' + fileName);
+        copyFile(file, serverFile);
+    }
+
+    public void moveContactAttachmentToMessage(MessageEntity message, ContactEntity contact) throws IOException {
+        String filePath = ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER + '/' + contact.getId() + '/' + contact.getAttachment();
+        String toDirectoryPath = ROOT_DIR + MESSAGES_ATTACHMENTS_FOLDER + '/' + message.getId();
+        moveAttachment(filePath,toDirectoryPath);
+    }
+
+    public void moveMessageAttachment (MessageEntity message) throws IOException {
+        String filePath = ROOT_DIR + MESSAGES_ATTACHMENTS_FOLDER + "/-1/" + message.getAttachment();
+        String toDirectoryPath = ROOT_DIR + MESSAGES_ATTACHMENTS_FOLDER + '/' + message.getId();
+        moveAttachment(filePath,toDirectoryPath);
+    }
+
+    private void moveAttachment (String filePath, String toDirectoryPath) throws IOException {
+        File from = new File(filePath);
+        File fileContainer = new File(toDirectoryPath);
+        if(!fileContainer.exists()) {
+            fileContainer.mkdirs();
+        }
+        FileUtils.copyFileToDirectory(from, fileContainer);
+        FileUtils.deleteDirectory(from.getParentFile());
+    }
+
+    @Override
+    public byte[] getProfileImage (int userId) throws IOException {
+        UserEntity user = null;
+        try {
+            user = userService.getUserById(userId);
+        } catch (NoSuchEntityException e) {
+            return getDefaultProfileImage();
+        }
+        final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +'/' + userId + '/'+user.getPhoto());
+        if(!serverFile.exists()){
+            return getDefaultProfileImage();
+        }
+        return Files.readAllBytes(serverFile.toPath());
+    }
+
+    private byte[] getDefaultProfileImage () throws IOException {
+        final File serverFile = new File(ROOT_DIR + PROFILE_IMAGES_FOLDER +"/default.jpg");
+        return Files.readAllBytes(serverFile.toPath());
+    }
+
     private final String ROOT_DIR = System.getProperty("catalina.home") + "/papers";
 
     private final String PUBLICATIONS_FOLDER = "/publications";
+    private final String PROFILE_IMAGES_FOLDER = "/profiles";
+    private final String CONTACT_REQUESTS_ATTACHMENTS_FOLDER = "/contact_requests";
+    private final String MESSAGES_ATTACHMENTS_FOLDER = "/messages";
 
     @Value("${remote_storage.use}")
     private boolean useRemote;
