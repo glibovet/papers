@@ -1,5 +1,6 @@
 package ua.com.papers.controllers.web;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -64,14 +65,19 @@ public class UserController {
                              @RequestParam(value = "photo") MultipartFile photo
                             ) throws NoSuchEntityException, ValidationException, IOException, ServiceErrorException {
         UserEntity user = sessionUtils.getCurrentUser();
-        if (user != null) {
-            userView.setId(user.getId());
-            System.out.println(userView);
-            user = userService.update(userView);
-            storageService.uploadProfileImage(user, photo);
-            return "redirect:/users/"+user.getId();
+        if (user == null) {
+            return "/";
         }
-        return "/";
+        if(StringUtils.isEmpty(userView.getName()) || StringUtils.isEmpty(userView.getLastName())){
+            model.addAttribute("error", "Будь ласка, вкажіть ім'я та прізвище");
+            model.addAttribute("user", user);
+            return "user/edit";
+        }
+        userView.setId(user.getId());
+        System.out.println(userView);
+        user = userService.update(userView);
+        storageService.uploadProfileImage(user, photo);
+        return "redirect:/users/"+user.getId();
     }
 
     @RequestMapping(value = "/image/{id}")
