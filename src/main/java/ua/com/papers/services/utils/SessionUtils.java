@@ -36,7 +36,7 @@ public class SessionUtils {
     public UserEntity getCurrentUser() {
         if (isAuthorized()) {
             UserEntity userEntity = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            return userEntity;
+            return usersRepository.findOne(userEntity.getId());
         } else
             return null;
     }

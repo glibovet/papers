@@ -1,7 +1,5 @@
 package ua.com.papers.controllers.web;
 
-import com.sun.org.apache.xpath.internal.operations.Mod;
-import org.elasticsearch.gateway.AsyncShardFetch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -59,13 +57,12 @@ public class ChatController {
     }
 
     @RequestMapping(value = {"/"}, method = RequestMethod.GET)
-    public String allChats(Model model) throws NoSuchEntityException {
+    public String allChats(Model model) {
         UserEntity currentUser = sessionUtils.getCurrentUser();
-        UserEntity user = userService.getUserById(currentUser.getId());
-        Set<ChatEntity> chats = user.getChats();
+        Set<ChatEntity> chats = currentUser.getChats();
         System.out.println(chats);
         model.addAttribute("chats", chats);
-        model.addAttribute("currentUser", user);
+        model.addAttribute("currentUser", currentUser);
         return "user/allChats";
     }
 

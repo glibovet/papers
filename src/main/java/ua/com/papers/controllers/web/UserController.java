@@ -1,19 +1,14 @@
 package ua.com.papers.controllers.web;
 
-import org.elasticsearch.index.mapper.SourceToParse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 import ua.com.papers.exceptions.not_found.NoSuchEntityException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.ValidationException;
 import ua.com.papers.pojo.entities.ContactEntity;
-import ua.com.papers.pojo.entities.MessageEntity;
 import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.view.SearchUsersView;
@@ -24,8 +19,6 @@ import ua.com.papers.storage.IStorageService;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Set;
 
@@ -57,8 +50,7 @@ public class UserController {
 
     @RequestMapping(value = "/edit")
     public String editProfile(Model model) throws NoSuchEntityException {
-        UserEntity currentUser = sessionUtils.getCurrentUser();
-        UserEntity user = userService.getUserById(currentUser.getId());
+        UserEntity user = sessionUtils.getCurrentUser();
         if (user == null)
             return "/";
         model.addAttribute("user", user);

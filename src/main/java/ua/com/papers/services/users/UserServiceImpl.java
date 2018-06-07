@@ -321,7 +321,10 @@ public class UserServiceImpl implements IUserService {
     public void acceptContactRequest (ContactEntity contact) throws IOException {
         if(contact == null) return;
         if(StringUtils.isNotEmpty(contact.getMessage())){
-            ChatEntity chat = chatService.createChat(contact.getUserFrom(), contact.getUserTo());
+            ChatEntity chat = chatService.getChatByUsers(contact.getUserFrom(), contact.getUserTo());
+            if(chat == null){
+                chat = chatService.createChat(contact.getUserFrom(), contact.getUserTo());
+            }
             chatService.createMessageFromContactRequest(chat, contact);
         }
         contact.setAccepted(true);

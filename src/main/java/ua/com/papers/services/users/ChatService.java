@@ -68,7 +68,9 @@ public class ChatService implements IChatService {
 
     public MessageEntity createMessageFromContactRequest (ChatEntity chat, ContactEntity contact) throws IOException {
         MessageEntity message = createMessage(chat, contact.getUserFrom(), contact.getMessage(), contact.getAttachment(), contact.getDate());
-        storageService.moveContactAttachmentToMessage(message, contact);
+        if(StringUtils.isNotEmpty(contact.getAttachment())) {
+            storageService.moveContactAttachmentToMessage(message, contact);
+        }
         return message;
     }
 
