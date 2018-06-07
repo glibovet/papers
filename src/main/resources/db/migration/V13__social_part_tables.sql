@@ -50,19 +50,6 @@ CREATE TABLE IF NOT EXISTS `papers`.`message` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
 
-  CREATE TABLE `papers`.`interest` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NULL,
-  PRIMARY KEY (`id`));
-
-CREATE TABLE `papers`.`company` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `title` VARCHAR(45) NULL,
-  `domain` VARCHAR(200) NULL,
-  `site` VARCHAR(200) NULL,
-  `about` TEXT NULL,
-  PRIMARY KEY (`id`));
-
 ALTER TABLE `papers`.`users`
   ADD `last_name` VARCHAR(45);
 
