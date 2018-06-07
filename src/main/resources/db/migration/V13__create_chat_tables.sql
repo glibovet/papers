@@ -85,6 +85,7 @@ CREATE TABLE `papers`.`contacts` (
   `isAccepted` TINYINT(1) NOT NULL,
   `message` VARCHAR(500) NULL,
   `attachment` VARCHAR(45) NULL,
+  `date` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_from_user_to_user_idx` (`user_from` ASC),
   INDEX `fk_to_user_to_user_idx` (`user_to` ASC),

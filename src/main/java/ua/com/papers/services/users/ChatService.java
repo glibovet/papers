@@ -52,7 +52,7 @@ public class ChatService implements IChatService {
 
     @Override
     public MessageEntity createMessage (MessageView view, UserEntity user) throws IOException {
-        MessageEntity message = createMessage(chatRepository.findOne(view.getChatId()), user, view.getText(), view.getAttachment());
+        MessageEntity message = createMessage(chatRepository.findOne(view.getChatId()), user, view.getText(), view.getAttachment(), new Date());
         if(StringUtils.isNotEmpty(view.getAttachment())){
             storageService.moveMessageAttachment(message);
         }
@@ -61,23 +61,23 @@ public class ChatService implements IChatService {
 
     @Override
     public MessageEntity createMessage (ChatEntity chat, UserEntity user, String text, MultipartFile attachment) throws IOException, ServiceErrorException {
-        MessageEntity message = createMessage(chat, user, text, FilenameUtils.getName(attachment.getOriginalFilename()));
+        MessageEntity message = createMessage(chat, user, text, FilenameUtils.getName(attachment.getOriginalFilename()), new Date());
         storageService.uploadMessageAttachment(message, attachment);
         return message;
     }
 
     public MessageEntity createMessageFromContactRequest (ChatEntity chat, ContactEntity contact) throws IOException {
-        MessageEntity message = createMessage(chat, contact.getUserFrom(), contact.getMessage(), contact.getAttachment());
+        MessageEntity message = createMessage(chat, contact.getUserFrom(), contact.getMessage(), contact.getAttachment(), contact.getDate());
         storageService.moveContactAttachmentToMessage(message, contact);
         return message;
     }
 
-    private MessageEntity createMessage(ChatEntity chat, UserEntity user, String text, String attachment) {
+    private MessageEntity createMessage(ChatEntity chat, UserEntity user, String text, String attachment, Date date) {
         MessageEntity message = new MessageEntity();
         message.setUser(user);
         message.setText(text);
         message.setChat(chat);
-        message.setDate(new Date());
+        message.setDate(date);
         if(StringUtils.isNotEmpty(attachment)) {
             message.setAttachment(attachment);
         }

@@ -3,6 +3,7 @@ package ua.com.papers.pojo.entities;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "contacts")
@@ -30,6 +31,10 @@ public class ContactEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_to")
     private UserEntity userTo;
+
+    @Column(name="date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date;
 
 
     public int getId() {
@@ -80,6 +85,13 @@ public class ContactEntity {
         isAccepted = accepted;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
     @Override
     public boolean equals(Object o) {
