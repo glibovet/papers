@@ -49,6 +49,10 @@
                             <label>
                                 <textarea id = "text"></textarea>
                             </label>
+                            <form id="upload-file-form" enctype="multipart/form-data">
+                                <input id="upload-file-input" type="file" name="uploadfile" accept="*" />
+                                <input type="hidden" id="${_csrf.parameterName}" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                            </form>
                             <%--<button id = "sendButton" class="btn btn-primary"  onclick="sendMessage();" style="width: 100px; margin: 0 auto">Відправити</button>--%>
                         </div>
                     </div>
@@ -56,6 +60,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 </body>

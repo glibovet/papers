@@ -14,7 +14,7 @@ public interface IChatService {
 
     ChatEntity getChatById(int chatId);
 
-    MessageEntity createMessage (MessageView view, UserEntity user);
+    MessageEntity createMessage (MessageView view, UserEntity user) throws IOException;
 
     ChatEntity getChatByUsers (UserEntity fist, UserEntity second);
 

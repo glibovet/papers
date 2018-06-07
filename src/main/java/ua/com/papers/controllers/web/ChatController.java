@@ -78,6 +78,7 @@ public class ChatController {
         System.out.println("chatId "+chatId);
         System.out.println("message: "+ message);
         MessageEntity messageEntity = chatService.createMessage(message, user);
+        message.setMessageId(messageEntity.getId());
         message.setDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(messageEntity.getDate()));
         return message;
     }

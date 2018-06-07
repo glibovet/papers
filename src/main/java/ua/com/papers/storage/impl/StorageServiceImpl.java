@@ -231,8 +231,13 @@ public class StorageServiceImpl implements IStorageService {
     @Transactional
     public boolean uploadMessageAttachment(MessageEntity message, MultipartFile file) throws IOException, ServiceErrorException {
         putFileToServer(message.getId(), MESSAGES_ATTACHMENTS_FOLDER, file);
-        message.setAttachment(FilenameUtils.getName(file.getOriginalFilename()));
-        chatService.update(message);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean uploadMessageAttachment(MultipartFile file) throws IOException, ServiceErrorException {
+        putFileToServer(-1, MESSAGES_ATTACHMENTS_FOLDER, file);
         return true;
     }
 
@@ -248,14 +253,24 @@ public class StorageServiceImpl implements IStorageService {
     }
 
     public void moveContactAttachmentToMessage(MessageEntity message, ContactEntity contact) throws IOException {
-        File from = new File(ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER +'/' + contact.getId() + '/'+contact.getAttachment());
-        File fileContainer = new File(ROOT_DIR + MESSAGES_ATTACHMENTS_FOLDER + '/' + message.getId());
+        String filePath = ROOT_DIR + CONTACT_REQUESTS_ATTACHMENTS_FOLDER + '/' + contact.getId() + '/' + contact.getAttachment();
+        String toDirectoryPath = ROOT_DIR + MESSAGES_ATTACHMENTS_FOLDER + '/' + message.getId();
+        moveAttachment(filePath,toDirectoryPath);
+    }
+
+    public void moveMessageAttachment (MessageEntity message) throws IOException {
+        String filePath = ROOT_DIR + MESSAGES_ATTACHMENTS_FOLDER + "/-1/" + message.getAttachment();
+        String toDirectoryPath = ROOT_DIR + MESSAGES_ATTACHMENTS_FOLDER + '/' + message.getId();
+        moveAttachment(filePath,toDirectoryPath);
+    }
+
+    private void moveAttachment (String filePath, String toDirectoryPath) throws IOException {
+        File from = new File(filePath);
+        File fileContainer = new File(toDirectoryPath);
         if(!fileContainer.exists()) {
             fileContainer.mkdirs();
         }
         FileUtils.copyFileToDirectory(from, fileContainer);
-        message.setAttachment(contact.getAttachment());
-        chatService.update(message);
         FileUtils.deleteDirectory(from.getParentFile());
     }
 

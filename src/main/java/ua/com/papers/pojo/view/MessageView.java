@@ -4,6 +4,7 @@ import java.util.Date;
 
 public class MessageView {
 
+    private Integer messageId;
     private Integer userId;
     private String userName;
     private String userLastName;
@@ -66,6 +67,14 @@ public class MessageView {
 
     public void setUserLastName(String userLastName) {
         this.userLastName = userLastName;
+    }
+
+    public Integer getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(Integer messageId) {
+        this.messageId = messageId;
     }
 
     @Override
