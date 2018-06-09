@@ -57,8 +57,10 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
             if(document.getTfIdfItems().size() < 15) {
                 numberOfItems = document.getTfIdfItems().size();
             }
-            for (int i=0; i< numberOfItems; i++) {
-                dictionary.add(document.getTfIdfItems().get(i).getWord());
+            if(numberOfItems > 0) {
+                for (int i=0; i< numberOfItems; i++) {
+                    dictionary.add(document.getTfIdfItems().get(i).getWord());
+                }
             }
         }
 
@@ -67,68 +69,6 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
 
         // 6. Calculate cosine similarity between all pairs of documents and save into db
         this.cosineSimilarityService.processDocuments(documents, dictionary);
-    }
-
-    public void generateWithTime() {
-        try {
-            FileWriter fw = new FileWriter("C:/dev/logs.txt");
-            BufferedWriter bw = new BufferedWriter(fw);
-
-            long startTime = System.currentTimeMillis();
-            // 1. Prepare documents collection: Create document with publication id, text and list of words.
-            List<Document> documents = documentsProcessingService.prepareDocumentsCollection();
-            long estimatedTime = System.currentTimeMillis() - startTime;
-            bw.write("1. PROCESSING DOCUMENTS TAKES: " + estimatedTime + ";  ");
-            System.out.println("------processed dosc------");
-            startTime = System.currentTimeMillis();
-            // 2. Calculate tf-idf for every word in every document.
-            this.tfIdfService.calculateTfIdfForDocuments(documents);
-            estimatedTime = System.currentTimeMillis() - startTime;
-            bw.write("2. CALCULATING TF-IDF TAKES: " + estimatedTime + "; ");
-            System.out.println("------calculated tf-idf------");
-            startTime = System.currentTimeMillis();
-            // 3. Sort tf-idf list by value in every document
-            for(Document document : documents) {
-                Collections.sort(document.getTfIdfItems());
-                Collections.reverse(document.getTfIdfItems());
-            }
-            estimatedTime = System.currentTimeMillis() - startTime;
-            bw.write("3. SORTING TF-IDF COLLECTION TAKES: " + estimatedTime + "; ");
-            System.out.println("------sorted tf-idf------");
-            startTime = System.currentTimeMillis();
-            // 4. Create dictionary - dictionary can be created only after all key words for documents have been fined
-            HashSet<String> dictionary = new HashSet<>();
-            for(Document document : documents) {
-                int numberOfItems = 10;
-                if(document.getTfIdfItems().size() < 10) {
-                    numberOfItems = document.getTfIdfItems().size();
-                }
-                for (int i=0; i< numberOfItems; i++) {
-                    dictionary.add(document.getTfIdfItems().get(i).getWord());
-                }
-            }
-            estimatedTime = System.currentTimeMillis() - startTime;
-            bw.write("4. CREATING DICTIONARY TAKES: " + estimatedTime + "; ");
-            System.out.println("------creted dict------");
-
-            startTime = System.currentTimeMillis();
-            // 5. Delete previous Cosine similarity calculations
-            publicationsCosineSimilarityService.deleteAll();
-            estimatedTime = System.currentTimeMillis() - startTime;
-            bw.write("5. DELETE ALL FROM DB TAKES: " + estimatedTime + "; ");
-            System.out.println("------deleted from db------");
-            startTime = System.currentTimeMillis();
-            // 6. Calculate cosine similarity between all pairs of documents and save into db
-            this.cosineSimilarityService.processDocuments(documents, dictionary);
-            estimatedTime = System.currentTimeMillis() - startTime;
-            bw.write("6. CALCULATING CS TAKES: " + estimatedTime + "; ");
-            System.out.println("------calculated cs------");
-
-            bw.close();
-            fw.close();
-        } catch(IOException e) {
-        }
-
     }
 
     public HashSet<PublicationEntity> prepareBasedOnInteractions(Map<Integer, Double> hm) {

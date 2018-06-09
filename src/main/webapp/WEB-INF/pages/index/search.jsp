@@ -47,7 +47,7 @@
                         <c:forEach var="publication" items="${publications}">
                             <div class="row text-left">
                                 <h3>${publication.title}</h3>
-                                <p>${publication.body}</p>
+                                <%--<p>${publication.body}</p>--%>
                                 <p>Автор(и): ${publication.authors}</p>
                                 <p>Видавництво: ${publication.publisher}</p>
                                 <c:choose>

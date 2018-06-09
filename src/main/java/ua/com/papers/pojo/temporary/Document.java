@@ -62,11 +62,14 @@ public class Document {
         if(this.words.size() < 15) {
             numberOfWords = this.words.size();
         }
-        for(TfIdfItem item : this.getTfIdfItems().subList(0, numberOfWords)) {
-            if(item.getWord().equals(word)) {
-                return item.getValue();
+        if(numberOfWords > 0) {
+            for(TfIdfItem item : this.getTfIdfItems().subList(0, numberOfWords)) {
+                if(item.getWord().equals(word)) {
+                    return item.getValue();
+                }
             }
         }
+
         return 0.0;
     }
 

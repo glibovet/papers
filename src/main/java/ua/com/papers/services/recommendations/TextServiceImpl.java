@@ -1,7 +1,5 @@
 package ua.com.papers.services.recommendations;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.util.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ua.com.papers.services.stemmer.IUkrainianStemmer;
@@ -47,14 +45,19 @@ public class TextServiceImpl implements ITextService{
         if(st.hasMoreTokens()) {
             String temp = this.getStemmed(this.normalizeString(st.nextToken()));
             while (st.hasMoreTokens()) {
-                String word = this.getStemmed(this.normalizeString(st.nextToken()));
-                if (temp.length() > 2 && !stopWords.contains(word)) {
-                    words.add(temp);
-                    if (word.length() > 2 && !stopWords.contains(word)) {
-                        words.add(temp + " " + word);
+                try {
+                    String word = this.getStemmed(this.normalizeString(st.nextToken()));
+                    if (temp.length() > 2 && !stopWords.contains(word)) {
+                        words.add(temp);
+                        if (word.length() > 2 && !stopWords.contains(word)) {
+                            words.add(temp + " " + word);
+                        }
                     }
+                    temp = word;
                 }
-                temp = word;
+//                TODO: some problem in stemmer
+                catch(StringIndexOutOfBoundsException e) {
+                }
             }
         }
 
