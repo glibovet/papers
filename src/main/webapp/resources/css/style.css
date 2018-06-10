@@ -114,6 +114,7 @@ body {
 
 .chat {
     max-height: 60vh;
+    min-height: 60vh;
     overflow-y: scroll;
 }
 
@@ -362,7 +363,9 @@ body {
 .search_result .folder .info {
     display: flex;
     justify-content: space-between;
-    width: 100%;
+    width: 75%;
+    border: 1px solid #286090;
+    border-radius: 5px;
 }
 
 .search_result .folder .info a {
@@ -443,6 +446,22 @@ input:checked + label {
     border: 1px solid #ddd;
     /*border-top: 2px solid orange;*/
     border-bottom: 1px solid #fff;
+}
+
+.m_user {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: block;
+    white-space: nowrap;
+    height: 64px;
+    max-width: 300px;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.u_download {
+    font-size: 14px !important;
+    text-decoration: underline;
 }
 
 #tab1:checked ~ #content1,
