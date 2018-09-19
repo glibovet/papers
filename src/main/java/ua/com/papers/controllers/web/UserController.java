@@ -86,9 +86,10 @@ public class UserController {
         return storageService.getProfileImage(userId);
     }
 
-    @RequestMapping(value = "/contacts")
+    @RequestMapping(value = "/contacts/{tab}")
     public String allContacts(Model model,
-                              @ModelAttribute("searchUsersView") SearchUsersView searchUsersView) {
+                              @ModelAttribute("searchUsersView") SearchUsersView searchUsersView,
+                              @PathVariable ("tab") String tab) {
         UserEntity user = sessionUtils.getCurrentUser();
         if (user == null)
             return "/";
@@ -97,6 +98,7 @@ public class UserController {
         System.out.println("contacts "+ contacts);
         model.addAttribute("contacts", contacts);
         model.addAttribute("searchUsersView", searchUsersView);
+        model.addAttribute("tab", tab);
         System.out.println("searchUsersView "+ searchUsersView);
         List<ContactEntity> receivedContactRequests = userService.getReceivedContactRequests(user);
         System.out.println("receivedContactRequests "+ receivedContactRequests);
@@ -153,12 +155,12 @@ public class UserController {
         if(userService.isConnected(sessionUtils.getCurrentUser().getId(), id) ){
             return "redirect:/users/"+id;
         }
-        ContactEntity contactEntity = userService.createContactRequest(currentUser, user, message, attachment);
+        userService.createContactRequest(currentUser, user, message, attachment);
         return "redirect:/users/"+id;
     }
 
     @RequestMapping(value = {"/delete-contact"}, method = RequestMethod.POST)
-    public String deleteContact(@RequestParam(value = "contactId") int contactId, Model model) throws NoSuchEntityException {
+    public String deleteContact(@RequestParam(value = "contactId") int contactId, Model model) {
         ContactEntity contact = userService.getContactById(contactId);
         userService.deleteContact(contact);
         return "redirect:/users/"+contact.getUserFrom().getId();
@@ -173,6 +175,36 @@ public class UserController {
         }
         userService.acceptContactRequest(contact);
         return "redirect:/users/"+contact.getUserFrom().getId();
+    }
+
+    @RequestMapping(value = {"/accept"}, method = RequestMethod.POST)
+    public String accept(@RequestParam(value = "contactId") int contactId, Model model) throws IOException {
+        UserEntity user = sessionUtils.getCurrentUser();
+        ContactEntity contact = userService.getContactById(contactId);
+        if(contact == null || user.getId() != contact.getUserTo().getId()){
+            return "redirect:/users/"+user.getId();
+        }
+        userService.acceptContactRequest(contact);
+        return "redirect:/users/contacts/requests";
+    }
+
+    @RequestMapping(value = {"/delete-contact/{tab}"}, method = RequestMethod.POST)
+    public String deleteContact(@RequestParam(value = "contactId") int contactId,
+                                 @PathVariable (value = "tab") String tab,
+                                 Model model) {
+        ContactEntity contact = userService.getContactById(contactId);
+        userService.deleteContact(contact);
+        return "redirect:/users/contacts/"+tab;
+    }
+
+    @RequestMapping(value = {"/delete-accepted"}, method = RequestMethod.POST)
+    public String deleteAccepted(@RequestParam(value = "userId") int userId,
+                                Model model) throws NoSuchEntityException {
+        UserEntity currentUser = sessionUtils.getCurrentUser();
+        UserEntity user = userService.getUserById(userId);
+        ContactEntity contact = userService.getContactByUsers(currentUser, user);
+        userService.deleteContact(contact);
+        return "redirect:/users/contacts/all";
     }
 
     @RequestMapping(value = "/attachment/{id}" , method = RequestMethod.GET)

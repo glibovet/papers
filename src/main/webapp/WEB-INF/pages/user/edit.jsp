@@ -74,7 +74,7 @@
                             </spring:select>
                         </label>
 
-                        <spring:button class="btn btn-success btn-block">Зберегти</spring:button>
+                        <spring:button class="btn btn-primary btn-block">Зберегти</spring:button>
                     </spring:form>
                 </div>
             </div>

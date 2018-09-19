@@ -23,7 +23,7 @@
                 <div class="inner cover">
 
                     <main>
-
+                        <input type="hidden" id="tab" value="${tab}">
                         <input id="tab1" type="radio" name="tabs" checked class="tab1">
                         <label for="tab1">Мої контакти</label>
 
@@ -43,7 +43,12 @@
                                         <div class="info">
                                             <a href="/users/${contact.id}">${contact.name} ${contact.lastName}</a>
                                             <div class="buttons">
-                                                <button class="btn btn-danger btn-block">Видалити</button>
+                                                <form id="reject-contact-all" action="/users/delete-accepted" method="post" class="nav masthead-nav my_nav">
+                                                    <input type="hidden" name="userId" value="${contact.id}" />
+                                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                                    <button class="btn btn-link btn-block" onclick="document.getElementById('reject-contact-all').submit();">Видалити</button>
+                                                </form>
+                                                <%--<button class="btn btn-link btn-block">Видалити</button>--%>
                                             </div>
                                         </div>
                                     </div>
@@ -67,8 +72,17 @@
                                                 <a class="u_download" href="/users/attachment/${contact.id}">${contact.attachment}</a>
                                             </div>
                                             <div class="buttons">
-                                                <button class="btn btn-success btn-block">Прийняти</button>
-                                                <button class="btn btn-danger btn-block">Відхилити</button>
+                                                <form id="accept-contact" action="/users/accept" method="post" class="nav masthead-nav my_nav">
+                                                    <input type="hidden" name="contactId" value="${contact.id}" />
+                                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                                    <button class="btn btn-primary btn-block" onclick="document.getElementById('accept-contact').submit();">Прийняти</button>
+                                                </form>
+                                                <form id="reject-contact-requests" action="/users/delete-contact/requests" method="post" class="nav masthead-nav my_nav">
+                                                    <input type="hidden" name="contactId" value="${contact.id}" />
+                                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                                                    <button class="btn btn-link btn-block" onclick="document.getElementById('reject-contact-requests').submit();">Відхилити</button>
+                                                </form>
+                                                <%--<button class="btn btn-link btn-block">Відхилити</button>--%>
                                             </div>
                                         </div>
                                     </div>
@@ -78,7 +92,7 @@
 
                         <section id="content3">
 
-                            <spring:form method="post" modelAttribute="searchUsersView" action="/users/contacts">
+                            <spring:form method="post" modelAttribute="searchUsersView" action="/users/contacts/search">
                                 <div class="col-md-4 form-group">
 
                                         <spring:input path="name" type="text" class="form-control" placeholder="Ім'я"
@@ -95,7 +109,6 @@
                                     <spring:button class="btn btn-primary">Шукати</spring:button>
                                 </div>
                             </spring:form>
-                            <input type="hidden" id="searchResultsSize" value="${fn:length(searchResults)}">
                             <div class="search_result">
                                 <c:forEach items="${searchResults}" var="contact">
                                     <div class="folder">
@@ -104,9 +117,9 @@
                                         </div>
                                         <div class="info">
                                             <a href="/users/${contact.id}">${contact.name} ${contact.lastName}</a>
-                                            <div class="buttons">
-                                                <button class="btn btn-success btn-block">Додати в контакти</button>
-                                            </div>
+                                            <%--<div class="buttons">--%>
+                                                <%--<button class="btn btn-primary btn-block">Додати в контакти</button>--%>
+                                            <%--</div>--%>
                                         </div>
                                     </div>
                                 </c:forEach>

@@ -1,11 +1,13 @@
 document.addEventListener("DOMContentLoaded", function (event) {
-    var searchResultsSize = document.getElementById("searchResultsSize").value || null;
-    var tabChecked = document.querySelector("input[name='tabs']:checked");
-    console.log(searchResultsSize);
-
-    if (searchResultsSize !== "0" && searchResultsSize !== 0 && searchResultsSize) {
+    var tab = document.getElementById("tab").value;
+    if(tab === 'search'){
         document.querySelector("input[name='tabs']:checked").checked = false;
         document.querySelector(".tab3").checked = true;
-        console.log(document.querySelector("input[name='tabs']:checked"));
+    }else if(tab === 'requests'){
+        document.querySelector("input[name='tabs']:checked").checked = false;
+        document.querySelector(".tab2").checked = true;
+    }else {
+        document.querySelector("input[name='tabs']:checked").checked = false;
+        document.querySelector(".tab1").checked = true;
     }
 });

@@ -33,11 +33,11 @@
                             </div>
                             <div class="info" style="display: flex; flex-direction: column; text-align: left; justify-content:flex-start;">
                                 <a href="/chat/${chat.id}">${withUser.name} ${withUser.lastName}</a>
-                                <%--<div class="buttons">--%>
-                                    <%--<button class="btn btn-danger btn-block">udalit</button>--%>
-                                <%--</div>--%>
                                 <%--<div class="m_user" style="margin-left: 25px;">--%>
                                     <%--Добрий день!--%>
+                                <%--</div>--%>
+                                <%--<div class="buttons">--%>
+                                    <%--<button class="btn btn-link btn-block">udalit</button>--%>
                                 <%--</div>--%>
                             </div>
                         </div>
