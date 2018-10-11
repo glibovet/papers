@@ -28,14 +28,218 @@
                 <bean class="java.net.URL">
                     <constructor-arg name="spec" value="http://journals.uran.ua/index.php/1991-0177/issue/archive"/>
                 </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://infotelesc.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journal.mmi.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/sciencerise/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://jiks.kart.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/atbp/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://asac.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://vtn.ztu.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://pema.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://chemengine.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://pm.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://itvisnyk.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://evn.nuos.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://pim.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://http://jdsm.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://eipt.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://misapr.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://mtsc.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://samit.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journal.mmi.kpi.ua/old/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://visnykpb.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/vestnikpgtu_tech/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://vd.zntu.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://dvs.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://etr.diit.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://ecsrt.diit.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://feltran.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://elc.kpi.ua/old/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://ee.zntu.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://eie.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://energy.nzeb.com.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://eee.khpi.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://conferenc.its.kpi.ua/proc/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://conference.gyro.kpi.ua/proc/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://jnn.nuos.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://csw.kart.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/gpmf/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://radio.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://smi.nuos.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://matmod.dp.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://mcm-tech.kpnu.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://problemymashinobuduvannya.uipa.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://mtom.pgasa.dp.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://mgsys.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://elc.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://stp.diit.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://energy.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://bulletin.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://tb.chdu.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://metalcasting.kpi.ua/proc/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/index.php/2079-4827/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/jme/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://confopcb.iee.kpi.ua/proc/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://pmo.ztu.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://ric.zntu.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://lepe.kname.edu.ua/index.php/lepe/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://semst.onu.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journal.iasa.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/itssi/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://sit.nuou.org.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/eejet/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/tarp/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://ttdruk.vpi.kpi.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/IndustrialGases/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.stu.cn.ua/technical_sciences_and_technology/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://tstt.diit.edu.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://umj.metrology.kharkov.ua/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/urss/issue/archive"/>
+                </bean>
+                <bean class="java.net.URL">
+                    <constructor-arg name="spec" value="http://journals.uran.ua/foodtech/issue/archive"/>
+                </bean>
             </util:set>
         </constructor-arg>
         <constructor-arg name="schedulerSetting">
             <bean class="ua.com.papers.crawler.settings.SchedulerSetting">
                 <constructor-arg name="indexDelay" value="30000"/>
-                <constructor-arg name="processingThreads" value="3"/>
+                <constructor-arg name="processingThreads" value="4"/>
                 <constructor-arg name="processingDelay" value="30000"/>
-                <constructor-arg name="indexThreads" value="3"/>
+                <constructor-arg name="indexThreads" value="4"/>
             </bean>
         </constructor-arg>
         <constructor-arg name="urlsRepository" ref="jpaUrlsRepository"/>

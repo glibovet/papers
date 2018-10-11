@@ -262,7 +262,7 @@
 
     <bean id="crawlCronJob" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail" ref="crawlJobDetail"/>
-        <property name="cronExpression" value="0 0 13 ? * MON,THU"/>
+        <property name="cronExpression" value="0 0 13 ? * MON,THU,SAT *"/>
     </bean>
 
     <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
