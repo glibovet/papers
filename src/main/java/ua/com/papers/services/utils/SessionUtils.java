@@ -35,17 +35,14 @@ public class SessionUtils {
 
     public UserEntity getCurrentUser() {
         if (isAuthorized()) {
-            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            return usersRepository.findByEmail(userDetails.getUsername());
+            UserEntity userEntity = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return usersRepository.findOne(userEntity.getId());
         } else
             return null;
     }
     public boolean isAuthorized() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken))
-            return true;
-        else
-            return false;
+        return !(authentication instanceof AnonymousAuthenticationToken);
     }
 
     public void authorized() throws AuthRequiredException {
@@ -79,13 +76,7 @@ public class SessionUtils {
     }};
 
     public void logeInUser(UserEntity entity) {
-        UserEntity user = usersRepository.findByEmail(entity.getEmail());
-        boolean enabled = true;
-        if (!user.isActive())
-            enabled = false;
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(),
-                enabled, true, true, true, getGrantedAuthorities(user));
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        Authentication auth = new UsernamePasswordAuthenticationToken(entity, entity.getPassword(), getGrantedAuthorities(entity));
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 

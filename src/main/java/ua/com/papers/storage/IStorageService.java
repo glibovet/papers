@@ -7,7 +7,10 @@ import ua.com.papers.exceptions.service_error.ForbiddenException;
 import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.exceptions.service_error.StorageException;
 import ua.com.papers.exceptions.service_error.ValidationException;
+import ua.com.papers.pojo.entities.ContactEntity;
+import ua.com.papers.pojo.entities.MessageEntity;
 import ua.com.papers.pojo.entities.PublicationEntity;
+import ua.com.papers.pojo.entities.UserEntity;
 import ua.com.papers.utils.ResultCallback;
 
 import javax.servlet.http.HttpServletResponse;
@@ -27,11 +30,32 @@ public interface IStorageService {
     void uploadPaper(@NotNull PublicationEntity publication, @NotNull ResultCallback<File> callback);
 
     boolean uploadPaper(int id, String url) throws NoSuchEntityException, StorageException;
+
     boolean uploadPaper(int id, MultipartFile file) throws NoSuchEntityException, ServiceErrorException, IOException, ValidationException;
+
+    boolean uploadProfileImage(UserEntity user, MultipartFile file) throws NoSuchEntityException, ServiceErrorException, IOException, ValidationException;
+
+    byte[] getProfileImage (int userId) throws IOException;
+
     byte[] getPaperAsByteArray(Integer paperId) throws NoSuchEntityException, ServiceErrorException, ForbiddenException, PublicationWithoutFileException;
+
     byte[] getPaperAsByteArray(PublicationEntity entity) throws PublicationWithoutFileException, ServiceErrorException, ForbiddenException;
 
     void getPaper(int id, String token, HttpServletResponse response) throws NoSuchEntityException, ForbiddenException, ServiceErrorException;
 
     boolean paperHasFile(int id) throws NoSuchEntityException, ForbiddenException, ServiceErrorException;
+
+    boolean uploadRequestAttachment(ContactEntity contact, MultipartFile file) throws IOException, ServiceErrorException;
+
+    void getMessageAttachment(HttpServletResponse response, MessageEntity message) throws IOException;
+
+    boolean uploadMessageAttachment(MessageEntity message, MultipartFile file) throws IOException, ServiceErrorException;
+
+    boolean uploadMessageAttachment(MultipartFile file) throws IOException, ServiceErrorException;
+
+    void moveContactAttachmentToMessage(MessageEntity message, ContactEntity contact) throws IOException;
+
+    void getContactAttachment(HttpServletResponse response, ContactEntity contact) throws IOException;
+
+    void moveMessageAttachment (MessageEntity message) throws IOException;
 }

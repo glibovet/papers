@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ua.com.papers.exceptions.PapersException;
 import ua.com.papers.exceptions.service_error.AuthRequiredException;
 import ua.com.papers.exceptions.service_error.ForbiddenException;
+import ua.com.papers.exceptions.service_error.ServiceErrorException;
 import ua.com.papers.pojo.enums.RolesEnum;
 import ua.com.papers.pojo.response.Response;
 import ua.com.papers.pojo.response.ResponseFactory;
@@ -62,5 +63,15 @@ public class StorageApiController {
             @PathVariable("id") int id
     ) throws PapersException {
         return responseFactory.get(storageService.paperHasFile(id));
+    }
+
+    @RequestMapping(value = "/attachment", method = RequestMethod.POST)
+    public @ResponseBody
+    Response<Boolean>
+    uploadMessageAttachment(
+            @RequestParam("uploadfile") MultipartFile file
+    ) throws IOException, ServiceErrorException {
+        storageService.uploadMessageAttachment(file);
+        return responseFactory.get(true);
     }
 }

@@ -42,7 +42,7 @@
                     dataType: 'json',
                     success: function(response){
                         if(response.result){
-                            location.href = '/';
+                            location.href = '/users/edit';
                         } else if(response.error){
                             var error = response.error;
                             showErrorMessage(error.message + buildValidationErrors(error.errors));
