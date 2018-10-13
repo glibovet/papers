@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix ="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <!DOCTYPE html>
 <html>
@@ -47,7 +48,7 @@
                         <c:forEach var="publication" items="${publications}">
                             <div class="row text-left">
                                 <h3>${publication.title}</h3>
-                                <p>${publication.body}</p>
+                                <p>${fn:substring(publication.body,0,300)}</p>
                                 <p>Автор(и): ${publication.authors}</p>
                                 <p>Видавництво: ${publication.publisher}</p>
                                 <c:choose>
