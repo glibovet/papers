@@ -281,6 +281,7 @@ public class ElasticSearchImpl implements IElasticSearch{
                 .actionGet();
         publication.setInIndex(true);
         publicationService.updatePublication(publication);
+        log.info("------We add to index publication "+publication.getTitle());
         return true;
     }
 
