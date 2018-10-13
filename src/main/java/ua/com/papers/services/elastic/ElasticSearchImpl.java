@@ -192,6 +192,7 @@ public class ElasticSearchImpl implements IElasticSearch{
         } catch (NoSuchEntityException|ForbiddenException e) {
             log.error(e.getMessage());
         }
+        log.info("---------------We STOP indexing ---------");
     }
 
     @Override
