@@ -1,9 +1,10 @@
 package ua.com.papers.crawler.settings;
 
 import lombok.Value;
+import ua.com.papers.crawler.util.Preconditions;
 
 /**
- * Created by Максим on 11/27/2016.
+ * Represents scheduling settings such as number of active threads, pause between accesses to a web-resource
  */
 @Value
 public class SchedulerSetting {
@@ -15,12 +16,12 @@ public class SchedulerSetting {
     long indexDelay;
     long processingDelay;
 
-    @lombok.Builder(builderClassName = "Builder")
-    private SchedulerSetting(int processingThreads, int indexThreads, long indexDelay, long processingDelay) {
-        Conditions.checkArgument(processingThreads >= 1,
-                String.format("invalid processing threads num, was %d", processingThreads));
-        Conditions.checkArgument(indexThreads >= 1,
-                String.format("invalid indexing threads num, was %d", indexThreads));
+    @lombok.Builder
+    public SchedulerSetting(int processingThreads, int indexThreads, long indexDelay, long processingDelay) {
+        Preconditions.checkArgument(processingThreads >= 1,
+                "invalid processing threads num, was %d", processingThreads);
+        Preconditions.checkArgument(indexThreads >= 1,
+                "invalid indexing threads num, was %d", indexThreads);
 
         this.indexDelay = toDelay(indexDelay);
         this.processingDelay = toDelay(processingDelay);
@@ -28,8 +29,8 @@ public class SchedulerSetting {
         this.indexThreads = indexThreads;
     }
 
-    private static long toDelay(long original) {
-        return original < MIN_DELAY ? MIN_DELAY : original;
+    private static long toDelay(long value) {
+        return value < MIN_DELAY ? MIN_DELAY : value;
     }
 
 }

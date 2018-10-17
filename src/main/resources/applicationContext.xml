@@ -35,36 +35,35 @@
         </property>
     </bean>
 
-    <bean id="defaultCrawlerFactory" class="ua.com.papers.services.crawler.XmlCrawlerManagerFactory">
-        <constructor-arg name="xsdPath" value="${papers.crawler.xsd.location}"/>
-        <constructor-arg name="filepath" value="${papers.crawler.location}"/>
-        <constructor-arg name="factory" ref="appCrawlerFactory"/>
-    </bean>
+    <import resource="nbuvConfig.xml"/>
+    <import resource="uranConfig.xml"/>
 
-    <bean id="nbuvCrawlerFactory" class="ua.com.papers.services.crawler.XmlCrawlerManagerFactory">
-        <constructor-arg name="xsdPath" value="${papers.crawler.xsd.location}"/>
-        <constructor-arg name="filepath" value="${papers.crawler.location.nbuv}"/>
-        <constructor-arg name="factory" ref="appCrawlerFactory"/>
-    </bean>
-
-    <!-- Crawl units declaration -->
-
-    <bean id="nbuvCrawlUnit" class="ua.com.papers.services.crawler.WebSiteCrawlUnit">
-        <constructor-arg name="handlers">
-            <list>
-                <ref bean="logPage"/>
-                <ref bean="nbuvArticleHandler"/>
+    <bean id="crawlerService" class="ua.com.papers.services.crawler.CrawlerService">
+        <constructor-arg name="factories">
+            <list value-type="ua.com.papers.crawler.core.factory.CrawlerFactory">
+                <ref bean="nbuvFactory"/>
+                <ref bean="uranFactory"/>
             </list>
         </constructor-arg>
-        <constructor-arg name="factory" ref="nbuvCrawlerFactory"/>
+        <constructor-arg name="handler" ref="slackLogger" />
+        <constructor-arg name="crawlerChannel" ref="slackCrawlerChannel" />
+        <constructor-arg name="slackSession" ref="slackSession" />
     </bean>
 
-    <bean class="ua.com.papers.services.crawler.CrawlerService">
-        <constructor-arg name="crawlUnits">
-            <list value-type="ua.com.papers.services.crawler.WebSiteCrawlUnit">
-                <ref bean="nbuvCrawlUnit"/>
-            </list>
-        </constructor-arg>
+    <bean id="slackSession" class="com.ullink.slack.simpleslackapi.impl.SlackSessionFactory"
+          factory-method="createWebSocketSlackSession" init-method="connect">
+        <constructor-arg name="authToken" value="${slack.token}"/>
+    </bean>
+
+
+    <bean id="slackCrawlerChannel" class="com.ullink.slack.simpleslackapi.SlackChannel" factory-bean="slackSession"
+          factory-method="findChannelByName">
+        <constructor-arg name="channelName" value="crawler"/>
+    </bean>
+
+    <bean id="slackLogger" class="ua.com.papers.services.utils.SlackLogHandler">
+        <constructor-arg name="crawlerChannel" ref="slackCrawlerChannel" />
+        <constructor-arg name="slackSession" ref="slackSession" />
     </bean>
 
     <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>
@@ -110,8 +109,7 @@
         </property>
     </bean>
 
-    <bean id="entityManagerFactory"
-          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="mainDataSource"/>
         <property name="packagesToScan" value="ua.com.papers.pojo.entities, ua.com.papers.services.crawler.unit.repo"/>
         <property name="jpaVendorAdapter">
@@ -139,6 +137,8 @@
         <security:intercept-url pattern="/resources/**" access="permitAll"/>
 
         <security:intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')"/>
+        <security:intercept-url pattern="/users/**" access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN')"/>
+        <security:intercept-url pattern="/chat/**" access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN')"/>
 
         <!-- access denied page -->
         <security:access-denied-handler error-page="/403"/>
@@ -258,14 +258,13 @@
     </bean>
 
     <bean id="crawlJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-        <property name="targetObject" ref="scheduleCrawling"/>
-        <property name="targetMethod" value="startCrawling"/>
+        <property name="targetObject" ref="crawlerService"/>
+        <property name="targetMethod" value="startIndexing"/>
     </bean>
 
     <bean id="crawlCronJob" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail" ref="crawlJobDetail"/>
-        <!-- every five days in the month at 2 a.m. crawler will start working -->
-        <property name="cronExpression" value="0 0 2 1/7 * ?"/>
+        <property name="cronExpression" value="0 0 13 ? * MON,THU"/>
     </bean>
 
     <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">

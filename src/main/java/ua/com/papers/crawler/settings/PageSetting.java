@@ -1,29 +1,26 @@
 package ua.com.papers.crawler.settings;
 
 import com.google.common.base.Preconditions;
-import lombok.Builder;
-import lombok.Singular;
-import lombok.Value;
-import ua.com.papers.crawler.core.domain.vo.PageID;
+import lombok.*;
+import ua.com.papers.crawler.core.main.model.PageID;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+import java.net.URL;
 import java.util.Collection;
+import java.util.Optional;
 
 /**
- * <p>
- * This class represents settings for a single web page
- * </p>
- * Created by Максим on 11/27/2016.
+ * This class represents settings for a single web page that should be processed by crawler
  */
 @Value
-@Builder(builderClassName = "Builder")
+@Builder
 public final class PageSetting {
 
-    public static final int MIN_WEIGHT = 0;
-    public static final int MAX_WEIGHT = 100;
-    public static final int DEFAULT_WEIGHT = 70;
-
     PageID id;
-    int minWeight;
+    AnalyzeWeight minWeight;
+    @Getter(value = AccessLevel.NONE) @Nullable URL baseUrl;
+
     @Singular
     Collection<? extends AnalyzeTemplate> analyzeTemplates;
     @Singular
@@ -31,18 +28,14 @@ public final class PageSetting {
     @Singular
     Collection<? extends UrlSelectSetting> selectSettings;
 
-    private PageSetting(PageID id, int minWeight,
+    private PageSetting(PageID id, AnalyzeWeight minWeight,
+                        @Nullable URL baseUrl,
                         Collection<? extends AnalyzeTemplate> analyzeTemplates,
                         Collection<? extends FormatTemplate> formatTemplates,
                         Collection<? extends UrlSelectSetting> selectSettings) {
 
-        if (minWeight < MIN_WEIGHT || minWeight > MAX_WEIGHT)
-            throw new IllegalArgumentException(
-                    String.format("weight < %d || weight > %d, was %s", MIN_WEIGHT, MAX_WEIGHT, minWeight));
-
-        if (Preconditions.checkNotNull(analyzeTemplates, "analyze templates == null")
-                .isEmpty())
-            throw new IllegalArgumentException("no analyze templates specified");
+        Preconditions.checkArgument(!Preconditions.checkNotNull(analyzeTemplates, "analyze templates == null")
+                .isEmpty(), "no analyze templates specified");
 
         this.id = Preconditions.checkNotNull(id);
         this.minWeight = minWeight;
@@ -51,5 +44,12 @@ public final class PageSetting {
         this.formatTemplates = Preconditions.checkNotNull(formatTemplates);// may be empty
         this.analyzeTemplates = analyzeTemplates;
         this.selectSettings = selectSettings;
+        this.baseUrl = baseUrl;
     }
+
+    @NotNull
+    public Optional<URL> getBaseUrl() {
+        return Optional.ofNullable(baseUrl);
+    }
+
 }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <tx:annotation-driven/>
+
+    <context:component-scan base-package="ua.com.papers.services.crawler.unit"/>
+    <!-- Process annotations on registered beans like @Autowired... -->
+    <context:annotation-config/>
+
+    <util:set id="handlers">
+        <ref bean="nbuvUrlCollector"/>
+        <ref bean="nbuvArticleHandler"/>
+    </util:set>
+
+    <util:set id="startUrls">
+        <bean class="java.net.URL">
+            <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/"/>
+        </bean>
+        <bean class="java.net.URL">
+            <constructor-arg name="spec" value="http://dspace.nbuv.gov.ua/handle/123456789/126927?show=full"/>
+        </bean>
+    </util:set>
+
+    <bean id="nbuvJobId" class="ua.com.papers.crawler.settings.JobId">
+        <constructor-arg name="jobId" value="nbuv-job"/>
+    </bean>
+
+    <bean id="schedulerSettings" class="ua.com.papers.crawler.settings.SchedulerSetting">
+        <constructor-arg name="indexDelay" value="30000"/>
+        <constructor-arg name="processingThreads" value="3"/>
+        <constructor-arg name="processingDelay" value="30000"/>
+        <constructor-arg name="indexThreads" value="3"/>
+    </bean>
+
+    <bean id="nbuvFactory"
+          class="ua.com.papers.services.crawler.AnnotationCrawlerFactoryImp">
+        <constructor-arg name="jobId" ref="nbuvJobId"/>
+        <constructor-arg name="handlers" ref="handlers"/>
+        <constructor-arg name="startUrls" ref="startUrls"/>
+        <constructor-arg name="schedulerSetting" ref="schedulerSettings"/>
+        <constructor-arg name="urlsRepository" ref="jpaUrlsRepository"/>
+    </bean>
+
+</beans>

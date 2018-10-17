@@ -6,8 +6,12 @@ import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.java.Log;
-import ua.com.papers.crawler.core.domain.bo.Page;
-import ua.com.papers.crawler.core.domain.format.convert.StringAdapter;
+import ua.com.papers.crawler.core.main.model.Page;
+import ua.com.papers.crawler.settings.v1.Part;
+import ua.com.papers.crawler.settings.v1.PageHandlerV1;
+import ua.com.papers.crawler.settings.v1.PostHandle;
+import ua.com.papers.crawler.settings.v1.PreHandle;
+import ua.com.papers.crawler.core.processor.convert.general.StringAdapter;
 import ua.com.papers.services.crawler.IHandlerCallback;
 import ua.com.papers.crawler.util.*;
 import ua.com.papers.exceptions.bad_request.WrongRestrictionException;
@@ -29,7 +33,7 @@ import java.util.stream.Collectors;
  * Created by Максим on 2/6/2017.
  */
 @Log
-@PageHandler(id = 5)
+@PageHandlerV1(id = 5)
 @Value
 @Getter(AccessLevel.NONE)
 public class UkmaPublisherHandler {
@@ -49,7 +53,7 @@ public class UkmaPublisherHandler {
 
     @PreHandle
     public void onPrepare(Page page) throws WrongRestrictionException, NoSuchEntityException {
-        log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPrepare %s, %s", getClass(), page.getUrl()));
 
         if (titleToId == null) {
             // load all data
@@ -69,7 +73,7 @@ public class UkmaPublisherHandler {
 
     @PostHandle
     public void onPageParsed(Page page) {
-        log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
+        //log.log(Level.INFO, String.format("#onPageParsed %s, %s", getClass(), page.getUrl()));
 
         Preconditions.checkNotNull(publisherView, "inner exception! onPrepare# wasn't called");
 
@@ -97,14 +101,14 @@ public class UkmaPublisherHandler {
             }
 
             publisherView.setId(id);
-            log.log(Level.INFO, String.format("publisher was proceeded successfully %s", publisherView.getTitle()));
+            //log.log(Level.INFO, String.format("publisher was proceeded successfully %s", publisherView.getTitle()));
             callback.onPublisherReady(publisherView);
         }
     }
 
-    @Handler(id = 5, converter = StringAdapter.class)
+    @Part(id = 5, converter = StringAdapter.class)
     public void onHandlePubHouseTitle(String title) {
-        log.log(Level.INFO, String.format("#onHandlePubHouseTitle %s, %s", getClass(), title));
+        //log.log(Level.INFO, String.format("#onHandlePubHouseTitle %s, %s", getClass(), title));
 
         if (TextUtils.isEmpty(title)) {
             log.log(Level.WARNING, String.format("failed to parse title, %s", getClass()));
@@ -113,7 +117,7 @@ public class UkmaPublisherHandler {
         }
     }
 
-    @Handler(id = 6, converter = StringAdapter.class)
+    @Part(id = 6, converter = StringAdapter.class)
     public void onHandlePubHouseCity(String city) {
         //todo finish
     }

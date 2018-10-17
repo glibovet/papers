@@ -11,6 +11,8 @@ public interface ICrawlerService {
 
     void startCrawling();
 
+    void startIndexing();
+
     void stopCrawling();
 
     /*boolean isCrawling();

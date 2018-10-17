@@ -1,34 +1,32 @@
 package ua.com.papers.crawler.settings;
 
-import lombok.Builder;
+import lombok.NonNull;
 import lombok.Singular;
 import lombok.Value;
 
 import java.net.URL;
 import java.util.Collection;
-import java.util.List;
 
 /**
- * <p>
- * This class represents crawler settings, which
- * can be used to create a new instance
- * </p>
- * Created by Максим on 11/27/2016.
+ * This class represents crawler settings that
+ * can be used to configure crawler
  */
 @Value
-@Builder(builderClassName = "Builder")
 public final class Settings {
 
+    JobId job;
     SchedulerSetting schedulerSetting;
     @Singular
-    List<URL> startUrls;
+    Collection<? extends URL> startUrls;
     @Singular
-    Collection<PageSetting> pageSettings;
+    Collection<? extends PageSetting> pageSettings;
 
-    private Settings(SchedulerSetting schedulerSetting,
-                     List<URL> startUrls,
-                     Collection<PageSetting> pageSettings) {
+    public Settings(@NonNull JobId id,
+                    @NonNull SchedulerSetting schedulerSetting,
+                    @NonNull Collection<? extends URL> startUrls,
+                    @NonNull Collection<? extends PageSetting> pageSettings) {
         this.schedulerSetting = schedulerSetting;
+        this.job = id;
         this.startUrls = startUrls;
         this.pageSettings = pageSettings;
     }

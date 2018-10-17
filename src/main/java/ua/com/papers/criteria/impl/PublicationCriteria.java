@@ -7,6 +7,7 @@ import ua.com.papers.pojo.entities.PublicationEntity;
 import ua.com.papers.pojo.entities.PublisherEntity;
 import ua.com.papers.pojo.enums.PublicationStatusEnum;
 import ua.com.papers.pojo.enums.PublicationTypeEnum;
+import ua.com.papers.pojo.enums.UploadStatus;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -30,6 +31,7 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
     private Collection<Integer> publishers_id;
     private PublicationStatusEnum status;
     private PublicationTypeEnum type;
+    private UploadStatus upload_status;
     private Boolean in_index;
 
     public PublicationCriteria(){
@@ -54,6 +56,7 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
             this.link = parsed.link;
             this.title = parsed.title;
             this.in_index = parsed.in_index;
+            this.upload_status = parsed.upload_status;
         }
     }
 
@@ -182,6 +185,14 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         this.in_index = in_index;
     }
 
+    public UploadStatus getUpload_status() {
+        return upload_status;
+    }
+
+    public void setUpload_status(UploadStatus upload_status) {
+        this.upload_status = upload_status;
+    }
+
     public PublicationCriteria inIndex(Boolean in_index) {
         this.in_index = in_index;
         return this;
@@ -283,6 +294,10 @@ public class PublicationCriteria extends Criteria<PublicationEntity> {
         if (this.authorId!=null){
             Join<PublicationEntity, AuthorMasterEntity> authors = root.join("authors");
             conditions.add(authors.get("id").in(this.authorId));
+        }
+        if(this.upload_status!=null){
+            Expression<UploadStatus> expression = root.get("uploadStatus");
+            conditions.add(cb.equal(expression, this.upload_status));
         }
         Predicate[] predicates = conditions.toArray(new Predicate[conditions.size()]);
         query.where(cb.and(predicates));

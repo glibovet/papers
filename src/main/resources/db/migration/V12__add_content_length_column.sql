@@ -1,0 +1,1 @@
+ALTER TABLE `publication` ADD COLUMN `content_length`  BIGINT NOT NULL DEFAULT 0

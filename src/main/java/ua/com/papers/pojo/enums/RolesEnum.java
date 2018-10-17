@@ -6,5 +6,7 @@ package ua.com.papers.pojo.enums;
 public enum RolesEnum {
     user,
     moderator,
-    admin;
+    admin,
+    student,
+    scientist;
 }
