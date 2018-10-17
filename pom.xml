@@ -562,6 +562,7 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
+
     <!--for shell-->
     <repositories>
         <repository>
