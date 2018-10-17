@@ -1,5 +1,7 @@
 package ua.com.papers.services.recommendations;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ import java.util.*;
 @Service
 public class RecommendationsServiceImpl implements IRecommendationsService{
 
+    private static final Logger log = LoggerFactory.getLogger(RecommendationsServiceImpl.class);
+
     @Autowired
     private IDocumentsProcessingService documentsProcessingService;
 
@@ -38,17 +42,23 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
     private IPublicationService publicationService;
 
     public void generate() {
+
+        log.info("===Started generating recommendations===");
+
         // 1. Prepare documents collection: Create document with publication id, text and list of words.
         List<Document> documents = documentsProcessingService.prepareDocumentsCollection();
+        log.info("---1.Prepared documents collection---");
 
         // 2. Calculate tf-idf for every word in every document.
         this.tfIdfService.calculateTfIdfForDocuments(documents);
+        log.info("---2.Calculated tf-idf for every word in document---");
 
         // 3. Sort tf-idf list by value in desc order in every document
         for(Document document : documents) {
             Collections.sort(document.getTfIdfItems());
             Collections.reverse(document.getTfIdfItems());
         }
+        log.info("---3.Sorted tf-idf list by value in desc order in every document---");
 
         // 4. Create dictionary - dictionary can be created only after all key words for documents have been fined
         HashSet<String> dictionary = new HashSet<>();
@@ -63,12 +73,15 @@ public class RecommendationsServiceImpl implements IRecommendationsService{
                 }
             }
         }
+        log.info("---4.Created dictionary of unique key words from every document---");
 
         // 5. Delete previous Cosine similarity calculations
         publicationsCosineSimilarityService.deleteAll();
+        log.info("---5.Removed old calculated cosine similarity from the DB---");
 
         // 6. Calculate cosine similarity between all pairs of documents and save into db
         this.cosineSimilarityService.processDocuments(documents, dictionary);
+        log.info("---6.Calculated cosine similarity and saved into DB---");
     }
 
     public HashSet<PublicationEntity> prepareBasedOnInteractions(Map<Integer, Double> hm) {

@@ -29,13 +29,13 @@
                         <c:forEach var="recommendation" items="${recommendations}">
                             <div class="row text-left">
                                 <h4>${recommendation.title}</h4>
-                                <p>
-                                    Автор(и):
-                                        <%--${item.authors}--%>
+                                <%--<p>--%>
+                                    <%--Автор(и):--%>
+                                        <%--&lt;%&ndash;${item.authors}&ndash;%&gt;--%>
                                     <%--<c:forEach var="author" items="${item.authors}">--%>
                                         <%--${author.lastName} ${author.initials}--%>
                                     <%--</c:forEach>--%>
-                                </p>
+                                <%--</p>--%>
                                 <p>Видавництво: ${recommendation.publisher.title}</p>
                                 <c:choose>
                                     <c:when test="${recommendation.link ne null}">
